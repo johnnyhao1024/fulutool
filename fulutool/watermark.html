@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>图片水印工具 · 福禄工具箱</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath fill='none' stroke='%23e2e8f0' stroke-width='1' stroke-dasharray='1 2' d='M10 0 L10 20 M0 10 L20 10'/%3E%3C/svg%3E");
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            line-height: 1.5;
+            color: #0f172a;
+            padding: 2rem 1.5rem;
+        }
+        .container { max-width: 1280px; margin: 0 auto; }
+        
+        .header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .title-section {
+            text-align: center;
+        }
+        .title-section h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #1e293b, #2d3a4e);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .title-section h1 a {
+            display: inline-flex;
+            align-items: center;
+            transition: transform 0.2s ease;
+        }
+        .title-section h1 a:hover {
+            transform: scale(1.02);
+        }
+        .title-section h1 img {
+            height: 2rem;
+            width: auto;
+            vertical-align: middle;
+        }
+        .title-section p {
+            color: #475569;
+            font-size: 0.9rem;
+        }
+        .current-tool-badge {
+            display: inline-block;
+            background: #eef2ff;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            color: #1e40af;
+            margin-top: 0.5rem;
+        }
+        
+        .tool-panel {
+            background: #ffffff;
+            border-radius: 32px;
+            border: 1px solid #edf2f7;
+            padding: 1.8rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+        .tool-title { font-size: 1.6rem; font-weight: 600; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem; }
+        .tool-desc {
+            color: #5b6e8c;
+            border-left: 3px solid #cbd5e1;
+            padding-left: 0.9rem;
+            margin-bottom: 1.6rem;
+            font-size: 0.9rem;
+        }
+        .control-group {
+            margin-bottom: 1rem;
+        }
+        .control-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #334155;
+            margin-bottom: 0.3rem;
+        }
+        .slider-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+        input[type="range"] {
+            flex: 1;
+            min-width: 150px;
+        }
+        .value-display {
+            background: #f1f5f9;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+        }
+        .text-input {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 40px;
+            font-size: 0.9rem;
+        }
+        .color-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .color-input-wrapper input[type="color"] {
+            width: 50px;
+            height: 40px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+        }
+        .checkbox-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+        .upload-area {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .preview-container {
+            text-align: center;
+            margin: 1rem 0;
+        }
+        .preview-img {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        button {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 0.6rem 1.3rem;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #1e293b;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        button.primary { background: #0f172a; color: white; border: none; }
+        button.primary:hover { background: #1e293b; transform: translateY(-1px); }
+        button:hover { background: #e6edf4; border-color: #cbd5e1; }
+        button.pressed { background: #cbd5e1 !important; transform: scale(0.96); transition: 0.05s; }
+        
+        .other-tools-section { margin-top: 1rem; padding-top: 1rem; }
+        .section-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #475569;
+            margin-bottom: 1rem;
+            padding-bottom: 0.6rem;
+        }
+        
+        /* 统一卡片样式 */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 1rem;
+            justify-content: center;
+        }
+        .tool-card {
+            background: #ffffff;
+            border-radius: 20px;
+            border: 2px solid #eef2f8;
+            padding: 0.8rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: #070707;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 70px;
+        }
+        .tool-card:hover {
+            transform: translateY(-2px);
+            border-color: #cbdbe0;
+            background: #fefefe;
+        }
+        .tool-card-name {
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        @media (max-width: 700px) {
+            .cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .tool-card {
+                padding: 0.6rem 0.8rem;
+                min-height: 60px;
+            }
+            .tool-card-name {
+                font-size: 0.85rem;
+            }
+        }
+        
+        .footer { text-align: center; font-size: 0.75rem; color: #8b9ab0; margin-top: 2rem; padding-top: 1rem; }
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+            .tool-panel { padding: 1.2rem; }
+            .title-section h1 img { height: 1.6rem; }
+        }
+        .save-tip {
+            font-size: 0.7rem;
+            color: #5b6e8c;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+        /* 保存按钮初始隐藏 */
+        #saveImageBtn {
+            display: none;
+        }
+    </style>
+<link rel="stylesheet" href="/assets/fulutool.css">
+<script defer src="/assets/fulutool.js"></script>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="title-section">
+            <h1>
+                <span class="brand-mark">福</span>
+                福禄工具箱
+            </h1>
+            <p>免费使用 · 无需注册 · 即用即走</p>
+            <div class="current-tool-badge">当前工具：图片水印工具</div>
+        </div>
+    </div>
+
+    <div class="tool-panel">
+        <div class="tool-title">💧 图片水印工具</div>
+        <div class="tool-desc">为图片添加文字水印，支持平铺模式，可调节颜色、透明度、大小和旋转角度（实时预览）</div>
+        
+        <div class="upload-area">
+            <input type="file" id="uploadImage" accept="image/jpeg,image/png,image/jpg,image/webp" style="display:none;">
+            <button id="selectImageBtn" class="primary">📂 选择图片</button>
+        </div>
+        
+        <div class="control-group">
+            <label>✍️ 水印文字</label>
+            <input type="text" id="watermarkText" class="text-input" placeholder="请输入水印文字" value="福禄工具箱">
+        </div>
+        
+        <div class="control-group">
+            <label>🎨 文字颜色</label>
+            <div class="color-input-wrapper">
+                <input type="color" id="watermarkColor" value="#000000">
+                <span id="colorValue">黑色</span>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <label>🎨 文字透明度 (<span id="opacityValue">50</span>%)</label>
+            <div class="slider-wrapper">
+                <input type="range" id="opacitySlider" min="0" max="100" step="1" value="50">
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <label>📏 字体大小 (<span id="fontSizeValue">24</span> px)</label>
+            <div class="slider-wrapper">
+                <input type="range" id="fontSizeSlider" min="12" max="200" step="2" value="24">
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <label>🔄 旋转角度 (<span id="angleValue">0</span>°)</label>
+            <div class="slider-wrapper">
+                <input type="range" id="angleSlider" min="-180" max="180" step="1" value="0">
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <label class="checkbox-label">
+                <input type="checkbox" id="tileMode"> 🧩 平铺模式（文字均匀分布）
+            </label>
+        </div>
+        
+        <!-- 预览区 -->
+        <div id="previewContainer" class="preview-container" style="display: none;">
+            <img id="previewImage" class="preview-img" alt="预览图">
+        </div>
+        
+        <!-- 保存图片按钮（初始隐藏，上传图片后显示） -->
+        <div style="text-align: center; margin-top: 0.5rem;">
+            <button id="saveImageBtn" class="primary">💾 保存图片</button>
+        </div>
+        <div id="saveTip" class="save-tip" style="display: none;">💡 点击保存按钮下载图片；移动端若无法下载，可长按图片保存</div>
+        <div id="errorMsg" style="color:#b91c1c; text-align:center; margin-top:0.5rem; display:none;"></div>
+    </div>
+
+    <div class="other-tools-section">
+        <div class="section-label">🧩 其他工具 · 点击切换</div>
+        <div class="cards-grid">
+            <a href="/password.html" class="tool-card"><span class="tool-card-name">🔐 随机密码生成器</span></a>
+            <a href="/ip-lookup.html" class="tool-card"><span class="tool-card-name">🌐 IP归属地查询</span></a>
+            <a href="/pixel-avatar.html" class="tool-card"><span class="tool-card-name">🎨 像素头像生成器</span></a>
+            <a href="/shortlink.html" class="tool-card"><span class="tool-card-name">🔗 短链接生成器</span></a>
+            <a href="/imagecompress.html" class="tool-card"><span class="tool-card-name">🖼️ 图片压缩器</span></a>
+            <a href="/tools.html" class="tool-card"><span class="tool-card-name">📦 全部工具</span></a>
+        </div>
+    </div>
+    <div class="footer">🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪</div>
+    
+</div>
+
+<script>
+    (function() {
+        // DOM 元素
+        const fileInput = document.getElementById('uploadImage');
+        const selectBtn = document.getElementById('selectImageBtn');
+        const watermarkText = document.getElementById('watermarkText');
+        const watermarkColor = document.getElementById('watermarkColor');
+        const colorValue = document.getElementById('colorValue');
+        const opacitySlider = document.getElementById('opacitySlider');
+        const opacityValue = document.getElementById('opacityValue');
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        const fontSizeValue = document.getElementById('fontSizeValue');
+        const angleSlider = document.getElementById('angleSlider');
+        const angleValue = document.getElementById('angleValue');
+        const tileModeCheck = document.getElementById('tileMode');
+        const saveBtn = document.getElementById('saveImageBtn');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewImage = document.getElementById('previewImage');
+        const saveTip = document.getElementById('saveTip');
+        const errorMsg = document.getElementById('errorMsg');
+        
+        let currentImage = null;       // 原始图片 Image 对象
+        let currentCanvas = null;       // 当前水印 canvas
+        let currentDataURL = null;
+        
+        function showError(msg) {
+            errorMsg.textContent = msg;
+            errorMsg.style.display = 'block';
+            setTimeout(() => { errorMsg.style.display = 'none'; }, 3000);
+        }
+        
+        function addPressedEffect(btn) {
+            btn.classList.add('pressed');
+            setTimeout(() => btn.classList.remove('pressed'), 150);
+        }
+        
+        // 将颜色名称显示（简单映射）
+        function getColorName(hex) {
+            const colorMap = {
+                '#000000': '黑色', '#ffffff': '白色', '#ff0000': '红色', '#00ff00': '绿色', '#0000ff': '蓝色',
+                '#ffff00': '黄色', '#ff00ff': '紫色', '#00ffff': '青色', '#808080': '灰色', '#800000': '暗红'
+            };
+            return colorMap[hex.toLowerCase()] || '自定义';
+        }
+        
+        // 更新颜色显示
+        function updateColorDisplay() {
+            const color = watermarkColor.value;
+            colorValue.textContent = getColorName(color);
+        }
+        
+        // 绘制水印（核心）
+        function drawWatermark(img, text, colorHex, opacityPercent, fontSizePx, angleDeg, tileMode) {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            
+            // 绘制原始图片
+            ctx.drawImage(img, 0, 0);
+            
+            // 水印样式
+            const alpha = opacityPercent / 100;
+            // 将 hex 转换为 rgba
+            const r = parseInt(colorHex.slice(1,3), 16);
+            const g = parseInt(colorHex.slice(3,5), 16);
+            const b = parseInt(colorHex.slice(5,7), 16);
+            ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            const font = `${fontSizePx}px "Microsoft YaHei", "PingFang SC", system-ui, -apple-system, sans-serif`;
+            ctx.font = font;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            const textWidth = ctx.measureText(text).width;
+            const textHeight = fontSizePx;
+            
+            if (tileMode) {
+                const stepX = textWidth + 20;
+                const stepY = textHeight + 20;
+                const startX = stepX / 2;
+                const startY = stepY / 2;
+                for (let y = startY; y < canvas.height; y += stepY) {
+                    for (let x = startX; x < canvas.width; x += stepX) {
+                        ctx.save();
+                        ctx.translate(x, y);
+                        ctx.rotate(angleDeg * Math.PI / 180);
+                        ctx.fillText(text, 0, 0);
+                        ctx.restore();
+                    }
+                }
+            } else {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(angleDeg * Math.PI / 180);
+                ctx.fillText(text, 0, 0);
+                ctx.restore();
+            }
+            return canvas;
+        }
+        
+        // 生成水印并更新预览（实时调用）
+        function refreshWatermark() {
+            if (!currentImage) return;
+            const text = watermarkText.value.trim();
+            if (text === '') {
+                previewContainer.style.display = 'none';
+                saveTip.style.display = 'none';
+                currentDataURL = null;
+                // 如果没有文字，隐藏保存按钮
+                saveBtn.style.display = 'none';
+                return;
+            }
+            const color = watermarkColor.value;
+            const opacity = parseInt(opacitySlider.value, 10);
+            const fontSize = parseInt(fontSizeSlider.value, 10);
+            const angle = parseInt(angleSlider.value, 10);
+            const tileMode = tileModeCheck.checked;
+            
+            try {
+                const canvas = drawWatermark(currentImage, text, color, opacity, fontSize, angle, tileMode);
+                currentCanvas = canvas;
+                const dataURL = canvas.toDataURL('image/png');
+                currentDataURL = dataURL;
+                previewImage.src = dataURL;
+                previewContainer.style.display = 'block';
+                saveTip.style.display = 'block';
+                // 有有效水印时显示保存按钮
+                saveBtn.style.display = 'inline-block';
+            } catch (err) {
+                console.error(err);
+                showError('生成水印失败，请重试');
+                saveBtn.style.display = 'none';
+            }
+        }
+        
+        // 保存图片
+        function saveImage() {
+            if (!currentDataURL) {
+                showError('请先选择图片并确保水印文字有效');
+                return;
+            }
+            const link = document.createElement('a');
+            link.download = 'watermarked_image.png';
+            link.href = currentDataURL;
+            link.click();
+        }
+        
+        // 上传图片
+        selectBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.onload = () => {
+                    currentImage = img;
+                    previewContainer.style.display = 'none';
+                    saveTip.style.display = 'none';
+                    currentDataURL = null;
+                    // 上传后立即刷新水印，此时会触发显示保存按钮（如果水印文字有效）
+                    refreshWatermark();
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        // 实时监听参数变化
+        watermarkText.addEventListener('input', refreshWatermark);
+        watermarkColor.addEventListener('input', () => {
+            updateColorDisplay();
+            refreshWatermark();
+        });
+        opacitySlider.addEventListener('input', () => {
+            opacityValue.textContent = opacitySlider.value;
+            refreshWatermark();
+        });
+        fontSizeSlider.addEventListener('input', () => {
+            fontSizeValue.textContent = fontSizeSlider.value;
+            refreshWatermark();
+        });
+        angleSlider.addEventListener('input', () => {
+            angleValue.textContent = angleSlider.value;
+            refreshWatermark();
+        });
+        tileModeCheck.addEventListener('change', refreshWatermark);
+        
+        // 保存按钮
+        saveBtn.addEventListener('click', () => {
+            addPressedEffect(saveBtn);
+            saveImage();
+        });
+        
+        // 初始化显示
+        updateColorDisplay();
+        opacityValue.textContent = opacitySlider.value;
+        fontSizeValue.textContent = fontSizeSlider.value;
+        angleValue.textContent = angleSlider.value;
+        // 初始隐藏保存按钮（因为没有图片）
+        saveBtn.style.display = 'none';
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>免费在线图片压缩器 · 福禄工具箱</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath fill='none' stroke='%23e2e8f0' stroke-width='1' stroke-dasharray='1 2' d='M10 0 L10 20 M0 10 L20 10'/%3E%3C/svg%3E");
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            line-height: 1.5;
+            color: #0f172a;
+            padding: 2rem 1.5rem;
+        }
+        .container { max-width: 1280px; margin: 0 auto; }
+        
+        /* 头部样式 */
+        .header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .title-section {
+            text-align: center;
+        }
+        .title-section h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #1e293b, #2d3a4e);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .title-section h1 a {
+            display: inline-flex;
+            align-items: center;
+            transition: transform 0.2s ease;
+        }
+        .title-section h1 a:hover {
+            transform: scale(1.02);
+        }
+        .title-section h1 img {
+            height: 2rem;
+            width: auto;
+            vertical-align: middle;
+        }
+        .title-section p {
+            color: #475569;
+            font-size: 0.9rem;
+        }
+        .current-tool-badge {
+            display: inline-block;
+            background: #eef2ff;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            color: #1e40af;
+            margin-top: 0.5rem;
+        }
+        
+        /* 工具面板样式 */
+        .tool-panel {
+            background: #ffffff;
+            border-radius: 32px;
+            border: 1px solid #edf2f7;
+            padding: 1.8rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+        .tool-title { font-size: 1.6rem; font-weight: 600; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem; }
+        .tool-desc {
+            color: #5b6e8c;
+            border-left: 3px solid #cbd5e1;
+            padding-left: 0.9rem;
+            margin-bottom: 1.6rem;
+            font-size: 0.9rem;
+        }
+        .compress-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+            margin: 1rem 0;
+        }
+        .slider-group {
+            flex: 2;
+            min-width: 180px;
+            background: #f9fbfd;
+            padding: 0.5rem 1rem;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .slider-group span { font-size: 0.8rem; }
+        .slider-group input[type="range"] { flex: 1; padding: 0; margin: 0; }
+        .image-preview-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            justify-content: center;
+        }
+        .preview-card {
+            flex: 1;
+            min-width: 200px;
+            background: #f9fbfd;
+            border-radius: 24px;
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid #ecf3f9;
+        }
+        .preview-card .preview-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 0.8rem;
+        }
+        .preview-img {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 0.8rem;
+            margin-bottom: 0.6rem;
+            min-height: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .preview-img img { max-width: 100%; max-height: 160px; object-fit: contain; border-radius: 8px; }
+        .placeholder-icon { font-size: 2.5rem; opacity: 0.4; color: #94a3b8; }
+        .file-info {
+            font-size: 0.7rem;
+            color: #5b6e8c;
+            background: #ffffff;
+            display: inline-block;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            margin-top: 0.5rem;
+        }
+        .download-img-btn {
+            background: #0f172a;
+            color: white;
+            border: none;
+            font-size: 0.7rem;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            margin-top: 0.5rem;
+            cursor: pointer;
+        }
+        button {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 0.6rem 1.3rem;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #1e293b;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 0.6rem;
+            margin-bottom: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        button.primary { background: #0f172a; color: white; border: none; }
+        button.primary:hover { background: #1e293b; transform: translateY(-1px); }
+        button:hover { background: #e6edf4; border-color: #cbd5e1; }
+        button.pressed { background: #cbd5e1 !important; transform: scale(0.96); transition: 0.05s; }
+        .other-tools-section { margin-top: 1rem; padding-top: 1rem; }
+        .section-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #475569;
+            margin-bottom: 1rem;
+            padding-bottom: 0.6rem;
+        }
+        
+        /* ========== 统一卡片样式（与 puzzle.html 一致） ========== */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 1rem;
+            justify-content: center;
+        }
+        .tool-card {
+            background: #ffffff;
+            border-radius: 20px;
+            border: 2px solid #eef2f8;
+            padding: 0.8rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: #070707;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 70px;
+        }
+        .tool-card:hover {
+            transform: translateY(-2px);
+            border-color: #cbdbe0;
+            background: #fefefe;
+        }
+        .tool-card-name {
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        @media (max-width: 700px) {
+            .cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .tool-card {
+                padding: 0.6rem 0.8rem;
+                min-height: 60px;
+            }
+            .tool-card-name {
+                font-size: 0.85rem;
+            }
+        }
+        /* ================================================= */
+        
+        .footer { text-align: center; font-size: 0.75rem; color: #8b9ab0; margin-top: 2rem; padding-top: 1rem; }
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+            .tool-panel { padding: 1.2rem; }
+            .title-section h1 img { height: 1.6rem; }
+        }
+        .weixin-tip {
+            color: #e67e22;
+            font-size: 0.7rem;
+            margin-top: 0.3rem;
+            display: block;
+        }
+    </style>
+<link rel="stylesheet" href="/assets/fulutool.css">
+<script defer src="/assets/fulutool.js"></script>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="title-section">
+            <h1>
+                <span class="brand-mark">福</span>
+                福禄工具箱
+            </h1>
+            <p>免费使用 · 无需注册 · 即用即走</p>
+            <div class="current-tool-badge">当前工具：图片压缩器</div>
+        </div>
+    </div>
+
+    <div class="tool-panel">
+        <div class="tool-title">🖼️ 图片压缩器</div>
+        <div class="tool-desc">上传图片，调整压缩质量或最大宽度，减少文件体积</div>
+        <div class="compress-controls">
+            <div class="slider-group"><span>📉 压缩质量</span><input type="range" id="qualitySlider" min="0.1" max="1" step="0.01" value="0.8"><span id="qualityValue">80%</span></div>
+            <div class="slider-group"><span>📐 最大宽度</span><input type="number" id="maxWidthInput" min="100" max="3000" step="50" value="1200" style="width:100px;"><span>px</span></div>
+            <div><input type="file" id="uploadImage" accept="image/jpeg,image/png,image/jpg,image/webp" style="display:none;"><button id="selectImageBtn" class="primary">📂 选择图片</button><button id="compressImageBtn" class="primary">⚡ 开始压缩</button></div>
+        </div>
+        <div class="image-preview-area" id="imagePreviewArea" style="display:none;">
+            <div class="preview-card">
+                <div class="preview-title">📸 原图</div>
+                <div class="preview-img" id="originalPreviewContainer"><div class="placeholder-icon">🖼️</div></div>
+                <div class="file-info" id="originalInfo">未选择图片</div>
+            </div>
+            <div class="preview-card">
+                <div class="preview-title">✨ 压缩结果</div>
+                <div class="preview-img" id="compressedPreviewContainer"><div class="placeholder-icon">⚡</div></div>
+                <div class="file-info" id="compressedInfo">等待压缩</div>
+                <button id="downloadCompressedBtn" class="download-img-btn">⬇️ 下载图片</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="other-tools-section">
+        <div class="section-label">🧩 其他工具 · 点击切换</div>
+        <div class="cards-grid">
+            <a href="/shortlink.html" class="tool-card"><span class="tool-card-name">🔗 短链接生成器</span></a>
+            <a href="/qrcode.html" class="tool-card"><span class="tool-card-name">📱 二维码生成器</span></a>
+            <a href="/textstats.html" class="tool-card"><span class="tool-card-name">📊 文本整理器</span></a>
+            <a href="/password.html" class="tool-card"><span class="tool-card-name">🔐 随机密码生成</span></a>
+            <a href="/ip-lookup.html" class="tool-card"><span class="tool-card-name">🌐 IP归属地查询</span></a>
+            <a href="/tools.html" class="tool-card"><span class="tool-card-name">📦 全部工具</span></a>
+        </div>
+    </div>
+    <div class="footer">🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪</div>
+</div>
+
+<script>
+    (function() {
+        // 环境检测
+        var isWeixin = /MicroMessenger/i.test(navigator.userAgent);
+        var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        var isMobileWeixin = isWeixin && isMobile;
+        
+        var originalFile = null;
+        var compressedBlob = null;
+        var compressedDataURL = null;
+        
+        var fileInput = document.getElementById('uploadImage');
+        var selectBtn = document.getElementById('selectImageBtn');
+        var compressBtn = document.getElementById('compressImageBtn');
+        var downloadBtn = document.getElementById('downloadCompressedBtn');
+        var qualitySlider = document.getElementById('qualitySlider');
+        var qualityVal = document.getElementById('qualityValue');
+        var maxWidthInput = document.getElementById('maxWidthInput');
+        var previewArea = document.getElementById('imagePreviewArea');
+        var originalContainer = document.getElementById('originalPreviewContainer');
+        var compressedContainer = document.getElementById('compressedPreviewContainer');
+        var originalInfo = document.getElementById('originalInfo');
+        var compressedInfo = document.getElementById('compressedInfo');
+        
+        if (qualitySlider) {
+            qualitySlider.addEventListener('input', function(e) {
+                qualityVal.innerText = Math.round(e.target.value * 100) + '%';
+            });
+        }
+        if (selectBtn) {
+            selectBtn.addEventListener('click', function() { fileInput.click(); });
+        }
+        
+        // 选择图片
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    originalFile = e.target.files[0];
+                    var reader = new FileReader();
+                    reader.onload = function(ev) {
+                        originalContainer.innerHTML = '<img src="' + ev.target.result + '" alt="原图">';
+                        originalInfo.innerHTML = (originalFile.size / 1024).toFixed(2) + ' KB · ' + originalFile.type.split('/')[1];
+                        previewArea.style.display = 'flex';
+                        compressedContainer.innerHTML = '<div class="placeholder-icon">⚡</div>';
+                        compressedInfo.innerHTML = '等待压缩';
+                        compressedBlob = null;
+                        compressedDataURL = null;
+                        if (isMobileWeixin) {
+                            downloadBtn.style.display = 'none';
+                        } else {
+                            downloadBtn.style.display = 'inline-block';
+                        }
+                    };
+                    reader.readAsDataURL(originalFile);
+                } else {
+                    previewArea.style.display = 'none';
+                    originalFile = null;
+                }
+            });
+        }
+        
+        // 压缩图片
+        if (compressBtn) {
+            compressBtn.addEventListener('click', function() {
+                if (!originalFile) {
+                    alert('请先选择图片');
+                    return;
+                }
+                compressBtn.classList.add('pressed');
+                setTimeout(function() { compressBtn.classList.remove('pressed'); }, 150);
+                
+                var quality = parseFloat(qualitySlider.value);
+                var maxWidth = parseInt(maxWidthInput.value);
+                if (isNaN(maxWidth) || maxWidth < 100) maxWidth = 1200;
+                
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var img = new Image();
+                    img.onload = function() {
+                        var width = img.width;
+                        var height = img.height;
+                        if (width > maxWidth) {
+                            height = (height * maxWidth) / width;
+                            width = maxWidth;
+                        }
+                        var canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        var ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        var dataURL = canvas.toDataURL('image/jpeg', quality);
+                        compressedDataURL = dataURL;
+                        
+                        fetch(dataURL)
+                            .then(res => res.blob())
+                            .then(blob => {
+                                compressedBlob = blob;
+                                var sizeKB = (blob.size / 1024).toFixed(2);
+                                var qualityPercent = Math.round(quality * 100);
+                                var dimensions = Math.round(width) + ' x ' + Math.round(height);
+                                var infoText = sizeKB + ' KB · ' + qualityPercent + '% · ' + dimensions;
+                                if (isMobileWeixin) {
+                                    compressedInfo.innerHTML = infoText + '<br><span class="weixin-tip">📱 长按图片保存到手机</span>';
+                                    downloadBtn.style.display = 'none';
+                                } else {
+                                    compressedInfo.innerHTML = infoText;
+                                    downloadBtn.style.display = 'inline-block';
+                                }
+                            })
+                            .catch(function(err) {
+                                console.error('Blob conversion error:', err);
+                                var qualityPercent = Math.round(quality * 100);
+                                var dimensions = Math.round(width) + ' x ' + Math.round(height);
+                                var infoText = '(大小计算中) ' + qualityPercent + '% · ' + dimensions;
+                                if (isMobileWeixin) {
+                                    compressedInfo.innerHTML = infoText + '<br><span class="weixin-tip">📱 长按图片保存到手机</span>';
+                                } else {
+                                    compressedInfo.innerHTML = infoText;
+                                }
+                            });
+                        
+                        compressedContainer.innerHTML = '<img src="' + dataURL + '" alt="压缩后图片" style="max-width:100%; max-height:160px; border-radius:8px;">';
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(originalFile);
+            });
+        }
+        
+        // 下载按钮
+        if (downloadBtn) {
+            downloadBtn.addEventListener('click', function() {
+                downloadBtn.classList.add('pressed');
+                setTimeout(function() { downloadBtn.classList.remove('pressed'); }, 150);
+                if (compressedBlob) {
+                    var url = URL.createObjectURL(compressedBlob);
+                    var a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'compressed_' + originalFile.name.split('.')[0] + '.jpg';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                } else if (compressedDataURL) {
+                    var link = document.createElement('a');
+                    link.download = 'compressed_' + originalFile.name.split('.')[0] + '.jpg';
+                    link.href = compressedDataURL;
+                    link.click();
+                } else {
+                    alert('请先压缩图片');
+                }
+            });
+        }
+    })();
+</script>
+</body>
+</html>

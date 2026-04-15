@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>免费在线拼图工具 · 福禄工具箱</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath fill='none' stroke='%23e2e8f0' stroke-width='1' stroke-dasharray='1 2' d='M10 0 L10 20 M0 10 L20 10'/%3E%3C/svg%3E");
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            line-height: 1.5;
+            color: #0f172a;
+            padding: 2rem 1.5rem;
+        }
+        .container { max-width: 1280px; margin: 0 auto; }
+        
+        .header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .title-section {
+            text-align: center;
+        }
+        .title-section h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #1e293b, #2d3a4e);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .title-section h1 a {
+            display: inline-flex;
+            align-items: center;
+            transition: transform 0.2s ease;
+        }
+        .title-section h1 a:hover {
+            transform: scale(1.02);
+        }
+        .title-section h1 img {
+            height: 2rem;
+            width: auto;
+            vertical-align: middle;
+        }
+        .title-section p {
+            color: #475569;
+            font-size: 0.9rem;
+        }
+        .current-tool-badge {
+            display: inline-block;
+            background: #eef2ff;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            color: #1e40af;
+            margin-top: 0.5rem;
+        }
+        
+        .tool-panel {
+            background: #ffffff;
+            border-radius: 32px;
+            border: 1px solid #edf2f7;
+            padding: 1.8rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+        .tool-title { font-size: 1.6rem; font-weight: 600; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem; }
+        .tool-desc {
+            color: #5b6e8c;
+            border-left: 3px solid #cbd5e1;
+            padding-left: 0.9rem;
+            margin-bottom: 1.6rem;
+            font-size: 0.9rem;
+        }
+        .control-group {
+            margin-bottom: 1rem;
+        }
+        .control-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #334155;
+            margin-bottom: 0.3rem;
+        }
+        .upload-area {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .image-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1rem 0;
+            justify-content: center;
+        }
+        .image-item {
+            position: relative;
+            width: 120px;
+            background: #f9fbfd;
+            border-radius: 16px;
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+        }
+        .image-item.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+        .image-item img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            pointer-events: none;
+        }
+        .image-item .remove-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50% !important;
+            width: 24px !important;
+            height: 24px !important;
+            padding: 0 !important;
+            font-size: 12px !important;
+            line-height: 1 !important;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            box-sizing: border-box;
+        }
+        .image-item .remove-btn:hover {
+            background: #dc2626;
+        }
+        
+        /* 模板选择按钮 - 示意图 + 文字独立（文字在按钮下方） */
+        .template-select {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 0.6rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+            overflow-x: auto;
+            padding-bottom: 0.2rem;
+        }
+        .template-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+        .template-btn {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 50%;
+            width: 56px;
+            height: 56px;
+            padding: 0;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .template-btn.active {
+            background: #0f172a;
+            color: white;
+            border: none;
+        }
+        .template-btn.active svg {
+            stroke: white;
+        }
+        .template-svg {
+            width: 32px;
+            height: 32px;
+            display: block;
+        }
+        .template-svg rect {
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.5;
+        }
+        .template-svg line {
+            stroke: currentColor;
+            stroke-width: 1.5;
+            stroke-dasharray: 4 4;
+        }
+        .template-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-top: 0.4rem;
+            color: #334155;
+        }
+        .template-item.active .template-label {
+            color: #0f172a;
+            font-weight: 600;
+        }
+        
+        .grid-config {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+        .grid-config input {
+            width: 80px;
+            padding: 0.4rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 40px;
+            text-align: center;
+        }
+        .preview-container {
+            text-align: center;
+            margin: 1rem 0;
+        }
+        .preview-img {
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        button {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 0.6rem 1.3rem;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #1e293b;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        button.primary { background: #0f172a; color: white; border: none; }
+        button.primary:hover { background: #1e293b; transform: translateY(-1px); }
+        button:hover { background: #e6edf4; border-color: #cbd5e1; }
+        button.pressed { background: #cbd5e1 !important; transform: scale(0.96); transition: 0.05s; }
+        
+        .other-tools-section { margin-top: 1rem; padding-top: 1rem; }
+        .section-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #475569;
+            margin-bottom: 1rem;
+            padding-bottom: 0.6rem;
+        }
+        /* 卡片网格布局 - 等宽等高，移动端每行2个 */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 1rem;
+            justify-content: center;
+        }
+        .tool-card {
+            background: #ffffff;
+            border-radius: 20px;
+            border: 2px solid #eef2f8;
+            padding: 0.8rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: #070707;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 70px;
+        }
+        .tool-card:hover { transform: translateY(-2px); border-color: #cbdbe0; background: #fefefe; }
+        .tool-card-name { font-weight: 600; font-size: 1rem; display: flex; align-items: center; gap: 8px; }
+        @media (max-width: 700px) {
+            .cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .tool-card {
+                padding: 0.6rem 0.8rem;
+                min-height: 60px;
+            }
+            .tool-card-name {
+                font-size: 0.85rem;
+            }
+        }
+        
+        .footer { text-align: center; font-size: 0.75rem; color: #8b9ab0; margin-top: 2rem; padding-top: 1rem; }
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+            .tool-panel { padding: 1.2rem; }
+            .title-section h1 img { height: 1.6rem; }
+            .image-item { width: 100px; }
+            .image-item img { height: 80px; }
+            .template-btn {
+                width: 46px;
+                height: 46px;
+            }
+            .template-svg {
+                width: 26px;
+                height: 26px;
+            }
+            .template-label {
+                font-size: 0.7rem;
+                margin-top: 0.3rem;
+            }
+            .image-item .remove-btn {
+                width: 20px !important;
+                height: 20px !important;
+                font-size: 10px !important;
+                top: -6px;
+                right: -6px;
+            }
+        }
+        .save-tip {
+            font-size: 0.7rem;
+            color: #5b6e8c;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+        .drag-clone {
+            position: fixed;
+            z-index: 9999;
+            width: 100px;
+            height: 100px;
+            opacity: 0.8;
+            pointer-events: none;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            object-fit: cover;
+        }
+        /* 保存按钮初始隐藏 */
+        #saveBtn {
+            display: none;
+        }
+    </style>
+<link rel="stylesheet" href="/assets/fulutool.css">
+<script defer src="/assets/fulutool.js"></script>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="title-section">
+            <h1>
+                <span class="brand-mark">福</span>
+                福禄工具箱
+            </h1>
+            <p>免费使用 · 无需注册 · 即用即走</p>
+            <div class="current-tool-badge">当前工具：图片拼图工具</div>
+        </div>
+    </div>
+
+    <div class="tool-panel">
+        <div class="tool-title">🧩 图片拼图工具</div>
+        <div class="tool-desc">上传多张图片，选择拼接模板，拖拽调整顺序，一键生成并保存</div>
+        
+        <div class="upload-area">
+            <input type="file" id="uploadImages" accept="image/jpeg,image/png,image/jpg,image/webp" multiple style="display:none;">
+            <button id="selectImagesBtn" class="primary">📂 选择图片（可多选）</button>
+        </div>
+        
+        <div class="control-group">
+            <label>🎨 拼接模板</label>
+            <div class="template-select">
+                <!-- 横向拼接 -->
+                <div id="templateHorizontal" class="template-item active">
+                    <div class="template-btn active">
+                        <svg class="template-svg" viewBox="0 0 40 40">
+                            <rect x="2" y="2" width="36" height="36" rx="3" ry="3" />
+                            <line x1="13" y1="2" x2="13" y2="38" stroke-dasharray="3 3" />
+                            <line x1="27" y1="2" x2="27" y2="38" stroke-dasharray="3 3" />
+                        </svg>
+                    </div>
+                    <div class="template-label">横向拼接</div>
+                </div>
+                <!-- 纵向拼接 -->
+                <div id="templateVertical" class="template-item">
+                    <div class="template-btn">
+                        <svg class="template-svg" viewBox="0 0 40 40">
+                            <rect x="2" y="2" width="36" height="36" rx="3" ry="3" />
+                            <line x1="2" y1="13" x2="38" y2="13" stroke-dasharray="3 3" />
+                            <line x1="2" y1="27" x2="38" y2="27" stroke-dasharray="3 3" />
+                        </svg>
+                    </div>
+                    <div class="template-label">纵向拼接</div>
+                </div>
+                <!-- 网格拼接 -->
+                <div id="templateGrid" class="template-item">
+                    <div class="template-btn">
+                        <svg class="template-svg" viewBox="0 0 40 40">
+                            <rect x="2" y="2" width="36" height="36" rx="3" ry="3" />
+                            <line x1="13" y1="2" x2="13" y2="38" stroke-dasharray="3 3" />
+                            <line x1="27" y1="2" x2="27" y2="38" stroke-dasharray="3 3" />
+                            <line x1="2" y1="13" x2="38" y2="13" stroke-dasharray="3 3" />
+                            <line x1="2" y1="27" x2="38" y2="27" stroke-dasharray="3 3" />
+                        </svg>
+                    </div>
+                    <div class="template-label">网格拼图</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="gridConfig" class="grid-config" style="display: none;">
+            <div>
+                <label>行数:</label>
+                <input type="number" id="gridRows" min="1" max="3" value="2" step="1">
+            </div>
+            <div>
+                <label>列数:</label>
+                <input type="number" id="gridCols" min="1" max="3" value="2" step="1">
+            </div>
+        </div>
+        
+        <div id="imagesList" class="image-list"></div>
+        
+        <div class="button-group">
+            <button id="generateBtn" class="primary">✨ 生成拼图</button>
+        </div>
+        
+        <div id="previewContainer" class="preview-container" style="display: none;">
+            <img id="previewImage" class="preview-img" alt="拼图预览">
+        </div>
+        
+        <!-- 保存按钮（移到预览图下方，初始隐藏） -->
+        <div style="text-align: center; margin-top: 0.5rem;">
+            <button id="saveBtn" class="primary">💾 保存图片</button>
+        </div>
+        <div id="saveTip" class="save-tip" style="display: none;">💡 点击保存按钮下载图片；移动端若无法下载，可长按图片保存</div>
+        <div id="errorMsg" style="color:#b91c1c; text-align:center; margin-top:0.5rem; display:none;"></div>
+    </div>
+
+    <div class="other-tools-section">
+        <div class="section-label">🧩 其他工具 · 点击切换</div>
+        <div class="cards-grid">
+            <a href="/tools.html" class="tool-card"><span class="tool-card-name">📦 全部工具</span></a>
+            <a href="/watermark.html" class="tool-card"><span class="tool-card-name">💧 图片水印工具</span></a>
+            <a href="/pixel-avatar.html" class="tool-card"><span class="tool-card-name">🎨 像素头像生成器</span></a>
+            <a href="/password.html" class="tool-card"><span class="tool-card-name">🔐 随机密码生成器</span></a>
+            <a href="/ip-lookup.html" class="tool-card"><span class="tool-card-name">🌐 IP归属地查询</span></a>
+            <a href="/shortlink.html" class="tool-card"><span class="tool-card-name">🔗 短链接生成器</span></a>
+            <a href="/qrcode.html" class="tool-card"><span class="tool-card-name">📱 二维码生成器</span></a>
+            <a href="/textstats.html" class="tool-card"><span class="tool-card-name">📊 文本整理器</span></a>
+            <a href="/imagecompress.html" class="tool-card"><span class="tool-card-name">🖼️ 图片压缩器</span></a>
+        </div>
+    </div>
+    <div class="footer">🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪</div>
+    
+</div>
+
+<script>
+    (function() {
+        // DOM 元素
+        const fileInput = document.getElementById('uploadImages');
+        const selectBtn = document.getElementById('selectImagesBtn');
+        const imagesListDiv = document.getElementById('imagesList');
+        const templateHorizontal = document.getElementById('templateHorizontal');
+        const templateVertical = document.getElementById('templateVertical');
+        const templateGrid = document.getElementById('templateGrid');
+        const gridConfigDiv = document.getElementById('gridConfig');
+        const gridRowsInput = document.getElementById('gridRows');
+        const gridColsInput = document.getElementById('gridCols');
+        const generateBtn = document.getElementById('generateBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewImage = document.getElementById('previewImage');
+        const saveTip = document.getElementById('saveTip');
+        const errorMsg = document.getElementById('errorMsg');
+        
+        let imageFiles = [];
+        let imageUrls = [];
+        let currentTemplate = 'horizontal';
+        let currentResultDataURL = null;
+        
+        const TARGET_SIZE = 400;
+        
+        let dragStartIndex = null;
+        let dragClone = null;
+        let isDragging = false;
+        
+        function showError(msg) {
+            errorMsg.textContent = msg;
+            errorMsg.style.display = 'block';
+            setTimeout(() => { errorMsg.style.display = 'none'; }, 3000);
+        }
+        
+        function addPressedEffect(btn) {
+            btn.classList.add('pressed');
+            setTimeout(() => btn.classList.remove('pressed'), 150);
+        }
+        
+        function renderImageList() {
+            imagesListDiv.innerHTML = '';
+            imageFiles.forEach((file, index) => {
+                const div = document.createElement('div');
+                div.className = 'image-item';
+                div.setAttribute('data-index', index);
+                div.setAttribute('draggable', 'false');
+                
+                const img = document.createElement('img');
+                img.src = imageUrls[index];
+                img.alt = file.name;
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = '✕';
+                removeBtn.className = 'remove-btn';
+                removeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    removeImage(index);
+                });
+                
+                div.appendChild(img);
+                div.appendChild(removeBtn);
+                
+                div.addEventListener('dragstart', (e) => {
+                    e.preventDefault();
+                    return false;
+                });
+                div.addEventListener('mousedown', (e) => {
+                    if (e.target === removeBtn || removeBtn.contains(e.target)) return;
+                    startDrag(e, index);
+                });
+                div.addEventListener('touchstart', (e) => {
+                    if (e.target === removeBtn || removeBtn.contains(e.target)) return;
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    startDrag(touch, index);
+                });
+                
+                imagesListDiv.appendChild(div);
+            });
+        }
+        
+        function startDrag(clientPoint, index) {
+            if (imageFiles.length <= 1) return;
+            dragStartIndex = index;
+            isDragging = true;
+            const targetItem = document.querySelector(`.image-item[data-index="${index}"]`);
+            if (!targetItem) return;
+            const rect = targetItem.getBoundingClientRect();
+            const imgSrc = imageUrls[index];
+            
+            dragClone = document.createElement('img');
+            dragClone.src = imgSrc;
+            dragClone.className = 'drag-clone';
+            dragClone.style.width = rect.width + 'px';
+            dragClone.style.height = rect.height + 'px';
+            dragClone.style.left = (clientPoint.clientX - rect.width/2) + 'px';
+            dragClone.style.top = (clientPoint.clientY - rect.height/2) + 'px';
+            document.body.appendChild(dragClone);
+            
+            dragStartX = clientPoint.clientX;
+            dragStartY = clientPoint.clientY;
+            
+            window.addEventListener('mousemove', onDragMove);
+            window.addEventListener('mouseup', onDragEnd);
+            window.addEventListener('touchmove', onDragMove, { passive: false });
+            window.addEventListener('touchend', onDragEnd);
+        }
+        
+        function onDragMove(e) {
+            if (!isDragging || !dragClone) return;
+            e.preventDefault();
+            let clientX, clientY;
+            if (e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            dragClone.style.left = (clientX - dragClone.offsetWidth/2) + 'px';
+            dragClone.style.top = (clientY - dragClone.offsetHeight/2) + 'px';
+        }
+        
+        function onDragEnd(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            let clientX, clientY;
+            if (e.changedTouches) {
+                clientX = e.changedTouches[0].clientX;
+                clientY = e.changedTouches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            
+            let targetIndex = -1;
+            const elements = document.querySelectorAll('.image-item');
+            for (let i = 0; i < elements.length; i++) {
+                const rect = elements[i].getBoundingClientRect();
+                if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
+                    targetIndex = i;
+                    break;
+                }
+            }
+            
+            if (targetIndex !== -1 && dragStartIndex !== null && dragStartIndex !== targetIndex) {
+                const movedFile = imageFiles[dragStartIndex];
+                const movedUrl = imageUrls[dragStartIndex];
+                imageFiles.splice(dragStartIndex, 1);
+                imageUrls.splice(dragStartIndex, 1);
+                imageFiles.splice(targetIndex, 0, movedFile);
+                imageUrls.splice(targetIndex, 0, movedUrl);
+                renderImageList();
+            }
+            
+            if (dragClone) dragClone.remove();
+            dragClone = null;
+            isDragging = false;
+            dragStartIndex = null;
+            
+            window.removeEventListener('mousemove', onDragMove);
+            window.removeEventListener('mouseup', onDragEnd);
+            window.removeEventListener('touchmove', onDragMove);
+            window.removeEventListener('touchend', onDragEnd);
+        }
+        
+        function removeImage(index) {
+            URL.revokeObjectURL(imageUrls[index]);
+            imageFiles.splice(index, 1);
+            imageUrls.splice(index, 1);
+            renderImageList();
+            previewContainer.style.display = 'none';
+            saveTip.style.display = 'none';
+            currentResultDataURL = null;
+            // 隐藏保存按钮
+            saveBtn.style.display = 'none';
+        }
+        
+        selectBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+            if (imageFiles.length + files.length > 9) {
+                showError('最多支持9张图片');
+                return;
+            }
+            files.forEach(file => {
+                if (!file.type.startsWith('image/')) {
+                    showError('只支持图片文件');
+                    return;
+                }
+                const url = URL.createObjectURL(file);
+                imageFiles.push(file);
+                imageUrls.push(url);
+            });
+            renderImageList();
+            fileInput.value = '';
+            previewContainer.style.display = 'none';
+            saveTip.style.display = 'none';
+            currentResultDataURL = null;
+            // 隐藏保存按钮
+            saveBtn.style.display = 'none';
+        });
+        
+        function setTemplate(template) {
+            currentTemplate = template;
+            // 移除所有 active 类
+            templateHorizontal.classList.remove('active');
+            templateVertical.classList.remove('active');
+            templateGrid.classList.remove('active');
+            templateHorizontal.querySelector('.template-btn').classList.remove('active');
+            templateVertical.querySelector('.template-btn').classList.remove('active');
+            templateGrid.querySelector('.template-btn').classList.remove('active');
+            
+            if (template === 'horizontal') {
+                templateHorizontal.classList.add('active');
+                templateHorizontal.querySelector('.template-btn').classList.add('active');
+            } else if (template === 'vertical') {
+                templateVertical.classList.add('active');
+                templateVertical.querySelector('.template-btn').classList.add('active');
+            } else if (template === 'grid') {
+                templateGrid.classList.add('active');
+                templateGrid.querySelector('.template-btn').classList.add('active');
+            }
+            gridConfigDiv.style.display = (template === 'grid') ? 'flex' : 'none';
+        }
+        
+        templateHorizontal.addEventListener('click', () => setTemplate('horizontal'));
+        templateVertical.addEventListener('click', () => setTemplate('vertical'));
+        templateGrid.addEventListener('click', () => setTemplate('grid'));
+        
+        async function generatePuzzle() {
+            if (imageFiles.length === 0) {
+                showError('请先上传图片');
+                return false;
+            }
+            const loadImage = (url) => {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => resolve(img);
+                    img.onerror = () => reject(new Error('图片加载失败'));
+                    img.src = url;
+                });
+            };
+            
+            try {
+                const images = await Promise.all(imageUrls.map(url => loadImage(url)));
+                
+                if (currentTemplate === 'grid') {
+                    let rows = parseInt(gridRowsInput.value, 10);
+                    let cols = parseInt(gridColsInput.value, 10);
+                    if (isNaN(rows)) rows = 2;
+                    if (isNaN(cols)) cols = 2;
+                    rows = Math.min(3, Math.max(1, rows));
+                    cols = Math.min(3, Math.max(1, cols));
+                    const cellCount = rows * cols;
+                    if (imageFiles.length > cellCount) {
+                        showError(`网格最多容纳 ${cellCount} 张图片，当前有 ${imageFiles.length} 张，请删除多余图片或增加行列数`);
+                        return false;
+                    }
+                    
+                    let cellWidth, cellHeight;
+                    const firstImg = images[0];
+                    const allSameSize = images.every(img => img.width === firstImg.width && img.height === firstImg.height);
+                    if (allSameSize) {
+                        cellWidth = firstImg.width;
+                        cellHeight = firstImg.height;
+                    } else {
+                        cellWidth = Math.max(...images.map(img => img.width));
+                        cellHeight = Math.max(...images.map(img => img.height));
+                        if (cellWidth > 500) cellWidth = 500;
+                        if (cellHeight > 500) cellHeight = 500;
+                    }
+                    
+                    const canvasWidth = cols * cellWidth;
+                    const canvasHeight = rows * cellHeight;
+                    const canvas = document.createElement('canvas');
+                    canvas.width = canvasWidth;
+                    canvas.height = canvasHeight;
+                    const ctx = canvas.getContext('2d');
+                    
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+                    
+                    for (let i = 0; i < cellCount; i++) {
+                        if (i < images.length) {
+                            const img = images[i];
+                            const col = i % cols;
+                            const row = Math.floor(i / cols);
+                            const x = col * cellWidth;
+                            const y = row * cellHeight;
+                            const scale = Math.min(cellWidth / img.width, cellHeight / img.height);
+                            const scaledWidth = img.width * scale;
+                            const scaledHeight = img.height * scale;
+                            const dx = x + (cellWidth - scaledWidth) / 2;
+                            const dy = y + (cellHeight - scaledHeight) / 2;
+                            ctx.drawImage(img, dx, dy, scaledWidth, scaledHeight);
+                        }
+                    }
+                    const dataURL = canvas.toDataURL('image/png');
+                    currentResultDataURL = dataURL;
+                    previewImage.src = dataURL;
+                    previewContainer.style.display = 'block';
+                    saveTip.style.display = 'block';
+                    // 生成成功后显示保存按钮
+                    saveBtn.style.display = 'inline-block';
+                    return true;
+                }
+                
+                const scaledImages = images.map(img => {
+                    let width, height;
+                    if (currentTemplate === 'horizontal') {
+                        const scale = TARGET_SIZE / img.height;
+                        width = img.width * scale;
+                        height = TARGET_SIZE;
+                    } else {
+                        const scale = TARGET_SIZE / img.width;
+                        width = TARGET_SIZE;
+                        height = img.height * scale;
+                    }
+                    return { img, width, height };
+                });
+                
+                let canvasWidth, canvasHeight;
+                if (currentTemplate === 'horizontal') {
+                    let totalWidth = 0;
+                    let maxHeight = 0;
+                    scaledImages.forEach(item => {
+                        totalWidth += item.width;
+                        if (item.height > maxHeight) maxHeight = item.height;
+                    });
+                    canvasWidth = totalWidth;
+                    canvasHeight = maxHeight;
+                } else {
+                    let totalHeight = 0;
+                    let maxWidth = 0;
+                    scaledImages.forEach(item => {
+                        totalHeight += item.height;
+                        if (item.width > maxWidth) maxWidth = item.width;
+                    });
+                    canvasWidth = maxWidth;
+                    canvasHeight = totalHeight;
+                }
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = canvasWidth;
+                canvas.height = canvasHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+                
+                let offsetX = 0, offsetY = 0;
+                for (let i = 0; i < scaledImages.length; i++) {
+                    const { img, width, height } = scaledImages[i];
+                    if (currentTemplate === 'horizontal') {
+                        const yOffset = (canvasHeight - height) / 2;
+                        ctx.drawImage(img, offsetX, yOffset, width, height);
+                        offsetX += width;
+                    } else {
+                        const xOffset = (canvasWidth - width) / 2;
+                        ctx.drawImage(img, xOffset, offsetY, width, height);
+                        offsetY += height;
+                    }
+                }
+                
+                const dataURL = canvas.toDataURL('image/png');
+                currentResultDataURL = dataURL;
+                previewImage.src = dataURL;
+                previewContainer.style.display = 'block';
+                saveTip.style.display = 'block';
+                // 生成成功后显示保存按钮
+                saveBtn.style.display = 'inline-block';
+                return true;
+            } catch (err) {
+                console.error(err);
+                showError('生成拼图失败，请重试');
+                return false;
+            }
+        }
+        
+        generateBtn.addEventListener('click', async () => {
+            addPressedEffect(generateBtn);
+            // 生成前先隐藏保存按钮（避免重复点击显示多个）
+            saveBtn.style.display = 'none';
+            await generatePuzzle();
+        });
+        
+        saveBtn.addEventListener('click', () => {
+            addPressedEffect(saveBtn);
+            if (!currentResultDataURL) {
+                showError('请先生成拼图');
+                return;
+            }
+            const link = document.createElement('a');
+            link.download = 'puzzle.png';
+            link.href = currentResultDataURL;
+            link.click();
+        });
+        
+        setTemplate('horizontal');
+    })();
+</script>
+</body>
+</html>
