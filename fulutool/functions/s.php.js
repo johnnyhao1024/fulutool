@@ -7,6 +7,20 @@ function decodeBase64Url(token) {
   return new TextDecoder().decode(bytes);
 }
 
+async function decodeGzipBase64Url(token) {
+  if (!token) return '';
+  const normalized = token.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+  const binary = atob(padded);
+  const bytes = Uint8Array.from(binary, (ch) => ch.charCodeAt(0));
+  if (typeof DecompressionStream === 'undefined') {
+    throw new Error('DecompressionStream unavailable');
+  }
+  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+  const buffer = await new Response(stream).arrayBuffer();
+  return new TextDecoder().decode(buffer);
+}
+
 async function readStaticLinks(request) {
   try {
     const response = await fetch(new URL('/links.json', request.url).toString());
@@ -34,9 +48,16 @@ export async function onRequestGet(context) {
   const url = new URL(request.url);
   const code = url.searchParams.get('code') || url.searchParams.get('id') || '';
   const encoded = url.searchParams.get('u') || url.searchParams.get('url') || '';
+  const compressed = url.searchParams.get('c') || '';
 
   let target = '';
-  if (encoded) {
+  if (compressed) {
+    try {
+      target = await decodeGzipBase64Url(compressed);
+    } catch (err) {
+      return new Response('无效的短链接参数', { status: 400 });
+    }
+  } else if (encoded) {
     try {
       target = decodeBase64Url(encoded);
     } catch (err) {
@@ -52,4 +73,3 @@ export async function onRequestGet(context) {
 
   return Response.redirect(target, 302);
 }
-
