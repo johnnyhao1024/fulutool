@@ -412,6 +412,27 @@
 
 <script>
     (function() {
+        window.FULUTOOL_MESSAGES = window.FULUTOOL_MESSAGES || {};
+        window.FULUTOOL_MESSAGES.zh = Object.assign({
+            uploadFirst: '请先上传图片',
+            imageLoadFail: '图片加载失败',
+            tooManyImages: '最多支持9张图片',
+            unsupportedImage: '只支持图片文件',
+            gridOverflow: '网格最多容纳 {cellCount} 张图片，当前有 {imageFiles} 张，请删除多余图片或增加行列数',
+            generateFail: '生成拼图失败，请重试',
+            generateFirst: '请先生成拼图'
+        }, window.FULUTOOL_MESSAGES.zh || {});
+        window.FULUTOOL_MESSAGES.en = Object.assign({
+            uploadFirst: 'Please upload images first',
+            imageLoadFail: 'Image failed to load',
+            tooManyImages: 'Up to 9 images are supported',
+            unsupportedImage: 'Only image files are supported',
+            gridOverflow: 'The grid can hold at most {cellCount} images; you currently have {imageFiles}. Remove extra images or increase rows/columns.',
+            generateFail: 'Failed to generate collage. Please try again',
+            generateFirst: 'Please generate the collage first'
+        }, window.FULUTOOL_MESSAGES.en || {});
+
+        const T = (key, fallback) => (window.Fulutool ? Fulutool.t(key, fallback) : fallback);
         // DOM 元素
         const fileInput = document.getElementById('uploadImages');
         const selectBtn = document.getElementById('selectImagesBtn');
@@ -598,12 +619,12 @@
             const files = Array.from(e.target.files);
             if (files.length === 0) return;
             if (imageFiles.length + files.length > 9) {
-                showError('最多支持9张图片');
+                showError(T('tooManyImages', '最多支持9张图片'));
                 return;
             }
             files.forEach(file => {
                 if (!file.type.startsWith('image/')) {
-                    showError('只支持图片文件');
+                    showError(T('unsupportedImage', '只支持图片文件'));
                     return;
                 }
                 const url = URL.createObjectURL(file);
@@ -648,14 +669,14 @@
         
         async function generatePuzzle() {
             if (imageFiles.length === 0) {
-                showError('请先上传图片');
+                showError(T('uploadFirst', '请先上传图片'));
                 return false;
             }
             const loadImage = (url) => {
                 return new Promise((resolve, reject) => {
                     const img = new Image();
                     img.onload = () => resolve(img);
-                    img.onerror = () => reject(new Error('图片加载失败'));
+                    img.onerror = () => reject(new Error(T('imageLoadFail', '图片加载失败')));
                     img.src = url;
                 });
             };
@@ -672,7 +693,9 @@
                     cols = Math.min(3, Math.max(1, cols));
                     const cellCount = rows * cols;
                     if (imageFiles.length > cellCount) {
-                        showError(`网格最多容纳 ${cellCount} 张图片，当前有 ${imageFiles.length} 张，请删除多余图片或增加行列数`);
+                        showError(T('gridOverflow', `网格最多容纳 ${cellCount} 张图片，当前有 ${imageFiles.length} 张，请删除多余图片或增加行列数`)
+                            .replace('{cellCount}', String(cellCount))
+                            .replace('{imageFiles}', String(imageFiles.length)));
                         return false;
                     }
                     
@@ -790,7 +813,7 @@
                 return true;
             } catch (err) {
                 console.error(err);
-                showError('生成拼图失败，请重试');
+                showError(T('generateFail', '生成拼图失败，请重试'));
                 return false;
             }
         }
@@ -805,7 +828,7 @@
         saveBtn.addEventListener('click', () => {
             addPressedEffect(saveBtn);
             if (!currentResultDataURL) {
-                showError('请先生成拼图');
+                showError(T('generateFirst', '请先生成拼图'));
                 return;
             }
             const link = document.createElement('a');

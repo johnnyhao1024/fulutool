@@ -233,6 +233,18 @@
 
 <script>
     (function() {
+        window.FULUTOOL_MESSAGES = window.FULUTOOL_MESSAGES || {};
+        window.FULUTOOL_MESSAGES.zh = Object.assign({
+            chooseImage: '请先选择图片',
+            cropFail: '裁剪失败，请重试',
+            generateFirst: '请先生成像素头像'
+        }, window.FULUTOOL_MESSAGES.zh || {});
+        window.FULUTOOL_MESSAGES.en = Object.assign({
+            chooseImage: 'Please select an image first',
+            cropFail: 'Crop failed. Please try again',
+            generateFirst: 'Please generate a pixel avatar first'
+        }, window.FULUTOOL_MESSAGES.en || {});
+        const T = (key, fallback) => (window.Fulutool ? Fulutool.t(key, fallback) : fallback);
         // DOM 元素
         const fileInput = document.getElementById('uploadImage');
         const selectBtn = document.getElementById('selectImageBtn');
@@ -363,14 +375,14 @@
         // 裁剪并生成像素头像
         cropAndGenerateBtn.addEventListener('click', () => {
             if (!cropper) {
-                showError('请先选择图片');
+                showError(T('chooseImage', '请先选择图片'));
                 return;
             }
             addPressedEffect(cropAndGenerateBtn);
             
             const croppedCanvas = cropper.getCroppedCanvas();
             if (!croppedCanvas) {
-                showError('裁剪失败，请重试');
+                showError(T('cropFail', '裁剪失败，请重试'));
                 return;
             }
             // 保存裁剪后的 canvas 供实时预览使用
@@ -395,7 +407,7 @@
         // 保存头像
         saveAvatarBtn.addEventListener('click', () => {
             if (!currentPixelAvatarDataURL) {
-                showError('请先生成像素头像');
+                showError(T('generateFirst', '请先生成像素头像'));
                 return;
             }
             addPressedEffect(saveAvatarBtn);

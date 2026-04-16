@@ -307,6 +307,16 @@
             zh: '福禄工具箱',
             en: 'Fulutool Toolbox'
         };
+        window.FULUTOOL_MESSAGES = window.FULUTOOL_MESSAGES || {};
+        window.FULUTOOL_MESSAGES.zh = Object.assign({
+            generateFail: '生成水印失败，请重试',
+            selectImage: '请先选择图片并确保水印文字有效'
+        }, window.FULUTOOL_MESSAGES.zh || {});
+        window.FULUTOOL_MESSAGES.en = Object.assign({
+            generateFail: 'Failed to generate watermark. Please try again',
+            selectImage: 'Please select an image and make sure the watermark text is valid'
+        }, window.FULUTOOL_MESSAGES.en || {});
+        const T = (key, fallback) => (window.Fulutool ? Fulutool.t(key, fallback) : fallback);
         const colorLabels = {
             zh: {
                 '#000000': '黑色', '#ffffff': '白色', '#ff0000': '红色', '#00ff00': '绿色', '#0000ff': '蓝色',
@@ -441,7 +451,7 @@
                 saveBtn.style.display = 'inline-block';
             } catch (err) {
                 console.error(err);
-                showError('生成水印失败，请重试');
+                showError(T('generateFail', '生成水印失败，请重试'));
                 saveBtn.style.display = 'none';
             }
         }
@@ -449,7 +459,7 @@
         // 保存图片
         function saveImage() {
             if (!currentDataURL) {
-                showError('请先选择图片并确保水印文字有效');
+                showError(T('selectImage', '请先选择图片并确保水印文字有效'));
                 return;
             }
             const link = document.createElement('a');

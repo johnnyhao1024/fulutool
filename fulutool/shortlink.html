@@ -191,6 +191,20 @@
 </div>
 <script>
     function addPressedEffect(btn) { if (btn) { btn.classList.add('pressed'); setTimeout(() => btn.classList.remove('pressed'), 150); } }
+    window.FULUTOOL_MESSAGES = window.FULUTOOL_MESSAGES || {};
+    window.FULUTOOL_MESSAGES.zh = Object.assign({
+        enterUrl: '请输入网址',
+        generateFailed: '生成失败',
+        copied: '✓ 已复制',
+        manualCopy: '手动复制'
+    }, window.FULUTOOL_MESSAGES.zh || {});
+    window.FULUTOOL_MESSAGES.en = Object.assign({
+        enterUrl: 'Please enter a URL',
+        generateFailed: 'Failed to generate',
+        copied: '✓ Copied',
+        manualCopy: 'Please copy manually'
+    }, window.FULUTOOL_MESSAGES.en || {});
+    const T = (key, fallback) => (window.Fulutool ? Fulutool.t(key, fallback) : fallback);
 
     function encodeUrl(url) {
         const bytes = new TextEncoder().encode(url);
@@ -237,12 +251,17 @@
             const errorDiv = document.getElementById('shortenErrorMsg');
             resultDiv.style.display = 'none';
             errorDiv.style.display = 'none';
+            if (!longUrl.trim()) {
+                errorDiv.innerText = `❌ ${T('enterUrl', '请输入网址')}`;
+                errorDiv.style.display = 'block';
+                return;
+            }
             try {
                 const short = await shortenUrl(longUrl);
                 document.getElementById('shortLinkValue').innerText = short;
                 resultDiv.style.display = 'block';
             } catch (err) {
-                errorDiv.innerText = `❌ 生成失败: ${err.message}`;
+                errorDiv.innerText = `❌ ${T('generateFailed', '生成失败')}: ${err.message}`;
                 errorDiv.style.display = 'block';
             }
         });
@@ -256,9 +275,9 @@
             if (val) {
                 navigator.clipboard.writeText(val).then(() => {
                     const t = copyShort.innerText;
-                    copyShort.innerText = '✓ 已复制';
+                    copyShort.innerText = T('copied', '✓ 已复制');
                     setTimeout(() => { copyShort.innerText = t; }, 1500);
-                }).catch(() => alert('手动复制'));
+                }).catch(() => alert(T('manualCopy', '手动复制')));
             }
         });
     }

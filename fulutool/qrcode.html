@@ -177,6 +177,22 @@
 
 <script>
     function addPressedEffect(btn) { if(btn) { btn.classList.add('pressed'); setTimeout(() => btn.classList.remove('pressed'), 150); } }
+    window.FULUTOOL_MESSAGES = window.FULUTOOL_MESSAGES || {};
+    window.FULUTOOL_MESSAGES.zh = Object.assign({
+        enterUrl: '请输入网址',
+        invalidUrl: '请输入有效的网址',
+        generateFirst: '请先生成二维码',
+        noQrImage: '未找到二维码图片，请先生成二维码',
+        downloadHint: '如果未自动下载，请长按二维码图片保存'
+    }, window.FULUTOOL_MESSAGES.zh || {});
+    window.FULUTOOL_MESSAGES.en = Object.assign({
+        enterUrl: 'Please enter a URL',
+        invalidUrl: 'Please enter a valid URL',
+        generateFirst: 'Please generate a QR code first',
+        noQrImage: 'Could not find QR image. Please generate one first',
+        downloadHint: 'If it does not download automatically, long-press the QR image to save it'
+    }, window.FULUTOOL_MESSAGES.en || {});
+    const T = (key, fallback) => (window.Fulutool ? Fulutool.t(key, fallback) : fallback);
     
     function generateQrCode(url) {
         const container = document.getElementById('qrcodeContainer');
@@ -195,11 +211,11 @@
     function validateAndGenerateQr() {
         let url = document.getElementById('qrText').value.trim();
         if (!url) {
-            alert('请输入网址');
+            alert(T('enterUrl', '请输入网址'));
             return false;
         }
         if (!url.startsWith('http')) url = 'https://' + url;
-        try { new URL(url); } catch(e) { alert('请输入有效的网址'); return false; }
+        try { new URL(url); } catch(e) { alert(T('invalidUrl', '请输入有效的网址')); return false; }
         generateQrCode(url);
         return true;
     }
@@ -208,7 +224,7 @@
     function saveQrCode() {
         const container = document.getElementById('qrcodeContainer');
         if (!container) {
-            alert('请先生成二维码');
+            alert(T('generateFirst', '请先生成二维码'));
             return;
         }
         let canvas = container.querySelector('canvas');
@@ -220,7 +236,7 @@
         } else if (img && img.src && img.src.startsWith('data:image')) {
             dataURL = img.src;
         } else {
-            alert('未找到二维码图片，请先生成二维码');
+            alert(T('noQrImage', '未找到二维码图片，请先生成二维码'));
             return;
         }
         
@@ -231,7 +247,7 @@
         
         setTimeout(() => {
             if (!document.hidden) {
-                console.log('如果未自动下载，请长按二维码图片保存');
+                console.log(T('downloadHint', '如果未自动下载，请长按二维码图片保存'));
             }
         }, 500);
     }

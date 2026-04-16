@@ -239,6 +239,29 @@
 
 <script>
     (function() {
+        window.FULUTOOL_MESSAGES = window.FULUTOOL_MESSAGES || {};
+        window.FULUTOOL_MESSAGES.zh = Object.assign({
+            noImage: '未选择图片',
+            waitingCompress: '等待压缩',
+            chooseImage: '请先选择图片',
+            compressFirst: '请先压缩图片',
+            originalImage: '原图',
+            compressedImage: '压缩后图片',
+            longPressSave: '📱 长按图片保存到手机',
+            calculatingSize: '(大小计算中)'
+        }, window.FULUTOOL_MESSAGES.zh || {});
+        window.FULUTOOL_MESSAGES.en = Object.assign({
+            noImage: 'No image selected',
+            waitingCompress: 'Waiting to compress',
+            chooseImage: 'Please select an image first',
+            compressFirst: 'Please compress the image first',
+            originalImage: 'Original image',
+            compressedImage: 'Compressed image',
+            longPressSave: '📱 Long-press the image to save it',
+            calculatingSize: '(Calculating size)'
+        }, window.FULUTOOL_MESSAGES.en || {});
+
+        const T = (key, fallback) => (window.Fulutool ? Fulutool.t(key, fallback) : fallback);
         // 环境检测
         var isWeixin = /MicroMessenger/i.test(navigator.userAgent);
         var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -274,14 +297,14 @@
         if (fileInput) {
             fileInput.addEventListener('change', function(e) {
                 if (e.target.files && e.target.files[0]) {
-                    originalFile = e.target.files[0];
-                    var reader = new FileReader();
-                    reader.onload = function(ev) {
-                        originalContainer.innerHTML = '<img src="' + ev.target.result + '" alt="原图">';
+                        originalFile = e.target.files[0];
+                        var reader = new FileReader();
+                        reader.onload = function(ev) {
+                        originalContainer.innerHTML = '<img src="' + ev.target.result + '" alt="' + T('originalImage', '原图') + '">';
                         originalInfo.innerHTML = (originalFile.size / 1024).toFixed(2) + ' KB · ' + originalFile.type.split('/')[1];
                         previewArea.style.display = 'flex';
                         compressedContainer.innerHTML = '<div class="placeholder-icon">⚡</div>';
-                        compressedInfo.innerHTML = '等待压缩';
+                        compressedInfo.innerHTML = T('waitingCompress', '等待压缩');
                         compressedBlob = null;
                         compressedDataURL = null;
                         if (isMobileWeixin) {
@@ -302,7 +325,7 @@
         if (compressBtn) {
             compressBtn.addEventListener('click', function() {
                 if (!originalFile) {
-                    alert('请先选择图片');
+                    alert(T('chooseImage', '请先选择图片'));
                     return;
                 }
                 compressBtn.classList.add('pressed');
@@ -340,7 +363,7 @@
                                 var dimensions = Math.round(width) + ' x ' + Math.round(height);
                                 var infoText = sizeKB + ' KB · ' + qualityPercent + '% · ' + dimensions;
                                 if (isMobileWeixin) {
-                                    compressedInfo.innerHTML = infoText + '<br><span class="weixin-tip">📱 长按图片保存到手机</span>';
+                                    compressedInfo.innerHTML = infoText + '<br><span class="weixin-tip">' + T('longPressSave', '📱 长按图片保存到手机') + '</span>';
                                     downloadBtn.style.display = 'none';
                                 } else {
                                     compressedInfo.innerHTML = infoText;
@@ -351,15 +374,15 @@
                                 console.error('Blob conversion error:', err);
                                 var qualityPercent = Math.round(quality * 100);
                                 var dimensions = Math.round(width) + ' x ' + Math.round(height);
-                                var infoText = '(大小计算中) ' + qualityPercent + '% · ' + dimensions;
+                                var infoText = T('calculatingSize', '(大小计算中)') + ' ' + qualityPercent + '% · ' + dimensions;
                                 if (isMobileWeixin) {
-                                    compressedInfo.innerHTML = infoText + '<br><span class="weixin-tip">📱 长按图片保存到手机</span>';
+                                    compressedInfo.innerHTML = infoText + '<br><span class="weixin-tip">' + T('longPressSave', '📱 长按图片保存到手机') + '</span>';
                                 } else {
                                     compressedInfo.innerHTML = infoText;
                                 }
                             });
                         
-                        compressedContainer.innerHTML = '<img src="' + dataURL + '" alt="压缩后图片" style="max-width:100%; max-height:160px; border-radius:8px;">';
+                        compressedContainer.innerHTML = '<img src="' + dataURL + '" alt="' + T('compressedImage', '压缩后图片') + '" style="max-width:100%; max-height:160px; border-radius:8px;">';
                     };
                     img.src = e.target.result;
                 };
@@ -387,7 +410,7 @@
                     link.href = compressedDataURL;
                     link.click();
                 } else {
-                    alert('请先压缩图片');
+                    alert(T('compressFirst', '请先压缩图片'));
                 }
             });
         }
