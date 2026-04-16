@@ -17,57 +17,6 @@
         }
         .container { max-width: 1280px; margin: 0 auto; }
         
-        /* 头部样式 */
-        .header {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-        .title-section {
-            text-align: center;
-        }
-        .title-section h1 {
-            font-size: 2rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, #1e293b, #2d3a4e);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            margin-bottom: 0.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        .title-section h1 a {
-            display: inline-flex;
-            align-items: center;
-            transition: transform 0.2s ease;
-        }
-        .title-section h1 a:hover {
-            transform: scale(1.02);
-        }
-        .title-section h1 img {
-            height: 2rem;
-            width: auto;
-            vertical-align: middle;
-        }
-        .title-section p {
-            color: #475569;
-            font-size: 0.9rem;
-        }
-        .current-tool-badge {
-            display: inline-block;
-            background: #eef2ff;
-            font-size: 0.75rem;
-            padding: 0.2rem 0.8rem;
-            border-radius: 40px;
-            color: #1e40af;
-            margin-top: 0.5rem;
-        }
-        
         /* 工具面板样式 */
         .tool-panel {
             background: #ffffff;
@@ -205,25 +154,13 @@
         @media (max-width: 700px) {
             body { padding: 1rem; }
             .tool-panel { padding: 1.2rem; }
-            .title-section h1 img { height: 1.6rem; }
         }
     </style>
 <link rel="stylesheet" href="/assets/fulutool.css">
 <script defer src="/assets/fulutool.js"></script>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <div class="title-section">
-            <h1>
-                <span class="brand-mark">福</span>
-                福禄工具箱
-            </h1>
-            <p>免费试用 · 无需注册 · 即用即走</p>
-            <div class="current-tool-badge">当前工具：短链接生成器</div>
-        </div>
-    </div>
-
+    <div class="container">
     <div class="tool-panel">
         <div class="tool-title">🔗 短链接生成器</div>
         <div class="tool-desc">将冗长网址一键转为短链接，复制分享更便捷（自建服务，直达无延迟）</div>

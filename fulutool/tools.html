@@ -27,54 +27,6 @@
             margin: 0 auto;
         }
 
-        /* 头部区域：标题居中 */
-        .header {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .title-section {
-            text-align: center;
-        }
-
-        .title-section h1 {
-            font-size: 2rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, #1e293b, #2d3a4e);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            margin-bottom: 0.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .title-section h1 a {
-            display: inline-flex;
-            align-items: center;
-            transition: transform 0.2s ease;
-        }
-
-        .title-section h1 a:hover {
-            transform: scale(1.02);
-        }
-
-        .title-section h1 img {
-            height: 2rem;
-            width: auto;
-            vertical-align: middle;
-        }
-
-        .title-section p {
-            color: #475569;
-            font-size: 0.9rem;
-        }
-
         /* 工具卡片网格 */
         .tools-grid {
             display: grid;
@@ -158,9 +110,6 @@
             .tool-name {
                 font-size: 1.3rem;
             }
-            .title-section h1 img {
-                height: 1.6rem;
-            }
         }
     </style>
 <link rel="stylesheet" href="/assets/fulutool.css">
@@ -168,17 +117,7 @@
 </head>
 <body>
     
-<div class="container">
-    <div class="header">
-        <div class="title-section">
-            <h1>
-                <span class="brand-mark">福</span>
-                福禄工具箱
-            </h1>
-            <p>免费试用 · 无需注册 · 即用即走</p>
-        </div>
-    </div>
-
+    <div class="container">
     <div class="tools-grid">
         <a href="/shortlink.html" target="_blank" rel="noopener noreferrer" class="tool-card">
             <div class="tool-icon">🔗</div>
