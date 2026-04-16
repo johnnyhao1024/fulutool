@@ -196,13 +196,15 @@
         enterUrl: '请输入网址',
         generateFailed: '生成失败',
         copied: '✓ 已复制',
-        manualCopy: '手动复制'
+        manualCopy: '手动复制',
+        storageMissing: '短链接服务未配置，请先在 Cloudflare Pages 绑定 FULUTOOL_LINKS KV'
     }, window.FULUTOOL_MESSAGES.zh || {});
     window.FULUTOOL_MESSAGES.en = Object.assign({
         enterUrl: 'Please enter a URL',
         generateFailed: 'Failed to generate',
         copied: '✓ Copied',
-        manualCopy: 'Please copy manually'
+        manualCopy: 'Please copy manually',
+        storageMissing: 'Short-link storage is not configured. Bind the FULUTOOL_LINKS KV in Cloudflare Pages first.'
     }, window.FULUTOOL_MESSAGES.en || {});
     const T = (key, fallback) => (window.Fulutool ? Fulutool.t(key, fallback) : fallback);
 
@@ -257,10 +259,15 @@
                 body: formData
             });
             const data = await response.json();
-            if (!response.ok || !data.short_url) throw new Error(data.error || '生成失败');
+            if (data?.fallback || !response.ok || !data.short_url) {
+                throw new Error(data.error || 'SHORTLINK_STORAGE_NOT_CONFIGURED');
+            }
             return data.short_url;
         } catch (err) {
-            return await buildFallbackShortUrl(url);
+            if (String(err?.message || err).includes('SHORTLINK_STORAGE_NOT_CONFIGURED')) {
+                throw new Error('SHORTLINK_STORAGE_NOT_CONFIGURED');
+            }
+            throw err;
         }
     }
 
@@ -283,7 +290,10 @@
                 document.getElementById('shortLinkValue').innerText = short;
                 resultDiv.style.display = 'block';
             } catch (err) {
-                errorDiv.innerText = `❌ ${T('generateFailed', '生成失败')}: ${err.message}`;
+                const missingStorage = String(err?.message || err).includes('SHORTLINK_STORAGE_NOT_CONFIGURED');
+                errorDiv.innerText = missingStorage
+                    ? `❌ ${T('storageMissing', '短链接服务未配置，请先在 Cloudflare Pages 绑定 FULUTOOL_LINKS KV')}`
+                    : `❌ ${T('generateFailed', '生成失败')}: ${err.message}`;
                 errorDiv.style.display = 'block';
             }
         });

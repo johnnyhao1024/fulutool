@@ -79,10 +79,13 @@
             cursor: pointer;
         }
         .checkbox-label {
-            display: inline-flex;
+            display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.35rem;
             cursor: pointer;
+            text-align: center;
+            width: 100%;
         }
         .upload-area {
             text-align: center;
@@ -247,7 +250,8 @@
         
         <div class="control-group">
             <label class="checkbox-label">
-                <input type="checkbox" id="tileMode"> 🧩 平铺模式（文字均匀分布）
+                <span>🧩 平铺模式（文字均匀分布）</span>
+                <input type="checkbox" id="tileMode">
             </label>
         </div>
         
