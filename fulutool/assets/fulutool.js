@@ -416,6 +416,61 @@
     ])
   };
 
+  const EXTRA_TRANSLATIONS = {
+    zh: new Map([
+      ['✨ Generate', '✨ 生成'],
+      ['✨ Generate Password', '✨ 生成密码'],
+      ['生成密码', '✨ 生成密码'],
+      ['📋 Copy Password', '📋 复制密码'],
+      ['复制密码', '📋 复制密码'],
+      ['🔎 Search', '🔎 查询'],
+      ['📍 My IP', '📍 查询我的IP'],
+      ['🎯 Generate QR Code', '🎯 生成二维码'],
+      ['💾 Save QR Image', '💾 保存二维码图片'],
+      ['📂 Select Image', '📂 选择图片'],
+      ['📂 Select Photo', '📂 选择照片'],
+      ['⚡ Compress', '⚡ 开始压缩'],
+      ['⬇️ Download Image', '⬇️ 下载图片'],
+      ['✨ Crop and Generate Avatar', '✨ 裁剪并生成像素头像'],
+      ['💾 Save Avatar', '💾 保存头像'],
+      ['📂 Choose Images (Multi-select)', '📂 选择图片（可多选）'],
+      ['✨ Generate Collage', '✨ 生成拼图'],
+      ['💾 Save Image', '💾 保存图片'],
+      ['📈 Count Now', '📈 立即统计'],
+      ['🚫 Remove Empty Lines', '🚫 去除所有空行'],
+      ['📝 Indent First Line by 2', '📝 首行缩进2字符'],
+      ['📋 Copy Text', '📋 复制文本'],
+      ['🔗 Original URL', '🔗 原始链接'],
+      ['✨ Generate Short Link', '✨ 生成短链接']
+    ]),
+    en: new Map([
+      ['✨ 生成', '✨ Generate'],
+      ['✨ 生成密码', '✨ Generate Password'],
+      ['生成密码', '✨ Generate Password'],
+      ['📋 复制密码', '📋 Copy Password'],
+      ['复制密码', '📋 Copy Password'],
+      ['🔎 查询', '🔎 Search'],
+      ['📍 查询我的IP', '📍 My IP'],
+      ['🎯 生成二维码', '🎯 Generate QR Code'],
+      ['💾 保存二维码图片', '💾 Save QR Image'],
+      ['📂 选择图片', '📂 Select Image'],
+      ['📂 选择照片', '📂 Select Photo'],
+      ['⚡ 开始压缩', '⚡ Compress'],
+      ['⬇️ 下载图片', '⬇️ Download Image'],
+      ['✨ 裁剪并生成像素头像', '✨ Crop and Generate Avatar'],
+      ['💾 保存头像', '💾 Save Avatar'],
+      ['📂 选择图片（可多选）', '📂 Choose Images (Multi-select)'],
+      ['✨ 生成拼图', '✨ Generate Collage'],
+      ['💾 保存图片', '💾 Save Image'],
+      ['📈 立即统计', '📈 Count Now'],
+      ['🚫 去除所有空行', '🚫 Remove Empty Lines'],
+      ['📝 首行缩进2字符', '📝 Indent First Line by 2'],
+      ['📋 复制文本', '📋 Copy Text'],
+      ['🔗 原始链接', '🔗 Original URL'],
+      ['✨ 生成短链接', '✨ Generate Short Link']
+    ])
+  };
+
   function normalizeLang(lang) {
     return lang === 'en' ? 'en' : 'zh';
   }
@@ -452,7 +507,7 @@
     if (typeof value !== 'string' || !value) return value;
     const normalized = LANGUAGE_NORMALIZATIONS[lang]?.get(value);
     if (normalized) return normalized;
-    return TEXT_TRANSLATIONS[lang]?.get(value) ?? value;
+    return EXTRA_TRANSLATIONS[lang]?.get(value) ?? TEXT_TRANSLATIONS[lang]?.get(value) ?? value;
   }
 
   function applyBinding(selector, lang, handler) {
@@ -529,6 +584,30 @@
     });
   }
 
+  function translateInteractiveElements(lang) {
+    const selectors = [
+      'button',
+      'a.tool-card',
+      '.tool-card-name',
+      '.section-label',
+      '.tool-title',
+      '.tool-desc',
+      '.result-label span',
+      '.copy-btn',
+      '.footer',
+      '.save-tip'
+    ];
+
+    document.querySelectorAll(selectors.join(',')).forEach((el) => {
+      if (el.querySelector('input, textarea, select, svg, img, canvas')) return;
+      const current = el.textContent;
+      const translated = translateValue(current, lang);
+      if (translated !== current) {
+        el.textContent = translated;
+      }
+    });
+  }
+
   function setToolbarLang(lang) {
     const resolved = normalizeLang(lang);
     document.documentElement.lang = resolved === 'en' ? 'en' : 'zh-CN';
@@ -589,6 +668,7 @@
     setStoredLang(resolved);
     setToolbarLang(resolved);
     applyPageBindings(resolved);
+    translateInteractiveElements(resolved);
 
     const hooks = window.FULUTOOL_HOOKS || {};
     if (typeof hooks.onLanguageChange === 'function') {

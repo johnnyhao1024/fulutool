@@ -275,6 +275,33 @@ button.pressed {
   gap: 0.75rem;
 }
 
+.checkbox-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.7rem 1rem;
+  align-items: start;
+  width: 100%;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  justify-content: flex-start;
+  min-width: 0;
+  line-height: 1.35;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.checkbox-group label input {
+  flex: 0 0 auto;
+  width: auto;
+  height: auto;
+  margin: 0;
+}
+
 .compress-controls,
 .ip-input-wrapper,
 .range-wrapper {
@@ -476,5 +503,9 @@ button.pressed {
 
   button {
     width: auto;
+  }
+
+  .checkbox-group {
+    grid-template-columns: 1fr;
   }
 }
