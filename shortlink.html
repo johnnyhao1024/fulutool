@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>免费短链接生成器 · 福禄工具箱</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath fill='none' stroke='%23e2e8f0' stroke-width='1' stroke-dasharray='1 2' d='M10 0 L10 20 M0 10 L20 10'/%3E%3C/svg%3E");
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            line-height: 1.5;
+            color: #0f172a;
+            padding: 2rem 1.5rem;
+        }
+        .container { max-width: 1280px; margin: 0 auto; }
+        
+        /* 头部样式 */
+        .header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .title-section {
+            text-align: center;
+        }
+        .title-section h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #1e293b, #2d3a4e);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .title-section h1 a {
+            display: inline-flex;
+            align-items: center;
+            transition: transform 0.2s ease;
+        }
+        .title-section h1 a:hover {
+            transform: scale(1.02);
+        }
+        .title-section h1 img {
+            height: 2rem;
+            width: auto;
+            vertical-align: middle;
+        }
+        .title-section p {
+            color: #475569;
+            font-size: 0.9rem;
+        }
+        .current-tool-badge {
+            display: inline-block;
+            background: #eef2ff;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            color: #1e40af;
+            margin-top: 0.5rem;
+        }
+        
+        /* 工具面板样式 */
+        .tool-panel {
+            background: #ffffff;
+            border-radius: 32px;
+            border: 1px solid #edf2f7;
+            padding: 1.8rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+        .tool-title { font-size: 1.6rem; font-weight: 600; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem; }
+        .tool-desc {
+            color: #5b6e8c;
+            border-left: 3px solid #cbd5e1;
+            padding-left: 0.9rem;
+            margin-bottom: 1.6rem;
+            font-size: 0.9rem;
+        }
+        .input-group { margin-bottom: 1.2rem; }
+        label { font-size: 0.8rem; font-weight: 500; color: #334155; display: block; margin-bottom: 0.4rem; }
+        input, textarea, select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            font-family: inherit;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            outline: none;
+            transition: 0.2s;
+        }
+        input:focus, textarea:focus { border-color: #94a3b8; box-shadow: 0 0 0 2px rgba(148,163,184,0.2); }
+        button {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 0.6rem 1.3rem;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #1e293b;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 0.6rem;
+            margin-bottom: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        button.primary { background: #0f172a; color: white; border: none; }
+        button.primary:hover { background: #1e293b; transform: translateY(-1px); }
+        button:hover { background: #e6edf4; border-color: #cbd5e1; }
+        button.pressed { background: #cbd5e1 !important; transform: scale(0.96); transition: 0.05s; }
+        .result-area {
+            margin-top: 1.2rem;
+            background: #f9fbfd;
+            border-radius: 20px;
+            padding: 0.9rem 1rem;
+            border: 1px solid #ecf3f9;
+        }
+        .result-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #62748c;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .copy-btn {
+            background: none;
+            border: none;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.6rem;
+            color: #3b6e9e;
+            cursor: pointer;
+        }
+        .copy-btn:hover { background: #eef2f6; border-radius: 30px; }
+        .other-tools-section { margin-top: 1rem; padding-top: 1rem; }
+        .section-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #475569;
+            margin-bottom: 1rem;
+            padding-bottom: 0.6rem;
+        }
+        
+        /* ========== 统一卡片样式（与 puzzle.html 一致） ========== */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 1rem;
+            justify-content: center;
+        }
+        .tool-card {
+            background: #ffffff;
+            border-radius: 20px;
+            border: 2px solid #eef2f8;
+            padding: 0.8rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: #070707;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 70px;
+        }
+        .tool-card:hover {
+            transform: translateY(-2px);
+            border-color: #cbdbe0;
+            background: #fefefe;
+        }
+        .tool-card-name {
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        @media (max-width: 700px) {
+            .cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .tool-card {
+                padding: 0.6rem 0.8rem;
+                min-height: 60px;
+            }
+            .tool-card-name {
+                font-size: 0.85rem;
+            }
+        }
+        /* ================================================= */
+        
+        .footer { text-align: center; font-size: 0.75rem; color: #8b9ab0; margin-top: 2rem; padding-top: 1rem; }
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+            .tool-panel { padding: 1.2rem; }
+            .title-section h1 img { height: 1.6rem; }
+        }
+    </style>
+<link rel="stylesheet" href="/assets/fulutool.css">
+<script defer src="/assets/fulutool.js"></script>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="title-section">
+            <h1>
+                <span class="brand-mark">福</span>
+                福禄工具箱
+            </h1>
+            <p>免费试用 · 无需注册 · 即用即走</p>
+            <div class="current-tool-badge">当前工具：短链接生成器</div>
+        </div>
+    </div>
+
+    <div class="tool-panel">
+        <div class="tool-title">🔗 短链接生成器</div>
+        <div class="tool-desc">将冗长网址一键转为短链接，复制分享更便捷（自建服务，直达无延迟）</div>
+        <div class="input-group">
+            <label>🔗 原始链接</label>
+            <input type="url" id="shortUrlInput" placeholder="https://fulutool.com/explore">
+        </div>
+        <button class="primary" id="doShortenBtn">✨ 生成短链接</button>
+        <div id="shortenResultArea" class="result-area" style="display: none;">
+            <div class="result-label"><span>📎 短链接</span><button class="copy-btn" id="copyShortResult">复制</button></div>
+            <div id="shortLinkValue"></div>
+        </div>
+        <div id="shortenErrorMsg" class="result-area" style="display: none; color:#b91c1c;"></div>
+    </div>
+
+    <div class="other-tools-section">
+        <div class="section-label">🧩 其他工具 · 点击切换</div>
+        <div class="cards-grid">
+            <a href="/qrcode.html" class="tool-card"><span class="tool-card-name">📱 二维码生成器</span></a>
+            <a href="/textstats.html" class="tool-card"><span class="tool-card-name">📊 文本整理器</span></a>
+            <a href="/imagecompress.html" class="tool-card"><span class="tool-card-name">🖼️ 图片压缩器</span></a>
+            <a href="/password.html" class="tool-card"><span class="tool-card-name">🔐 随机密码生成</span></a>
+            <a href="/ip-lookup.html" class="tool-card"><span class="tool-card-name">🌐 IP归属地查询</span></a>
+            <a href="/tools.html" class="tool-card"><span class="tool-card-name">📦 全部工具</span></a>
+        </div>
+    </div>
+    <div class="footer">🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪</div>
+</div>
+<script>
+    function addPressedEffect(btn) { if (btn) { btn.classList.add('pressed'); setTimeout(() => btn.classList.remove('pressed'), 150); } }
+
+    function encodeUrl(url) {
+        const bytes = new TextEncoder().encode(url);
+        let binary = '';
+        bytes.forEach((b) => { binary += String.fromCharCode(b); });
+        return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    }
+
+    function normalizeUrl(input) {
+        let url = input.trim();
+        if (!url.startsWith('http')) url = 'https://' + url;
+        return url;
+    }
+
+    function buildFallbackShortUrl(longUrl) {
+        const token = encodeUrl(longUrl);
+        return `${location.origin}/s.php?u=${token}`;
+    }
+
+    async function shortenUrl(longUrl) {
+        const url = normalizeUrl(longUrl);
+        const formData = new URLSearchParams();
+        formData.append('url', url);
+        try {
+            const response = await fetch('/api/shorten', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            });
+            const data = await response.json();
+            if (!response.ok || !data.short_url) throw new Error(data.error || '生成失败');
+            return data.short_url;
+        } catch (err) {
+            return buildFallbackShortUrl(url);
+        }
+    }
+
+    const shortenBtn = document.getElementById('doShortenBtn');
+    if (shortenBtn) {
+        shortenBtn.addEventListener('click', async () => {
+            addPressedEffect(shortenBtn);
+            const longUrl = document.getElementById('shortUrlInput').value;
+            const resultDiv = document.getElementById('shortenResultArea');
+            const errorDiv = document.getElementById('shortenErrorMsg');
+            resultDiv.style.display = 'none';
+            errorDiv.style.display = 'none';
+            try {
+                const short = await shortenUrl(longUrl);
+                document.getElementById('shortLinkValue').innerText = short;
+                resultDiv.style.display = 'block';
+            } catch (err) {
+                errorDiv.innerText = `❌ 生成失败: ${err.message}`;
+                errorDiv.style.display = 'block';
+            }
+        });
+    }
+
+    const copyShort = document.getElementById('copyShortResult');
+    if (copyShort) {
+        copyShort.addEventListener('click', () => {
+            addPressedEffect(copyShort);
+            const val = document.getElementById('shortLinkValue')?.innerText;
+            if (val) {
+                navigator.clipboard.writeText(val).then(() => {
+                    const t = copyShort.innerText;
+                    copyShort.innerText = '✓ 已复制';
+                    setTimeout(() => { copyShort.innerText = t; }, 1500);
+                }).catch(() => alert('手动复制'));
+            }
+        });
+    }
+</script>
+</body>
+</html>

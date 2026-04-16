@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>免费IP归属地查询 · 福禄工具箱</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath fill='none' stroke='%23e2e8f0' stroke-width='1' stroke-dasharray='1 2' d='M10 0 L10 20 M0 10 L20 10'/%3E%3C/svg%3E");
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            line-height: 1.5;
+            color: #0f172a;
+            padding: 2rem 1.5rem;
+        }
+        .container { max-width: 1280px; margin: 0 auto; }
+        
+        /* 头部样式 */
+        .header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .title-section {
+            text-align: center;
+        }
+        .title-section h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #1e293b, #2d3a4e);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .title-section h1 a {
+            display: inline-flex;
+            align-items: center;
+            transition: transform 0.2s ease;
+        }
+        .title-section h1 a:hover {
+            transform: scale(1.02);
+        }
+        .title-section h1 img {
+            height: 2rem;
+            width: auto;
+            vertical-align: middle;
+        }
+        .title-section p {
+            color: #475569;
+            font-size: 0.9rem;
+        }
+        .current-tool-badge {
+            display: inline-block;
+            background: #eef2ff;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            color: #1e40af;
+            margin-top: 0.5rem;
+        }
+        
+        /* 工具面板样式 */
+        .tool-panel {
+            background: #ffffff;
+            border-radius: 32px;
+            border: 1px solid #edf2f7;
+            padding: 1.8rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+        .tool-title { font-size: 1.6rem; font-weight: 600; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem; }
+        .tool-desc {
+            color: #5b6e8c;
+            border-left: 3px solid #cbd5e1;
+            padding-left: 0.9rem;
+            margin-bottom: 1.6rem;
+            font-size: 0.9rem;
+        }
+        .control-group {
+            margin-bottom: 1.2rem;
+        }
+        .control-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #334155;
+            margin-bottom: 0.5rem;
+        }
+        .ip-input-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            align-items: center;
+        }
+        .ip-input-wrapper input {
+            flex: 2;
+            min-width: 200px;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            font-family: inherit;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            outline: none;
+            transition: 0.2s;
+        }
+        .ip-input-wrapper input:focus {
+            border-color: #94a3b8;
+            box-shadow: 0 0 0 2px rgba(148,163,184,0.2);
+        }
+        .result-area {
+            margin-top: 1.5rem;
+            background: #f9fbfd;
+            border-radius: 20px;
+            padding: 1rem;
+            border: 1px solid #ecf3f9;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9eef3;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .result-label {
+            font-weight: 500;
+            color: #475569;
+            width: 100px;
+        }
+        .result-value {
+            color: #1e293b;
+            word-break: break-word;
+            flex: 1;
+        }
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+        button {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 0.6rem 1.3rem;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #1e293b;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        button.primary { background: #0f172a; color: white; border: none; }
+        button.primary:hover { background: #1e293b; transform: translateY(-1px); }
+        button:hover { background: #e6edf4; border-color: #cbd5e1; }
+        button.pressed { background: #cbd5e1 !important; transform: scale(0.96); transition: 0.05s; }
+        .loading {
+            text-align: center;
+            padding: 1rem;
+            color: #5b6e8c;
+        }
+        .error-msg {
+            color: #b91c1c;
+            text-align: center;
+            padding: 0.5rem;
+        }
+        
+        .other-tools-section { margin-top: 1rem; padding-top: 1rem; }
+        .section-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #475569;
+            margin-bottom: 1rem;
+            padding-bottom: 0.6rem;
+        }
+        
+        /* ========== 统一卡片样式（与 puzzle.html 一致） ========== */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 1rem;
+            justify-content: center;
+        }
+        .tool-card {
+            background: #ffffff;
+            border-radius: 20px;
+            border: 2px solid #eef2f8;
+            padding: 0.8rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: #070707;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 70px;
+        }
+        .tool-card:hover {
+            transform: translateY(-2px);
+            border-color: #cbdbe0;
+            background: #fefefe;
+        }
+        .tool-card-name {
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        @media (max-width: 700px) {
+            .cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .tool-card {
+                padding: 0.6rem 0.8rem;
+                min-height: 60px;
+            }
+            .tool-card-name {
+                font-size: 0.85rem;
+            }
+        }
+        /* ================================================= */
+        
+        .footer { text-align: center; font-size: 0.75rem; color: #8b9ab0; margin-top: 2rem; padding-top: 1rem; }
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+            .tool-panel { padding: 1.2rem; }
+            .title-section h1 img { height: 1.6rem; }
+            .result-item { flex-direction: column; }
+            .result-label { width: auto; margin-bottom: 0.2rem; }
+        }
+    </style>
+<link rel="stylesheet" href="/assets/fulutool.css">
+<script defer src="/assets/fulutool.js"></script>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="title-section">
+            <h1>
+                <span class="brand-mark">福</span>
+                福禄工具箱
+            </h1>
+            <p>免费试用 · 无需注册 · 即用即走</p>
+            <div class="current-tool-badge">当前工具：IP归属地查询</div>
+        </div>
+    </div>
+
+    <div class="tool-panel">
+        <div class="tool-title">🌐 IP归属地查询</div>
+        <div class="tool-desc">查询任意公网IP的归属地信息，支持自动获取本机IP</div>
+        
+        <div class="control-group">
+            <label>🔍 输入IP地址（支持IPv4）</label>
+            <div class="ip-input-wrapper">
+                <input type="text" id="ipInput" placeholder="例如：8.8.8.8 或留空自动查询本机IP">
+                <button id="queryBtn" class="primary">🔎 查询</button>
+                <button id="queryMyIpBtn" class="primary">📍 查询我的IP</button>
+            </div>
+        </div>
+        
+        <div id="resultArea" class="result-area" style="display: none;">
+            <div id="resultContent"></div>
+        </div>
+        <div id="loadingArea" class="loading" style="display: none;">⏳ 查询中，请稍候...</div>
+        <div id="errorArea" class="error-msg" style="display: none;"></div>
+    </div>
+
+    <div class="other-tools-section">
+        <div class="section-label">🧩 其他工具 · 点击切换</div>
+        <div class="cards-grid">
+            <a href="/shortlink.html" class="tool-card"><span class="tool-card-name">🔗 短链接生成器</span></a>
+            <a href="/qrcode.html" class="tool-card"><span class="tool-card-name">📱 二维码生成器</span></a>
+            <a href="/textstats.html" class="tool-card"><span class="tool-card-name">📊 文本整理器</span></a>
+            <a href="/imagecompress.html" class="tool-card"><span class="tool-card-name">🖼️ 图片压缩器</span></a>
+            <a href="/password.html" class="tool-card"><span class="tool-card-name">🔐 随机密码生成</span></a>
+            <a href="/tools.html" class="tool-card"><span class="tool-card-name">📦 全部工具</span></a>
+        </div>
+    </div>
+    <div class="footer">🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪</div>
+</div>
+
+<script>
+    (function() {
+        window.FULUTOOL_MESSAGES = {
+            zh: {
+                loading: '⏳ 查询中，请稍候...',
+                ip: 'IP地址',
+                country: '国家',
+                region: '省份/州',
+                city: '城市',
+                isp: '运营商',
+                coords: '经纬度',
+                postal: '邮政编码',
+                timezone: '时区',
+                noInfo: '未查询到有效信息',
+                queryFailed: '查询失败',
+                networkError: '请求失败，请检查网络连接或稍后重试',
+                invalidIpv4: '请输入有效的IPv4地址（例如：8.8.8.8）'
+            },
+            en: {
+                loading: '⏳ Looking up, please wait...',
+                ip: 'IP',
+                country: 'Country',
+                region: 'Region',
+                city: 'City',
+                isp: 'ISP',
+                coords: 'Coordinates',
+                postal: 'Postal code',
+                timezone: 'Time zone',
+                noInfo: 'No valid information found',
+                queryFailed: 'Query failed',
+                networkError: 'Request failed. Check your connection and try again.',
+                invalidIpv4: 'Please enter a valid IPv4 address (for example: 8.8.8.8)'
+            }
+        };
+
+        const ipInput = document.getElementById('ipInput');
+        const queryBtn = document.getElementById('queryBtn');
+        const queryMyIpBtn = document.getElementById('queryMyIpBtn');
+        const resultArea = document.getElementById('resultArea');
+        const resultContent = document.getElementById('resultContent');
+        const loadingArea = document.getElementById('loadingArea');
+        const errorArea = document.getElementById('errorArea');
+        const T = (key, fallback) => (window.Fulutool ? Fulutool.t(key, fallback) : fallback);
+        
+        let currentController = null; // 用于中止请求
+        
+        function showLoading() {
+            if (currentController) {
+                currentController.abort();
+                currentController = null;
+            }
+            loadingArea.textContent = T('loading', '⏳ 查询中，请稍候...');
+            loadingArea.style.display = 'block';
+            resultArea.style.display = 'none';
+            errorArea.style.display = 'none';
+        }
+        function hideLoading() {
+            loadingArea.style.display = 'none';
+        }
+        function showError(msg) {
+            hideLoading();
+            errorArea.textContent = msg;
+            errorArea.style.display = 'block';
+            resultArea.style.display = 'none';
+        }
+        function showResult(data) {
+            hideLoading();
+            errorArea.style.display = 'none';
+            resultArea.style.display = 'block';
+            
+            let html = '';
+            if (data.ip) {
+                html += `<div class="result-item"><span class="result-label">${T('ip', 'IP地址')}</span><span class="result-value">${data.ip}</span></div>`;
+            }
+            if (data.country) {
+                html += `<div class="result-item"><span class="result-label">${T('country', '国家')}</span><span class="result-value">${data.country} ${data.countryCode ? '(' + data.countryCode + ')' : ''}</span></div>`;
+            }
+            if (data.region) {
+                html += `<div class="result-item"><span class="result-label">${T('region', '省份/州')}</span><span class="result-value">${data.region}</span></div>`;
+            }
+            if (data.city) {
+                html += `<div class="result-item"><span class="result-label">${T('city', '城市')}</span><span class="result-value">${data.city}</span></div>`;
+            }
+            if (data.isp) {
+                html += `<div class="result-item"><span class="result-label">${T('isp', '运营商')}</span><span class="result-value">${data.isp}</span></div>`;
+            }
+            if (data.loc) {
+                const coords = data.loc.split(',');
+                if (coords.length === 2) {
+                    html += `<div class="result-item"><span class="result-label">${T('coords', '经纬度')}</span><span class="result-value">${coords[0]}, ${coords[1]}</span></div>`;
+                }
+            }
+            if (data.postal) {
+                html += `<div class="result-item"><span class="result-label">${T('postal', '邮政编码')}</span><span class="result-value">${data.postal}</span></div>`;
+            }
+            if (data.timezone) {
+                html += `<div class="result-item"><span class="result-label">${T('timezone', '时区')}</span><span class="result-value">${data.timezone}</span></div>`;
+            }
+            if (html === '') {
+                html = `<div class="result-item">${T('noInfo', '未查询到有效信息')}</div>`;
+            }
+            resultContent.innerHTML = html;
+        }
+        
+        // 使用多个 API 轮询查询
+        async function queryIPWithFallback(ip) {
+            const apis = [
+                {
+                    name: 'ip-api.com',
+                    url: `https://ip-api.com/json/${ip || ''}?fields=status,message,query,country,countryCode,regionName,city,isp,lat,lon,zip,timezone&lang=zh-CN`,
+                    parser: (data) => {
+                        if (data.status === 'success') {
+                            return {
+                                ip: data.query,
+                                country: data.country,
+                                countryCode: data.countryCode,
+                                region: data.regionName,
+                                city: data.city,
+                                isp: data.isp,
+                                loc: data.lat && data.lon ? `${data.lat},${data.lon}` : null,
+                                postal: data.zip,
+                                timezone: data.timezone
+                            };
+                        }
+                        throw new Error(data.message || T('queryFailed', '查询失败'));
+                    }
+                },
+                {
+                    name: 'ipinfo.io',
+                    url: `https://ipinfo.io/${ip || ''}/json?token=1d7b8e2d2c6b4a`,
+                    parser: (data) => {
+                        if (data && !data.error) {
+                            return {
+                                ip: data.ip,
+                                country: data.country,
+                                region: data.region,
+                                city: data.city,
+                                isp: data.org,
+                                loc: data.loc,
+                                postal: data.postal,
+                                timezone: data.timezone
+                            };
+                        }
+                        throw new Error('数据无效');
+                    }
+                },
+                {
+                    name: 'ipapi.co',
+                    url: `https://ipapi.co/${ip || ''}/json/`,
+                    parser: (data) => {
+                        if (data && !data.error) {
+                            return {
+                                ip: data.ip,
+                                country: data.country_name,
+                                countryCode: data.country_code,
+                                region: data.region,
+                                city: data.city,
+                                isp: data.org,
+                                loc: data.latitude && data.longitude ? `${data.latitude},${data.longitude}` : null,
+                                postal: data.postal,
+                                timezone: data.timezone
+                            };
+                        }
+                        throw new Error('数据无效');
+                    }
+                }
+            ];
+            
+            for (const api of apis) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 8000);
+                    const response = await fetch(api.url, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const data = await response.json();
+                    const parsed = api.parser(data);
+                    if (parsed && parsed.ip) {
+                        console.log(`使用 ${api.name} 查询成功`);
+                        return parsed;
+                    }
+                } catch (err) {
+                    console.warn(`${api.name} 查询失败:`, err.message);
+                    continue;
+                }
+            }
+            throw new Error(T('networkError', '请求失败，请检查网络连接或稍后重试'));
+        }
+        
+        async function performQuery(ipValue) {
+            showLoading();
+            try {
+                const result = await queryIPWithFallback(ipValue);
+                showResult(result);
+            } catch (err) {
+                console.error(err);
+                showError(err.message || T('networkError', '请求失败，请检查网络连接或稍后重试'));
+            }
+        }
+        
+        function addPressedEffect(btn) {
+            btn.classList.add('pressed');
+            setTimeout(() => btn.classList.remove('pressed'), 150);
+        }
+        
+        queryBtn.addEventListener('click', () => {
+            addPressedEffect(queryBtn);
+            let ip = ipInput.value.trim();
+            if (ip === '') {
+                performQuery('');
+            } else {
+                const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
+                if (!ipv4Regex.test(ip)) {
+                    showError(T('invalidIpv4', '请输入有效的IPv4地址（例如：8.8.8.8）'));
+                    return;
+                }
+                performQuery(ip);
+            }
+        });
+        
+        queryMyIpBtn.addEventListener('click', () => {
+            addPressedEffect(queryMyIpBtn);
+            ipInput.value = '';
+            performQuery('');
+        });
+        
+        // 页面加载时自动查询本机IP
+        performQuery('');
+    })();
+</script>
+</body>
+</html>
