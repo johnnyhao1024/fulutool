@@ -259,7 +259,7 @@
                 <span class="brand-mark">福</span>
                 福禄工具箱
             </h1>
-            <p>免费使用 · 无需注册 · 即用即走</p>
+            <p>免费试用 · 无需注册 · 即用即走</p>
             <div class="current-tool-badge">当前工具：图片水印工具</div>
         </div>
     </div>
@@ -365,6 +365,26 @@
         let currentImage = null;       // 原始图片 Image 对象
         let currentCanvas = null;       // 当前水印 canvas
         let currentDataURL = null;
+        const defaultWatermarkText = {
+            zh: '福禄工具箱',
+            en: 'Fulutool Toolbox'
+        };
+        const colorLabels = {
+            zh: {
+                '#000000': '黑色', '#ffffff': '白色', '#ff0000': '红色', '#00ff00': '绿色', '#0000ff': '蓝色',
+                '#ffff00': '黄色', '#ff00ff': '紫色', '#00ffff': '青色', '#808080': '灰色', '#800000': '暗红',
+                custom: '自定义'
+            },
+            en: {
+                '#000000': 'Black', '#ffffff': 'White', '#ff0000': 'Red', '#00ff00': 'Green', '#0000ff': 'Blue',
+                '#ffff00': 'Yellow', '#ff00ff': 'Purple', '#00ffff': 'Cyan', '#808080': 'Gray', '#800000': 'Dark red',
+                custom: 'Custom'
+            }
+        };
+
+        function getLang() {
+            return window.Fulutool ? Fulutool.lang : 'zh';
+        }
         
         function showError(msg) {
             errorMsg.textContent = msg;
@@ -379,11 +399,8 @@
         
         // 将颜色名称显示（简单映射）
         function getColorName(hex) {
-            const colorMap = {
-                '#000000': '黑色', '#ffffff': '白色', '#ff0000': '红色', '#00ff00': '绿色', '#0000ff': '蓝色',
-                '#ffff00': '黄色', '#ff00ff': '紫色', '#00ffff': '青色', '#808080': '灰色', '#800000': '暗红'
-            };
-            return colorMap[hex.toLowerCase()] || '自定义';
+            const map = colorLabels[getLang()] || colorLabels.zh;
+            return map[hex.toLowerCase()] || map.custom;
         }
         
         // 更新颜色显示
@@ -391,6 +408,19 @@
             const color = watermarkColor.value;
             colorValue.textContent = getColorName(color);
         }
+
+        function syncLocalizedDefaults() {
+            const lang = getLang();
+            const fallback = defaultWatermarkText[lang] || defaultWatermarkText.zh;
+            const current = watermarkText.value.trim();
+            if (!current || current === defaultWatermarkText.zh || current === defaultWatermarkText.en) {
+                watermarkText.value = fallback;
+            }
+            updateColorDisplay();
+        }
+
+        window.FULUTOOL_HOOKS = window.FULUTOOL_HOOKS || {};
+        window.FULUTOOL_HOOKS.onLanguageChange = syncLocalizedDefaults;
         
         // 绘制水印（核心）
         function drawWatermark(img, text, colorHex, opacityPercent, fontSizePx, angleDeg, tileMode) {
@@ -542,7 +572,7 @@
         });
         
         // 初始化显示
-        updateColorDisplay();
+        syncLocalizedDefaults();
         opacityValue.textContent = opacitySlider.value;
         fontSizeValue.textContent = fontSizeSlider.value;
         angleValue.textContent = angleSlider.value;
