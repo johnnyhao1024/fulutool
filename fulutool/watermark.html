@@ -307,6 +307,7 @@
             zh: '福禄工具箱',
             en: 'Fulutool Toolbox'
         };
+        let activeLang = 'zh';
         window.FULUTOOL_MESSAGES = window.FULUTOOL_MESSAGES || {};
         window.FULUTOOL_MESSAGES.zh = Object.assign({
             generateFail: '生成水印失败，请重试',
@@ -331,7 +332,7 @@
         };
 
         function getLang() {
-            return window.Fulutool ? Fulutool.lang : 'zh';
+            return activeLang;
         }
         
         function showError(msg) {
@@ -357,9 +358,9 @@
             colorValue.textContent = getColorName(color);
         }
 
-        function syncLocalizedDefaults() {
-            const lang = getLang();
-            const fallback = defaultWatermarkText[lang] || defaultWatermarkText.zh;
+        function syncLocalizedDefaults(lang) {
+            activeLang = lang === 'en' ? 'en' : 'zh';
+            const fallback = defaultWatermarkText[activeLang] || defaultWatermarkText.zh;
             const current = watermarkText.value.trim();
             if (!current || current === defaultWatermarkText.zh || current === defaultWatermarkText.en) {
                 watermarkText.value = fallback;
@@ -369,6 +370,7 @@
 
         window.FULUTOOL_HOOKS = window.FULUTOOL_HOOKS || {};
         window.FULUTOOL_HOOKS.onLanguageChange = syncLocalizedDefaults;
+        window.FULUTOOL_HOOKS.onReady = syncLocalizedDefaults;
         
         // 绘制水印（核心）
         function drawWatermark(img, text, colorHex, opacityPercent, fontSizePx, angleDeg, tileMode) {
@@ -520,7 +522,7 @@
         });
         
         // 初始化显示
-        syncLocalizedDefaults();
+        syncLocalizedDefaults(activeLang);
         opacityValue.textContent = opacitySlider.value;
         fontSizeValue.textContent = fontSizeSlider.value;
         angleValue.textContent = angleSlider.value;
