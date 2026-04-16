@@ -52,7 +52,7 @@ export async function onRequestPost(context) {
   await env.FULUTOOL_LINKS.put(code, target);
 
   const url = new URL(request.url);
-  const shortUrl = `${url.origin}/s.php?code=${code}`;
+  const shortUrl = `${url.origin}/s/${code}`;
 
   return Response.json({
     code,
@@ -60,4 +60,3 @@ export async function onRequestPost(context) {
     short_url: shortUrl
   });
 }
-
