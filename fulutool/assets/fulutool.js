@@ -614,15 +614,6 @@
     }
 
     translateTextNodes(lang);
-
-    const observer = new MutationObserver(() => {
-      translateTextNodes(getStoredLang());
-    });
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      characterData: true
-    });
   }
 
   if (document.readyState === 'loading') {
