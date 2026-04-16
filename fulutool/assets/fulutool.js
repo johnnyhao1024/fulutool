@@ -169,6 +169,113 @@
     }
   };
 
+  const LANGUAGE_NORMALIZATIONS = {
+    zh: new Map([
+      ['现代、轻快、可直接部署到 Cloudflare 的工具集合', '免费试用 · 无需注册 · 即用即走'],
+      ['免费使用 · 无需注册 · 即用即走', '免费试用 · 无需注册 · 即用即走'],
+      ['Free to use · No sign-up · Instant access', '免费试用 · 无需注册 · 即用即走'],
+      ['Modern everyday utilities, ready for Cloudflare', '免费试用 · 无需注册 · 即用即走']
+    ]),
+    en: new Map([
+      ['现代、轻快、可直接部署到 Cloudflare 的工具集合', 'Free to try · No sign-up · Instant access'],
+      ['免费使用 · 无需注册 · 即用即走', 'Free to try · No sign-up · Instant access'],
+      ['Free to use · No sign-up · Instant access', 'Free to try · No sign-up · Instant access'],
+      ['免费试用 · 无需注册 · 即用即走', 'Free to try · No sign-up · Instant access']
+    ])
+  };
+
+  const TEXT_TRANSLATIONS = {
+    zh: new Map([
+      ['Fulutool Toolbox', '福禄工具箱'],
+      ['Free to try · No sign-up · Instant access', '免费试用 · 无需注册 · 即用即走'],
+      ['🧰 Fulutool Toolbox · Free tools | Standalone pages | No tracking', '🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪'],
+      ['🧩 More tools · Jump around', '🧩 其他工具 · 点击切换'],
+      ['Turn long URLs into compact short links, ready to share and Cloudflare-friendly', '将冗长网址一键转为短链接，复制分享更便捷（支持 Cloudflare 部署）'],
+      ['将冗长网址一键转为短链接，复制分享更便捷（支持 Cloudflare 部署）', 'Turn long URLs into compact short links, ready to share and Cloudflare-friendly'],
+      ['长链接转短链接，干净易传播，直达无延迟。', 'Turn long links into short links, clean to share, and quick to open.'],
+      ['Enter a URL and generate a scannable QR code', '输入网址，生成二维码，扫码访问'],
+      ['输入网址，快速生成二维码，扫码访问。', 'Enter a URL and generate a scannable QR code'],
+      ['Count text instantly and clean up formatting with one click', '实时统计字数、行数，并快速调整文本格式（去空行、首行缩进）'],
+      ['实时统计字数、行数，并快速调整文本格式（去空行、首行缩进）', 'Count text instantly and clean up formatting with one click'],
+      ['Upload an image, tweak quality or width, and shrink the file size', '上传图片，调整压缩质量或最大宽度，减少文件体积'],
+      ['上传图片，调整压缩质量与宽度，减少文件体积，保持画质。', 'Upload an image, tweak quality or width, and shrink the file size'],
+      ['Customise length and character sets to generate a strong password', '自定义密码长度和字符类型，一键生成高强度密码'],
+      ['自定义长度和字符类型，生成高强度密码。', 'Customise length and character sets to generate a strong password'],
+      ['Look up the location and ISP of a public IP, including your own', '查询公网 IP 的归属地信息，支持本机 IP'],
+      ['查询公网IP的归属地信息，支持本机IP。', 'Look up the location and ISP of a public IP, including your own'],
+      ['Upload a photo and turn it into a crisp pixel-style avatar', '上传照片并自动裁剪成像素风头像，清晰又有趣'],
+      ['上传照片，裁剪并生成像素风格头像。', 'Upload a photo and turn it into a crisp pixel-style avatar'],
+      ['Add text watermarks with opacity, angle and tiled layouts', '为图片添加文字水印，支持透明度、角度和平铺模式'],
+      ['为图片添加文字水印，支持平铺、透明度和旋转。', 'Add text watermarks with opacity, angle and tiled layouts'],
+      ['Combine multiple images into a neat horizontal, vertical, or grid layout', '多张图片自由拼接，支持横向、纵向和九宫格布局'],
+      ['多图拼接，支持横向/纵向模板，拖拽排序。', 'Combine multiple images into a neat horizontal, vertical, or grid layout'],
+      ['Short Link Generator', '短链接生成器'],
+      ['QR Code Generator', '二维码生成器'],
+      ['Text Formatter', '文本整理器'],
+      ['Image Compressor', '图片压缩器'],
+      ['Password Generator', '随机密码生成器'],
+      ['IP Lookup', 'IP归属地查询'],
+      ['Pixel Avatar Generator', '像素头像生成器'],
+      ['Watermark Tool', '图片水印工具'],
+      ['Photo Collage Maker', '图片拼图工具'],
+      ['Turn long links into short links, clean to share, and quick to open.', '长链接转短链接，干净易传播，直达无延迟。'],
+      ['Enter a URL, generate a QR code, and scan to open it.', '输入网址，快速生成二维码，扫码访问。'],
+      ['Count text instantly and adjust formatting (remove blank lines, indent first line).', '实时统计字数，快速调整文本格式（去空行、首行缩进）。'],
+      ['Adjust quality and width to reduce file size while keeping the image looking good.', '调整压缩质量与宽度，减少文件体积，保持画质。'],
+      ['Customise length and character types to generate a strong password.', '自定义长度和字符类型，生成高强度密码。'],
+      ['Look up the location and details of a public IP, including your own.', '查询公网IP的归属地信息，支持本机IP。'],
+      ['Upload a photo, crop it, and turn it into a pixel-style avatar.', '上传照片，裁剪并生成像素风格头像。'],
+      ['Add text watermarks with tiling, opacity, and rotation support.', '为图片添加文字水印，支持平铺、透明度和旋转。'],
+      ['Combine multiple images with horizontal, vertical, and grid layouts.', '多图拼接，支持横向/纵向模板，拖拽排序。'],
+      ['Open →', '立即使用 →'],
+      ['Copy', '复制']
+    ]),
+    en: new Map([
+      ['福禄工具箱', 'Fulutool Toolbox'],
+      ['免费试用 · 无需注册 · 即用即走', 'Free to try · No sign-up · Instant access'],
+      ['🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪', '🧰 Fulutool Toolbox · Free tools | Standalone pages | No tracking'],
+      ['🧩 其他工具 · 点击切换', '🧩 More tools · Jump around'],
+      ['将冗长网址一键转为短链接，复制分享更便捷（支持 Cloudflare 部署）', 'Turn long URLs into compact short links, ready to share and Cloudflare-friendly'],
+      ['将冗长网址一键转为短链接，复制分享更便捷（支持 Cloudflare 部署）', 'Turn long URLs into compact short links, ready to share and Cloudflare-friendly'],
+      ['长链接转短链接，干净易传播，直达无延迟。', 'Turn long links into short links, clean to share, and quick to open.'],
+      ['输入网址，生成二维码，扫码访问', 'Enter a URL and generate a scannable QR code'],
+      ['输入网址，快速生成二维码，扫码访问。', 'Enter a URL and generate a scannable QR code'],
+      ['实时统计字数、行数，并快速调整文本格式（去空行、首行缩进）', 'Count text instantly and clean up formatting with one click'],
+      ['上传图片，调整压缩质量或最大宽度，减少文件体积', 'Upload an image, tweak quality or width, and shrink the file size'],
+      ['上传图片，调整压缩质量与宽度，减少文件体积，保持画质。', 'Upload an image, tweak quality or width, and shrink the file size'],
+      ['自定义密码长度和字符类型，一键生成高强度密码', 'Customise length and character sets to generate a strong password'],
+      ['自定义长度和字符类型，生成高强度密码。', 'Customise length and character sets to generate a strong password'],
+      ['查询公网 IP 的归属地信息，支持本机 IP', 'Look up the location and ISP of a public IP, including your own'],
+      ['查询公网IP的归属地信息，支持本机IP。', 'Look up the location and ISP of a public IP, including your own'],
+      ['上传照片并自动裁剪成像素风头像，清晰又有趣', 'Upload a photo and turn it into a crisp pixel-style avatar'],
+      ['上传照片，裁剪并生成像素风格头像。', 'Upload a photo and turn it into a crisp pixel-style avatar'],
+      ['为图片添加文字水印，支持透明度、角度和平铺模式', 'Add text watermarks with opacity, angle and tiled layouts'],
+      ['为图片添加文字水印，支持平铺、透明度和旋转。', 'Add text watermarks with opacity, angle and tiled layouts'],
+      ['多张图片自由拼接，支持横向、纵向和九宫格布局', 'Combine multiple images into a neat horizontal, vertical, or grid layout'],
+      ['多图拼接，支持横向/纵向模板，拖拽排序。', 'Combine multiple images into a neat horizontal, vertical, or grid layout'],
+      ['短链接生成器', 'Short Link Generator'],
+      ['二维码生成器', 'QR Code Generator'],
+      ['文本整理器', 'Text Formatter'],
+      ['图片压缩器', 'Image Compressor'],
+      ['随机密码生成器', 'Password Generator'],
+      ['IP归属地查询', 'IP Lookup'],
+      ['像素头像生成器', 'Pixel Avatar Generator'],
+      ['图片水印工具', 'Watermark Tool'],
+      ['图片拼图工具', 'Photo Collage Maker'],
+      ['长链接转短链接，干净易传播，直达无延迟。', 'Turn long links into short links, clean to share, and quick to open.'],
+      ['输入网址，快速生成二维码，扫码访问。', 'Enter a URL, generate a QR code, and scan to open it.'],
+      ['实时统计字数，快速调整文本格式（去空行、首行缩进）。', 'Count text instantly and adjust formatting (remove blank lines, indent first line).'],
+      ['调整压缩质量与宽度，减少文件体积，保持画质。', 'Adjust quality and width to reduce file size while keeping the image looking good.'],
+      ['自定义长度和字符类型，生成高强度密码。', 'Customise length and character types to generate a strong password.'],
+      ['查询公网IP的归属地信息，支持本机IP。', 'Look up the location and details of a public IP, including your own.'],
+      ['上传照片，裁剪并生成像素风格头像。', 'Upload a photo, crop it, and turn it into a pixel-style avatar.'],
+      ['为图片添加文字水印，支持平铺、透明度和旋转。', 'Add text watermarks with tiling, opacity, and rotation support.'],
+      ['多图拼接，支持横向/纵向模板，拖拽排序。', 'Combine multiple images with horizontal, vertical, and grid layouts.'],
+      ['立即使用 →', 'Open →'],
+      ['复制', 'Copy']
+    ])
+  };
+
   function normalizeLang(lang) {
     return lang === 'en' ? 'en' : 'zh';
   }
@@ -199,6 +306,13 @@
     if (entry == null) return '';
     if (typeof entry === 'string') return entry;
     return entry[lang] ?? entry.zh ?? entry.en ?? '';
+  }
+
+  function translateValue(value, lang) {
+    if (typeof value !== 'string' || !value) return value;
+    const normalized = LANGUAGE_NORMALIZATIONS[lang]?.get(value);
+    if (normalized) return normalized;
+    return TEXT_TRANSLATIONS[lang]?.get(value) ?? value;
   }
 
   function applyBinding(selector, lang, handler) {
@@ -239,6 +353,42 @@
     });
   }
 
+  function translateTextNodes(lang) {
+    if (!document.body) return;
+
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        const parent = node.parentElement;
+        if (!parent) return NodeFilter.FILTER_REJECT;
+        if (['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEXTAREA', 'CODE', 'PRE', 'SVG'].includes(parent.tagName)) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+
+    let node = walker.nextNode();
+    while (node) {
+      const translated = translateValue(node.nodeValue, lang);
+      if (translated !== node.nodeValue) {
+        node.nodeValue = translated;
+      }
+      node = walker.nextNode();
+    }
+
+    document.querySelectorAll('[placeholder], [title], [aria-label], [alt]').forEach((el) => {
+      ['placeholder', 'title', 'aria-label', 'alt'].forEach((attr) => {
+        if (!el.hasAttribute(attr)) return;
+        const current = el.getAttribute(attr);
+        const translated = translateValue(current, lang);
+        if (translated !== current) {
+          el.setAttribute(attr, translated);
+        }
+      });
+    });
+  }
+
   function setToolbarLang(lang) {
     const resolved = normalizeLang(lang);
     document.documentElement.lang = resolved === 'en' ? 'en' : 'zh-CN';
@@ -259,8 +409,8 @@
     }
     if (tagline) {
       tagline.textContent = resolved === 'en'
-        ? 'Modern everyday utilities, ready for Cloudflare'
-        : '现代、轻快、可直接部署到 Cloudflare 的工具集合';
+        ? 'Free to try · No sign-up · Instant access'
+        : '免费试用 · 无需注册 · 即用即走';
     }
   }
 
@@ -274,7 +424,7 @@
         <span class="ft-brand-mark">福</span>
         <span class="ft-brand-copy">
           <strong data-ft-brand>福禄工具箱</strong>
-          <small data-ft-brand-tagline>现代、轻快、可直接部署到 Cloudflare 的工具集合</small>
+          <small data-ft-brand-tagline>免费试用 · 无需注册 · 即用即走</small>
         </span>
       </a>
       <div class="ft-lang-switch" role="group" aria-label="Language switch">
@@ -302,10 +452,13 @@
     if (typeof hooks.onLanguageChange === 'function') {
       hooks.onLanguageChange(resolved);
     }
+
+    translateTextNodes(resolved);
   }
 
   function init() {
     ensureToolbar();
+    document.body.classList.add('ft-flat-hero');
     const lang = getStoredLang();
     setLanguage(lang);
 
@@ -317,6 +470,17 @@
     if (typeof hooks.onReady === 'function') {
       hooks.onReady(lang);
     }
+
+    translateTextNodes(lang);
+
+    const observer = new MutationObserver(() => {
+      translateTextNodes(getStoredLang());
+    });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
   }
 
   if (document.readyState === 'loading') {
