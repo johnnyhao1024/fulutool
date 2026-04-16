@@ -5,21 +5,21 @@
     '/index.html': {
       title: { zh: '福禄工具箱 · 常用工具大全', en: 'Fulutool Toolbox · Everyday Utilities' },
       text: [
-        { selector: '.title-section p', zh: '免费使用 · 无需注册 · 即用即走', en: 'Free to use · No sign-up · Instant access' },
+        { selector: '.ft-brand-copy small', zh: '免费使用·无需注册·即用即走', en: 'Free to use · No sign-up · Instant access' },
         { selector: '.footer', zh: '🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪', en: '🧰 Fulutool Toolbox · Free tools | Standalone pages | No tracking' }
       ]
     },
     '/tools.html': {
       title: { zh: '福禄工具箱 · 常用工具大全', en: 'Fulutool Toolbox · Everyday Utilities' },
       text: [
-        { selector: '.title-section p', zh: '免费使用 · 无需注册 · 即用即走', en: 'Free to use · No sign-up · Instant access' },
+        { selector: '.ft-brand-copy small', zh: '免费使用·无需注册·即用即走', en: 'Free to use · No sign-up · Instant access' },
         { selector: '.footer', zh: '🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪', en: '🧰 Fulutool Toolbox · Free tools | Standalone pages | No tracking' }
       ]
     },
     '/shortlink.html': {
       title: { zh: '免费短链接生成器 · 福禄工具箱', en: 'Short Link Generator · Fulutool Toolbox' },
       text: [
-        { selector: '.title-section p', zh: '免费使用 · 无需注册 · 即用即走', en: 'Free to use · No sign-up · Instant access' },
+        { selector: '.ft-brand-copy small', zh: '免费使用·无需注册·即用即走', en: 'Free to use · No sign-up · Instant access' },
         { selector: '.current-tool-badge', zh: '当前工具：短链接生成器', en: 'Current tool: Short Link Generator' },
         { selector: '.tool-title', zh: '🔗 短链接生成器', en: '🔗 Short Link Generator' },
         { selector: '.tool-desc', zh: '将冗长网址一键转为短链接，复制分享更便捷（支持 Cloudflare 部署）', en: 'Turn long URLs into compact short links, ready to share and Cloudflare-friendly' },
@@ -37,7 +37,7 @@
     '/qrcode.html': {
       title: { zh: '免费二维码生成器 · 福禄工具箱', en: 'QR Code Generator · Fulutool Toolbox' },
       text: [
-        { selector: '.title-section p', zh: '免费使用 · 无需注册 · 即用即走', en: 'Free to use · No sign-up · Instant access' },
+        { selector: '.ft-brand-copy small', zh: '免费使用·无需注册·即用即走', en: 'Free to use · No sign-up · Instant access' },
         { selector: '.current-tool-badge', zh: '当前工具：二维码生成器', en: 'Current tool: QR Code Generator' },
         { selector: '.tool-title', zh: '📱 二维码生成器', en: '📱 QR Code Generator' },
         { selector: '.tool-desc', zh: '输入网址，生成二维码，扫码访问', en: 'Enter a URL and generate a scannable QR code' },
@@ -55,7 +55,7 @@
     '/textstats.html': {
       title: { zh: '免费在线文本整理器 · 福禄工具箱', en: 'Text Formatter · Fulutool Toolbox' },
       text: [
-        { selector: '.title-section p', zh: '免费使用 · 无需注册 · 即用即走', en: 'Free to use · No sign-up · Instant access' },
+        { selector: '.ft-brand-copy small', zh: '免费使用·无需注册·即用即走', en: 'Free to use · No sign-up · Instant access' },
         { selector: '.current-tool-badge', zh: '当前工具：文本整理器', en: 'Current tool: Text Formatter' },
         { selector: '.tool-title', zh: '📊 文本整理器', en: '📊 Text Formatter' },
         { selector: '.tool-desc', zh: '实时统计字数、行数，并快速调整文本格式（去空行、首行缩进）', en: 'Count text instantly and clean up formatting with one click' },
@@ -75,7 +75,7 @@
     '/imagecompress.html': {
       title: { zh: '免费在线图片压缩器 · 福禄工具箱', en: 'Image Compressor · Fulutool Toolbox' },
       text: [
-        { selector: '.title-section p', zh: '免费使用 · 无需注册 · 即用即走', en: 'Free to use · No sign-up · Instant access' },
+        { selector: '.ft-brand-copy small', zh: '免费使用·无需注册·即用即走', en: 'Free to use · No sign-up · Instant access' },
         { selector: '.current-tool-badge', zh: '当前工具：图片压缩器', en: 'Current tool: Image Compressor' },
         { selector: '.tool-title', zh: '🖼️ 图片压缩器', en: '🖼️ Image Compressor' },
         { selector: '.tool-desc', zh: '上传图片，调整压缩质量或最大宽度，减少文件体积', en: 'Upload an image, tweak quality or width, and shrink the file size' },
@@ -93,7 +93,7 @@
     '/password.html': {
       title: { zh: '免费随机密码生成器 · 福禄工具箱', en: 'Password Generator · Fulutool Toolbox' },
       text: [
-        { selector: '.title-section p', zh: '免费使用 · 无需注册 · 即用即走', en: 'Free to use · No sign-up · Instant access' },
+        { selector: '.ft-brand-copy small', zh: '免费使用·无需注册·即用即走', en: 'Free to use · No sign-up · Instant access' },
         { selector: '.current-tool-badge', zh: '当前工具：随机密码生成器', en: 'Current tool: Password Generator' },
         { selector: '.tool-title', zh: '🔐 随机密码生成器', en: '🔐 Password Generator' },
         { selector: '.tool-desc', zh: '自定义密码长度和字符类型，一键生成高强度密码', en: 'Customise length and character sets to generate a strong password' },
@@ -107,7 +107,7 @@
     '/ip-lookup.html': {
       title: { zh: '免费IP归属地查询 · 福禄工具箱', en: 'IP Lookup · Fulutool Toolbox' },
       text: [
-        { selector: '.title-section p', zh: '免费使用 · 无需注册 · 即用即走', en: 'Free to use · No sign-up · Instant access' },
+        { selector: '.ft-brand-copy small', zh: '免费使用·无需注册·即用即走', en: 'Free to use · No sign-up · Instant access' },
         { selector: '.current-tool-badge', zh: '当前工具：IP归属地查询', en: 'Current tool: IP Lookup' },
         { selector: '.tool-title', zh: '🌐 IP归属地查询', en: '🌐 IP Lookup' },
         { selector: '.tool-desc', zh: '查询公网 IP 的归属地信息，支持本机 IP', en: 'Look up the location and ISP of a public IP, including your own' },
@@ -123,7 +123,7 @@
     '/pixel-avatar.html': {
       title: { zh: '免费像素头像生成器 · 福禄工具箱', en: 'Pixel Avatar Generator · Fulutool Toolbox' },
       text: [
-        { selector: '.title-section p', zh: '免费使用 · 无需注册 · 即用即走', en: 'Free to use · No sign-up · Instant access' },
+        { selector: '.ft-brand-copy small', zh: '免费使用·无需注册·即用即走', en: 'Free to use · No sign-up · Instant access' },
         { selector: '.current-tool-badge', zh: '当前工具：像素头像生成器', en: 'Current tool: Pixel Avatar Generator' },
         { selector: '.tool-title', zh: '🎨 像素头像生成器', en: '🎨 Pixel Avatar Generator' },
         { selector: '.tool-desc', zh: '上传照片并自动裁剪成像素风头像，清晰又有趣', en: 'Upload a photo and turn it into a crisp pixel-style avatar' },
@@ -138,14 +138,14 @@
     '/puzzle.html': {
       title: { zh: '免费在线拼图工具 · 福禄工具箱', en: 'Photo Collage Maker · Fulutool Toolbox' },
       text: [
-        { selector: '.title-section p', zh: '免费使用 · 无需注册 · 即用即走', en: 'Free to use · No sign-up · Instant access' },
+        { selector: '.ft-brand-copy small', zh: '免费使用·无需注册·即用即走', en: 'Free to use · No sign-up · Instant access' },
         { selector: '.current-tool-badge', zh: '当前工具：拼图工具', en: 'Current tool: Collage Maker' },
         { selector: '.tool-title', zh: '🧩 拼图工具', en: '🧩 Photo Collage Maker' },
         { selector: '.tool-desc', zh: '多张图片自由拼接，支持横向、纵向和九宫格布局', en: 'Combine multiple images into a neat horizontal, vertical, or grid layout' },
         { selector: '#selectImagesBtn', zh: '📂 选择图片（可多选）', en: '📂 Choose images (multi-select)' },
-        { selector: '.template-buttons .template-btn:nth-of-type(1)', zh: '横向拼接', en: 'Horizontal' },
-        { selector: '.template-buttons .template-btn:nth-of-type(2)', zh: '纵向拼接', en: 'Vertical' },
-        { selector: '.template-buttons .template-btn:nth-of-type(3)', zh: '九宫格', en: 'Grid' },
+        { selector: '.template-label:nth-of-type(1)', zh: '横向拼接', en: 'Horizontal' },
+        { selector: '.template-label:nth-of-type(2)', zh: '纵向拼接', en: 'Vertical' },
+        { selector: '.template-label:nth-of-type(3)', zh: '网格拼图', en: 'Grid' },
         { selector: '#generateBtn', zh: '✨ 生成拼图', en: '✨ Generate collage' },
         { selector: '#saveBtn', zh: '💾 保存图片', en: '💾 Save image' },
         { selector: '.save-tip', zh: '💡 点击保存按钮下载图片；移动端若无法下载，可长按图片保存', en: '💡 Tap to download; on mobile, long-press the image to save it' },
@@ -156,7 +156,7 @@
     '/watermark.html': {
       title: { zh: '图片水印工具 · 福禄工具箱', en: 'Watermark Tool · Fulutool Toolbox' },
       text: [
-        { selector: '.title-section p', zh: '免费使用 · 无需注册 · 即用即走', en: 'Free to use · No sign-up · Instant access' },
+        { selector: '.ft-brand-copy small', zh: '免费使用·无需注册·即用即走', en: 'Free to use · No sign-up · Instant access' },
         { selector: '.current-tool-badge', zh: '当前工具：图片水印工具', en: 'Current tool: Watermark Tool' },
         { selector: '.tool-title', zh: '💧 图片水印工具', en: '💧 Watermark Tool' },
         { selector: '.tool-desc', zh: '为图片添加文字水印，支持透明度、角度和平铺模式', en: 'Add text watermarks with opacity, angle and tiled layouts' },
@@ -171,23 +171,23 @@
 
   const LANGUAGE_NORMALIZATIONS = {
     zh: new Map([
-      ['现代、轻快、可直接部署到 Cloudflare 的工具集合', '免费试用 · 无需注册 · 即用即走'],
-      ['免费使用 · 无需注册 · 即用即走', '免费试用 · 无需注册 · 即用即走'],
-      ['Free to use · No sign-up · Instant access', '免费试用 · 无需注册 · 即用即走'],
-      ['Modern everyday utilities, ready for Cloudflare', '免费试用 · 无需注册 · 即用即走']
+      ['免费使用·无需注册·即用即走', '免费使用·无需注册·即用即走'],
+      ['免费使用 · 无需注册 · 即用即走', '免费使用·无需注册·即用即走'],
+      ['Free to use · No sign-up · Instant access', '免费使用·无需注册·即用即走'],
+      ['Modern everyday utilities, ready for Cloudflare', '免费使用·无需注册·即用即走']
     ]),
     en: new Map([
-      ['现代、轻快、可直接部署到 Cloudflare 的工具集合', 'Free to try · No sign-up · Instant access'],
-      ['免费使用 · 无需注册 · 即用即走', 'Free to try · No sign-up · Instant access'],
-      ['Free to use · No sign-up · Instant access', 'Free to try · No sign-up · Instant access'],
-      ['免费试用 · 无需注册 · 即用即走', 'Free to try · No sign-up · Instant access']
+      ['免费使用·无需注册·即用即走', 'Free to use · No sign-up · Instant access'],
+      ['免费使用 · 无需注册 · 即用即走', 'Free to use · No sign-up · Instant access'],
+      ['Free to use · No sign-up · Instant access', 'Free to use · No sign-up · Instant access'],
+      ['免费使用·无需注册·即用即走', 'Free to use · No sign-up · Instant access']
     ])
   };
 
   const TEXT_TRANSLATIONS = {
     zh: new Map([
       ['Fulutool Toolbox', '福禄工具箱'],
-      ['Free to try · No sign-up · Instant access', '免费试用 · 无需注册 · 即用即走'],
+      ['Free to use · No sign-up · Instant access', '免费使用·无需注册·即用即走'],
       ['🧰 Fulutool Toolbox · Free tools | Standalone pages | No tracking', '🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪'],
       ['🧩 More tools · Jump around', '🧩 其他工具 · 点击切换'],
       ['Turn long URLs into compact short links, ready to share and Cloudflare-friendly', '将冗长网址一键转为短链接，复制分享更便捷（支持 Cloudflare 部署）'],
@@ -218,6 +218,76 @@
       ['Pixel Avatar Generator', '像素头像生成器'],
       ['Watermark Tool', '图片水印工具'],
       ['Photo Collage Maker', '图片拼图工具'],
+      ['🔗 短链接生成器', '短链接生成器'],
+      ['📱 二维码生成器', '二维码生成器'],
+      ['📊 文本整理器', '文本整理器'],
+      ['🖼️ 图片压缩器', '图片压缩器'],
+      ['🔐 随机密码生成器', '随机密码生成器'],
+      ['🌐 IP归属地查询', 'IP归属地查询'],
+      ['🎨 像素头像生成器', '像素头像生成器'],
+      ['💧 图片水印工具', '图片水印工具'],
+      ['🧩 图片拼图工具', '图片拼图工具'],
+      ['📦 全部工具', '全部工具'],
+      ['随机密码生成', 'Password Generator'],
+      ['🔐 随机密码生成', 'Password Generator'],
+      ['原始链接', 'Original URL'],
+      ['短链接', 'Short Link'],
+      ['网址链接', 'Website URL'],
+      ['生成短链接', 'Generate Short Link'],
+      ['生成二维码', 'Generate QR Code'],
+      ['保存二维码图片', 'Save QR Image'],
+      ['请输入网址', 'Please enter a URL'],
+      ['请输入有效的网址', 'Please enter a valid URL'],
+      ['请先生成二维码', 'Please generate a QR code first'],
+      ['未找到二维码图片，请先生成二维码', 'Could not find QR image. Please generate one first'],
+      ['如果未自动下载，请长按二维码图片保存', "If it doesn't download automatically, long-press the QR image to save it"],
+      ['查询', 'Search'],
+      ['查询我的IP', 'My IP'],
+      ['🔍 输入IP地址（支持IPv4）', '🔍 IP address (IPv4 supported)'],
+      ['例如：8.8.8.8 或留空自动查询本机IP', 'For example: 8.8.8.8 or leave blank to detect your IP'],
+      ['⏳ 查询中，请稍候...', '⏳ Looking up, please wait...'],
+      ['🎚️ 像素块大小', '🎚️ Pixel size'],
+      ['待裁剪图片', 'Image to crop'],
+      ['像素头像', 'Pixel avatar'],
+      ['请先选择图片', 'Please select an image first'],
+      ['裁剪失败，请重试', 'Crop failed. Please try again'],
+      ['请先生成像素头像', 'Please generate a pixel avatar first'],
+      ['📱 长按图片保存到手机', '📱 Long-press the image to save it'],
+      ['(大小计算中)', '(Calculating size)'],
+      ['手动复制', 'Please copy manually'],
+      ['生成失败', 'Generation failed'],
+      ['🔢 密码长度：', '🔢 Password length:'],
+      ['密码长度：', 'Password length:'],
+      ['大写字母 (A-Z)', 'Uppercase letters (A-Z)'],
+      ['小写字母 (a-z)', 'Lowercase letters (a-z)'],
+      ['数字 (0-9)', 'Numbers (0-9)'],
+      ['符号 (!@#$%^&*)', 'Symbols (!@#$%^&*)'],
+      ['✍️ 水印文字', '✍️ Watermark text'],
+      ['🎨 文字颜色', '🎨 Text color'],
+      ['🎨 文字透明度', '🎨 Opacity'],
+      ['📏 字体大小', '📏 Font size'],
+      ['🔄 旋转角度', '🔄 Rotation'],
+      ['拼接模板', 'Collage template'],
+      ['自定义', 'Custom'],
+      ['横向拼接', 'Horizontal'],
+      ['纵向拼接', 'Vertical'],
+      ['网格拼图', 'Grid'],
+      ['未选择图片', 'No image selected'],
+      ['等待压缩', 'Waiting to compress'],
+      ['点击生成按钮获取密码', 'Click generate to create a password'],
+      ['请至少选择一种字符类型', 'Please select at least one character type'],
+      ['请先生成密码', 'Please generate a password first'],
+      ['手动复制失败，请手动复制', 'Copy failed. Please copy it manually'],
+      ['✓ 已复制', '✓ Copied'],
+      ['请输入水印文字', 'Enter watermark text'],
+      ['黑色', 'Black'],
+      ['白色', 'White'],
+      ['红色', 'Red'],
+      ['绿色', 'Green'],
+      ['蓝色', 'Blue'],
+      ['平铺模式（文字均匀分布）', 'Tiled mode (even spacing)'],
+      ['行数:', 'Rows:'],
+      ['列数:', 'Columns:'],
       ['Turn long links into short links, clean to share, and quick to open.', '长链接转短链接，干净易传播，直达无延迟。'],
       ['Enter a URL, generate a QR code, and scan to open it.', '输入网址，快速生成二维码，扫码访问。'],
       ['Count text instantly and adjust formatting (remove blank lines, indent first line).', '实时统计字数，快速调整文本格式（去空行、首行缩进）。'],
@@ -232,7 +302,7 @@
     ]),
     en: new Map([
       ['福禄工具箱', 'Fulutool Toolbox'],
-      ['免费试用 · 无需注册 · 即用即走', 'Free to try · No sign-up · Instant access'],
+      ['免费使用·无需注册·即用即走', 'Free to use · No sign-up · Instant access'],
       ['🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪', '🧰 Fulutool Toolbox · Free tools | Standalone pages | No tracking'],
       ['🧩 其他工具 · 点击切换', '🧩 More tools · Jump around'],
       ['将冗长网址一键转为短链接，复制分享更便捷（支持 Cloudflare 部署）', 'Turn long URLs into compact short links, ready to share and Cloudflare-friendly'],
@@ -262,6 +332,76 @@
       ['像素头像生成器', 'Pixel Avatar Generator'],
       ['图片水印工具', 'Watermark Tool'],
       ['图片拼图工具', 'Photo Collage Maker'],
+      ['🔗 短链接生成器', 'Short Link Generator'],
+      ['📱 二维码生成器', 'QR Code Generator'],
+      ['📊 文本整理器', 'Text Formatter'],
+      ['🖼️ 图片压缩器', 'Image Compressor'],
+      ['🔐 随机密码生成器', 'Password Generator'],
+      ['🌐 IP归属地查询', 'IP Lookup'],
+      ['🎨 像素头像生成器', 'Pixel Avatar Generator'],
+      ['💧 图片水印工具', 'Watermark Tool'],
+      ['🧩 图片拼图工具', 'Photo Collage Maker'],
+      ['📦 全部工具', 'All tools'],
+      ['随机密码生成', 'Password Generator'],
+      ['🔐 随机密码生成', 'Password Generator'],
+      ['原始链接', 'Original URL'],
+      ['短链接', 'Short Link'],
+      ['网址链接', 'Website URL'],
+      ['生成短链接', 'Generate Short Link'],
+      ['生成二维码', 'Generate QR Code'],
+      ['保存二维码图片', 'Save QR Image'],
+      ['请输入网址', 'Please enter a URL'],
+      ['请输入有效的网址', 'Please enter a valid URL'],
+      ['请先生成二维码', 'Please generate a QR code first'],
+      ['未找到二维码图片，请先生成二维码', 'Could not find QR image. Please generate one first'],
+      ['如果未自动下载，请长按二维码图片保存', "If it doesn't download automatically, long-press the QR image to save it"],
+      ['查询', 'Search'],
+      ['查询我的IP', 'My IP'],
+      ['🔍 输入IP地址（支持IPv4）', '🔍 IP address (IPv4 supported)'],
+      ['例如：8.8.8.8 或留空自动查询本机IP', 'For example: 8.8.8.8 or leave blank to detect your IP'],
+      ['⏳ 查询中，请稍候...', '⏳ Looking up, please wait...'],
+      ['🎚️ 像素块大小', '🎚️ Pixel size'],
+      ['待裁剪图片', 'Image to crop'],
+      ['像素头像', 'Pixel avatar'],
+      ['请先选择图片', 'Please select an image first'],
+      ['裁剪失败，请重试', 'Crop failed. Please try again'],
+      ['请先生成像素头像', 'Please generate a pixel avatar first'],
+      ['📱 长按图片保存到手机', '📱 Long-press the image to save it'],
+      ['(大小计算中)', '(Calculating size)'],
+      ['手动复制', 'Please copy manually'],
+      ['生成失败', 'Generation failed'],
+      ['🔢 密码长度：', '🔢 Password length:'],
+      ['密码长度：', 'Password length:'],
+      ['大写字母 (A-Z)', 'Uppercase letters (A-Z)'],
+      ['小写字母 (a-z)', 'Lowercase letters (a-z)'],
+      ['数字 (0-9)', 'Numbers (0-9)'],
+      ['符号 (!@#$%^&*)', 'Symbols (!@#$%^&*)'],
+      ['✍️ 水印文字', '✍️ Watermark text'],
+      ['🎨 文字颜色', '🎨 Text color'],
+      ['🎨 文字透明度', '🎨 Opacity'],
+      ['📏 字体大小', '📏 Font size'],
+      ['🔄 旋转角度', '🔄 Rotation'],
+      ['拼接模板', 'Collage template'],
+      ['自定义', 'Custom'],
+      ['横向拼接', 'Horizontal'],
+      ['纵向拼接', 'Vertical'],
+      ['网格拼图', 'Grid'],
+      ['未选择图片', 'No image selected'],
+      ['等待压缩', 'Waiting to compress'],
+      ['点击生成按钮获取密码', 'Click generate to create a password'],
+      ['请至少选择一种字符类型', 'Please select at least one character type'],
+      ['请先生成密码', 'Please generate a password first'],
+      ['手动复制失败，请手动复制', 'Copy failed. Please copy it manually'],
+      ['✓ 已复制', '✓ Copied'],
+      ['请输入水印文字', 'Enter watermark text'],
+      ['黑色', 'Black'],
+      ['白色', 'White'],
+      ['红色', 'Red'],
+      ['绿色', 'Green'],
+      ['蓝色', 'Blue'],
+      ['平铺模式（文字均匀分布）', 'Tiled mode (even spacing)'],
+      ['行数:', 'Rows:'],
+      ['列数:', 'Columns:'],
       ['长链接转短链接，干净易传播，直达无延迟。', 'Turn long links into short links, clean to share, and quick to open.'],
       ['输入网址，快速生成二维码，扫码访问。', 'Enter a URL, generate a QR code, and scan to open it.'],
       ['实时统计字数，快速调整文本格式（去空行、首行缩进）。', 'Count text instantly and adjust formatting (remove blank lines, indent first line).'],
@@ -409,8 +549,8 @@
     }
     if (tagline) {
       tagline.textContent = resolved === 'en'
-        ? 'Free to try · No sign-up · Instant access'
-        : '免费试用 · 无需注册 · 即用即走';
+        ? 'Free to use · No sign-up · Instant access'
+        : '免费使用·无需注册·即用即走';
     }
   }
 
@@ -421,10 +561,12 @@
     toolbar.className = 'ft-toolbar';
     toolbar.innerHTML = `
       <a class="ft-brand" href="/" aria-label="Fulutool">
-        <span class="ft-brand-mark">福</span>
+        <span class="ft-brand-icon" aria-hidden="true">
+          <img src="/assets/favicon.svg" alt="">
+        </span>
         <span class="ft-brand-copy">
           <strong data-ft-brand>福禄工具箱</strong>
-          <small data-ft-brand-tagline>免费试用 · 无需注册 · 即用即走</small>
+          <small data-ft-brand-tagline>免费使用·无需注册·即用即走</small>
         </span>
       </a>
       <div class="ft-lang-switch" role="group" aria-label="Language switch">
