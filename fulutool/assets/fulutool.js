@@ -527,7 +527,18 @@
     if (typeof value !== 'string' || !value) return value;
     const normalized = LANGUAGE_NORMALIZATIONS[lang]?.get(value);
     if (normalized) return normalized;
-    return EXTRA_TRANSLATIONS[lang]?.get(value) ?? TEXT_TRANSLATIONS[lang]?.get(value) ?? value;
+    const translated = EXTRA_TRANSLATIONS[lang]?.get(value) ?? TEXT_TRANSLATIONS[lang]?.get(value) ?? value;
+
+    // In Chinese mode, never replace existing Chinese copy with English text.
+    if (
+      lang === 'zh' &&
+      /[\u3400-\u9fff]/.test(value) &&
+      !/[\u3400-\u9fff]/.test(translated)
+    ) {
+      return value;
+    }
+
+    return translated;
   }
 
   function applyBinding(selector, lang, handler) {
