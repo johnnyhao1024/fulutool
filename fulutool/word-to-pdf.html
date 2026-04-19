@@ -144,6 +144,35 @@
         .word-preview li {
             margin-bottom: 0.75rem;
         }
+        .word-preview p,
+        .word-preview h1,
+        .word-preview h2,
+        .word-preview h3,
+        .word-preview h4,
+        .word-preview h5,
+        .word-preview h6,
+        .word-preview ul,
+        .word-preview ol,
+        .word-preview li,
+        .word-preview blockquote,
+        .word-preview pre,
+        .word-preview table,
+        .word-preview thead,
+        .word-preview tbody,
+        .word-preview tr,
+        .word-preview td,
+        .word-preview th,
+        .word-preview figure,
+        .word-preview img,
+        .word-preview .pdf-avoid-break {
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+        .word-preview p,
+        .word-preview li {
+            orphans: 3;
+            widows: 3;
+        }
         .word-preview table {
             width: 100%;
             border-collapse: collapse;
@@ -420,6 +449,9 @@
                 const arrayBuffer = await currentFile.arrayBuffer();
                 const result = await mammoth.convertToHtml({ arrayBuffer });
                 preview.innerHTML = result.value || '<p></p>';
+                preview.querySelectorAll('p, h1, h2, h3, h4, h5, h6, ul, ol, li, blockquote, pre, table, thead, tbody, tr, td, th, figure, img').forEach((el) => {
+                    el.classList.add('pdf-avoid-break');
+                });
                 preview.style.display = 'block';
                 placeholder.style.display = 'none';
 
@@ -437,7 +469,10 @@
                         format: 'a4',
                         orientation: 'portrait'
                     },
-                    pagebreak: { mode: ['css', 'legacy'] }
+                    pagebreak: {
+                        mode: ['avoid-all', 'css', 'legacy'],
+                        avoid: ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'pre', 'table', 'thead', 'tbody', 'tr', 'td', 'th', 'figure', 'img', '.pdf-avoid-break']
+                    }
                 }).from(preview);
 
                 await worker.toPdf();
