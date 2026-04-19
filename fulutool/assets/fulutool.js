@@ -90,6 +90,20 @@
         { selector: '.footer', zh: '🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪', en: '🧰 Fulutool Toolbox · Free tools | Standalone pages | No tracking' }
       ]
     },
+    '/word-to-pdf.html': {
+      title: { zh: '免费 Word 转 PDF 工具 · 福禄工具箱', en: 'Word to PDF Converter · Fulutool Toolbox' },
+      text: [
+        { selector: '.ft-brand-copy small', zh: '免费使用·无需注册·即用即走', en: 'Free to use · No sign-up · Instant access' },
+        { selector: '.tool-title', zh: '📄 Word 转 PDF 工具', en: '📄 Word to PDF Converter' },
+        { selector: '.tool-desc', zh: '上传本地 Word 文档，一键转换为 PDF 并保存到设备，当前浏览器版支持 .docx 文件', en: 'Upload a local Word document, convert it into PDF in one click, and save it to your device. Browser mode currently supports .docx files.' },
+        { selector: '#selectWordBtn', zh: '📂 选择 Word 文件', en: '📂 Choose Word file' },
+        { selector: '#convertBtn', zh: '⚡ 开始转换', en: '⚡ Start conversion' },
+        { selector: '#savePdfBtn', zh: '💾 保存文件', en: '💾 Save file' },
+        { selector: '.preview-title', zh: '👀 文档预览', en: '👀 Document preview' },
+        { selector: '.section-label', zh: '🧩 其他工具 · 点击切换', en: '🧩 More tools · Jump around' },
+        { selector: '.footer', zh: '🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪', en: '🧰 Fulutool Toolbox · Free tools | Standalone pages | No tracking' }
+      ]
+    },
     '/password.html': {
       title: { zh: '免费随机密码生成器 · 福禄工具箱', en: 'Password Generator · Fulutool Toolbox' },
       text: [
@@ -199,6 +213,14 @@
       ['Count text instantly and clean up formatting with one click', '实时统计字数、行数，并快速调整文本格式（去空行、首行缩进）'],
       ['实时统计字数、行数，并快速调整文本格式（去空行、首行缩进）', 'Count text instantly and clean up formatting with one click'],
       ['Upload an image, tweak quality or width, and shrink the file size', '上传图片，调整压缩质量或最大宽度，减少文件体积'],
+      ['Word to PDF Converter', 'Word 转 PDF 工具'],
+      ['📄 Word to PDF Converter', '📄 Word 转 PDF 工具'],
+      ['Upload a local Word document, convert it into PDF in one click, and save it to your device. Browser mode currently supports .docx files.', '上传本地 Word 文档，一键转换为 PDF 并保存到设备，当前浏览器版支持 .docx 文件'],
+      ['Upload a Word document, turn it into PDF in one click, and save it locally with preview support.', '上传 Word 文档，一键转换为 PDF，支持预览与本地保存。'],
+      ['📂 Choose Word file', '📂 选择 Word 文件'],
+      ['⚡ Start conversion', '⚡ 开始转换'],
+      ['💾 Save file', '💾 保存文件'],
+      ['👀 Document preview', '👀 文档预览'],
       ['上传图片，调整压缩质量与宽度，减少文件体积，保持画质。', 'Upload an image, tweak quality or width, and shrink the file size'],
       ['上传图片，调整压缩质量或最大宽度，减少文件体积，保持画质。', 'Upload an image, tweak quality or width, and shrink the file size while keeping it looking good'],
       ['Customise length and character sets to generate a strong password', '自定义密码长度和字符类型，一键生成高强度密码'],
@@ -319,6 +341,14 @@
       ['输入网址，快速生成二维码，扫码访问。', 'Enter a URL and generate a scannable QR code'],
       ['实时统计字数、行数，并快速调整文本格式（去空行、首行缩进）', 'Count text instantly and clean up formatting with one click'],
       ['上传图片，调整压缩质量或最大宽度，减少文件体积', 'Upload an image, tweak quality or width, and shrink the file size'],
+      ['Word 转 PDF 工具', 'Word to PDF Converter'],
+      ['📄 Word 转 PDF 工具', '📄 Word to PDF Converter'],
+      ['上传本地 Word 文档，一键转换为 PDF 并保存到设备，当前浏览器版支持 .docx 文件', 'Upload a local Word document, convert it into PDF in one click, and save it to your device. Browser mode currently supports .docx files.'],
+      ['上传 Word 文档，一键转换为 PDF，支持预览与本地保存。', 'Upload a Word document, turn it into PDF in one click, and save it locally with preview support.'],
+      ['📂 选择 Word 文件', '📂 Choose Word file'],
+      ['⚡ 开始转换', '⚡ Start conversion'],
+      ['💾 保存文件', '💾 Save file'],
+      ['👀 文档预览', '👀 Document preview'],
       ['上传图片，调整压缩质量与宽度，减少文件体积，保持画质。', 'Upload an image, tweak quality or width, and shrink the file size'],
       ['上传图片，调整压缩质量或最大宽度，减少文件体积，保持画质。', 'Upload an image, tweak quality or width, and shrink the file size while keeping it looking good'],
       ['自定义密码长度和字符类型，一键生成高强度密码', 'Customise length and character sets to generate a strong password'],
