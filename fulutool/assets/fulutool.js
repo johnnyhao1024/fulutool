@@ -213,6 +213,8 @@
       ['Count text instantly and clean up formatting with one click', '实时统计字数、行数，并快速调整文本格式（去空行、首行缩进）'],
       ['实时统计字数、行数，并快速调整文本格式（去空行、首行缩进）', 'Count text instantly and clean up formatting with one click'],
       ['Upload an image, tweak quality or width, and shrink the file size', '上传图片，调整压缩质量或最大宽度，减少文件体积'],
+      ['Word 转 PDF', 'Word to PDF'],
+      ['📄 Word 转 PDF', '📄 Word to PDF'],
       ['Word to PDF Converter', 'Word 转 PDF 工具'],
       ['📄 Word to PDF Converter', '📄 Word 转 PDF 工具'],
       ['Upload a local Word document, convert it into PDF in one click, and save it to your device. Browser mode currently supports .docx files.', '上传本地 Word 文档，一键转换为 PDF 并保存到设备，当前浏览器版支持 .docx 文件'],
@@ -221,6 +223,9 @@
       ['⚡ Start conversion', '⚡ 开始转换'],
       ['💾 Save file', '💾 保存文件'],
       ['👀 Document preview', '👀 文档预览'],
+      ['Drag a .docx file here to upload on desktop, or tap the button to choose a file on mobile.', '支持将 .docx 文件拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件'],
+      ['💡 Browser-based conversion works best with .docx files. Please resave legacy .doc files as .docx first.', '💡 纯浏览器转换更适合 .docx 文件，旧版 .doc 建议先另存为 .docx 再转换'],
+      ['💡 Complex headers, comments, or special fonts may look slightly different in the exported PDF.', '💡 若原文档含复杂页眉、批注或特殊字体，导出的 PDF 排版可能与 Word 略有差异'],
       ['上传图片，调整压缩质量与宽度，减少文件体积，保持画质。', 'Upload an image, tweak quality or width, and shrink the file size'],
       ['上传图片，调整压缩质量或最大宽度，减少文件体积，保持画质。', 'Upload an image, tweak quality or width, and shrink the file size while keeping it looking good'],
       ['Customise length and character sets to generate a strong password', '自定义密码长度和字符类型，一键生成高强度密码'],
@@ -341,6 +346,8 @@
       ['输入网址，快速生成二维码，扫码访问。', 'Enter a URL and generate a scannable QR code'],
       ['实时统计字数、行数，并快速调整文本格式（去空行、首行缩进）', 'Count text instantly and clean up formatting with one click'],
       ['上传图片，调整压缩质量或最大宽度，减少文件体积', 'Upload an image, tweak quality or width, and shrink the file size'],
+      ['Word 转 PDF', 'Word to PDF'],
+      ['📄 Word 转 PDF', '📄 Word to PDF'],
       ['Word 转 PDF 工具', 'Word to PDF Converter'],
       ['📄 Word 转 PDF 工具', '📄 Word to PDF Converter'],
       ['上传本地 Word 文档，一键转换为 PDF 并保存到设备，当前浏览器版支持 .docx 文件', 'Upload a local Word document, convert it into PDF in one click, and save it to your device. Browser mode currently supports .docx files.'],
@@ -349,6 +356,9 @@
       ['⚡ 开始转换', '⚡ Start conversion'],
       ['💾 保存文件', '💾 Save file'],
       ['👀 文档预览', '👀 Document preview'],
+      ['支持将 .docx 文件拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件', 'Drag a .docx file here to upload on desktop, or tap the button to choose a file on mobile.'],
+      ['💡 纯浏览器转换更适合 .docx 文件，旧版 .doc 建议先另存为 .docx 再转换', '💡 Browser-based conversion works best with .docx files. Please resave legacy .doc files as .docx first.'],
+      ['💡 若原文档含复杂页眉、批注或特殊字体，导出的 PDF 排版可能与 Word 略有差异', '💡 Complex headers, comments, or special fonts may look slightly different in the exported PDF.'],
       ['上传图片，调整压缩质量与宽度，减少文件体积，保持画质。', 'Upload an image, tweak quality or width, and shrink the file size'],
       ['上传图片，调整压缩质量或最大宽度，减少文件体积，保持画质。', 'Upload an image, tweak quality or width, and shrink the file size while keeping it looking good'],
       ['自定义密码长度和字符类型，一键生成高强度密码', 'Customise length and character sets to generate a strong password'],
@@ -659,7 +669,10 @@
       '.result-label span',
       '.copy-btn',
       '.footer',
-      '.save-tip'
+      '.save-tip',
+      '.note',
+      '.dropzone-copy',
+      '.weixin-tip'
     ];
 
     document.querySelectorAll(selectors.join(',')).forEach((el) => {
