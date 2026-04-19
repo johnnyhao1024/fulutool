@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>免费 PDF 转 Word 工具 · 福禄工具箱</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+    <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs" type="module"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath fill='none' stroke='%23e2e8f0' stroke-width='1' stroke-dasharray='1 2' d='M10 0 L10 20 M0 10 L20 10'/%3E%3C/svg%3E");
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            line-height: 1.5;
+            color: #0f172a;
+            padding: 2rem 1.5rem;
+        }
+        .container { max-width: 1280px; margin: 0 auto; }
+        .tool-panel {
+            background: #ffffff;
+            border-radius: 32px;
+            border: 1px solid #edf2f7;
+            padding: 1.8rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+        .tool-title { font-size: 1.6rem; font-weight: 600; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem; }
+        .tool-desc {
+            color: #5b6e8c;
+            border-left: 3px solid #cbd5e1;
+            padding-left: 0.9rem;
+            margin-bottom: 1.6rem;
+            font-size: 0.9rem;
+        }
+        .upload-row,
+        .action-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.9rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .dropzone {
+            border: 1px dashed #cbd5e1;
+            border-radius: 24px;
+            padding: 1rem;
+            background: linear-gradient(180deg, rgba(248, 250, 252, 0.92), rgba(255, 255, 255, 0.95));
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, transform 0.2s ease;
+            margin-bottom: 1rem;
+        }
+        .dropzone.is-dragover {
+            border-color: rgba(15, 118, 110, 0.45);
+            box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
+            background: linear-gradient(180deg, rgba(236, 253, 245, 0.96), rgba(255, 255, 255, 0.98));
+            transform: translateY(-1px);
+        }
+        .dropzone-copy {
+            margin-top: 0.2rem;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+        .file-pill,
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            min-height: 46px;
+            padding: 0.8rem 1rem;
+            border-radius: 18px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #475569;
+            font-size: 0.86rem;
+            flex: 1 1 240px;
+        }
+        .status-pill strong {
+            color: #0f172a;
+        }
+        .status-pill.is-success {
+            border-color: rgba(22, 163, 74, 0.28);
+            background: rgba(22, 163, 74, 0.08);
+            color: #166534;
+        }
+        .status-pill.is-busy {
+            border-color: rgba(15, 118, 110, 0.24);
+            background: rgba(15, 118, 110, 0.08);
+            color: #115e59;
+        }
+        .status-pill.is-error {
+            border-color: rgba(220, 38, 38, 0.22);
+            background: rgba(220, 38, 38, 0.08);
+            color: #991b1b;
+        }
+        .preview-shell {
+            margin-top: 1rem;
+            background: #f8fafc;
+            border-radius: 24px;
+            border: 1px solid #e2e8f0;
+            padding: 1rem;
+        }
+        .preview-title {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 0.8rem;
+        }
+        .preview-frame {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 18px;
+            min-height: 340px;
+            max-height: 72vh;
+            overflow: auto;
+            padding: 1.2rem;
+            box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+        }
+        .preview-placeholder {
+            min-height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #64748b;
+            font-size: 0.95rem;
+            padding: 1.5rem;
+        }
+        .pdf-preview {
+            max-width: 860px;
+            margin: 0 auto;
+        }
+        .preview-page-card {
+            background: linear-gradient(180deg, #ffffff, #fbfdff);
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 1rem 1.1rem;
+            margin-bottom: 1rem;
+        }
+        .preview-page-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 0.75rem;
+        }
+        .preview-paragraph {
+            color: #0f172a;
+            line-height: 1.8;
+            margin-bottom: 0.8rem;
+            word-break: break-word;
+        }
+        input[type="file"] { display: none; }
+        button {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 0.6rem 1.3rem;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #1e293b;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 0.6rem;
+            margin-bottom: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        button.primary { background: #0f172a; color: white; border: none; }
+        button.primary:hover { background: #1e293b; transform: translateY(-1px); }
+        button:hover { background: #e6edf4; border-color: #cbd5e1; }
+        button[disabled] {
+            cursor: not-allowed;
+            opacity: 0.55;
+            transform: none !important;
+            box-shadow: none;
+        }
+        button.pressed { background: #cbd5e1 !important; transform: scale(0.96); transition: 0.05s; }
+        .notes {
+            margin-top: 1rem;
+            display: grid;
+            gap: 0.6rem;
+        }
+        .note {
+            font-size: 0.78rem;
+            color: #5b6e8c;
+            background: rgba(241, 245, 249, 0.9);
+            border-radius: 16px;
+            padding: 0.8rem 0.95rem;
+        }
+        .other-tools-section { margin-top: 1rem; padding-top: 1rem; }
+        .section-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #475569;
+            margin-bottom: 1rem;
+            padding-bottom: 0.6rem;
+        }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 1rem;
+            justify-content: center;
+        }
+        .tool-card {
+            background: #ffffff;
+            border-radius: 20px;
+            border: 2px solid #eef2f8;
+            padding: 0.8rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: #070707;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 70px;
+        }
+        .tool-card:hover {
+            transform: translateY(-2px);
+            border-color: #cbdbe0;
+            background: #fefefe;
+        }
+        .tool-card-name {
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .footer { text-align: center; font-size: 0.75rem; color: #8b9ab0; margin-top: 2rem; padding-top: 1rem; }
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+            .tool-panel { padding: 1.2rem; }
+            .cards-grid { grid-template-columns: repeat(2, 1fr); }
+            .tool-card { padding: 0.6rem 0.8rem; min-height: 60px; }
+            .tool-card-name { font-size: 0.85rem; }
+            .preview-frame { min-height: 260px; max-height: none; }
+        }
+    </style>
+    <link rel="stylesheet" href="/assets/fulutool.css">
+    <script defer src="/assets/fulutool.js"></script>
+</head>
+<body>
+<div class="container">
+    <div class="tool-panel">
+        <div class="tool-title">📘 PDF 转 Word 工具</div>
+        <div class="tool-desc">上传 PDF 文档，提取文本与基础分页结构并导出为 Word，适合继续编辑与整理内容</div>
+
+        <div class="dropzone" id="dropzone">
+            <div class="upload-row">
+                <input type="file" id="pdfFileInput" accept="application/pdf,.pdf">
+                <button id="selectPdfBtn" class="primary">📂 选择 PDF 文件</button>
+                <div class="file-pill" id="fileStatus">📎 尚未选择文件</div>
+            </div>
+            <div class="dropzone-copy" id="dropzoneCopy">支持将 PDF 文件拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件</div>
+        </div>
+
+        <div class="action-row">
+            <button id="convertBtn" class="primary" disabled>⚡ 开始转换</button>
+            <button id="saveWordBtn" disabled>💾 保存文件</button>
+            <div class="status-pill" id="convertStatus"><strong>状态：</strong><span id="convertStatusText">等待上传文件</span></div>
+        </div>
+
+        <div class="preview-shell">
+            <div class="preview-title">👀 文档预览</div>
+            <div class="preview-frame" id="previewFrame">
+                <div class="preview-placeholder" id="previewPlaceholder">上传 PDF 文件后，这里会展示提取出的文本预览</div>
+                <div class="pdf-preview" id="pdfPreview" style="display:none;"></div>
+            </div>
+        </div>
+
+        <div class="notes">
+            <div class="note" id="browserNote">💡 当前为浏览器版转换，适合文本型 PDF；扫描件或复杂排版文档的还原度会有限</div>
+            <div class="note" id="layoutNote">💡 导出的 Word 会尽量保留分页顺序，但图片、批注、表单和复杂表格可能无法完整还原</div>
+        </div>
+    </div>
+
+    <div class="other-tools-section">
+        <div class="section-label">🧩 其他工具 · 点击切换</div>
+        <div class="cards-grid">
+            <a href="/word-to-pdf.html" class="tool-card"><span class="tool-card-name">📄 Word 转 PDF</span></a>
+            <a href="/shortlink.html" class="tool-card"><span class="tool-card-name">🔗 短链接生成器</span></a>
+            <a href="/qrcode.html" class="tool-card"><span class="tool-card-name">📱 二维码生成器</span></a>
+            <a href="/textstats.html" class="tool-card"><span class="tool-card-name">📊 文本整理器</span></a>
+            <a href="/imagecompress.html" class="tool-card"><span class="tool-card-name">🖼️ 图片压缩器</span></a>
+            <a href="/tools.html" class="tool-card"><span class="tool-card-name">📦 全部工具</span></a>
+        </div>
+    </div>
+    <div class="footer">🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪</div>
+</div>
+
+<script type="module">
+    import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs';
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs';
+
+    const input = document.getElementById('pdfFileInput');
+    const selectBtn = document.getElementById('selectPdfBtn');
+    const convertBtn = document.getElementById('convertBtn');
+    const saveBtn = document.getElementById('saveWordBtn');
+    const fileStatus = document.getElementById('fileStatus');
+    const dropzone = document.getElementById('dropzone');
+    const dropzoneCopy = document.getElementById('dropzoneCopy');
+    const convertStatus = document.getElementById('convertStatus');
+    const convertStatusText = document.getElementById('convertStatusText');
+    const preview = document.getElementById('pdfPreview');
+    const placeholder = document.getElementById('previewPlaceholder');
+
+    let currentFile = null;
+    let wordBlob = null;
+    let wordFileName = 'document.docx';
+    let extractedPages = [];
+
+    function addPressedEffect(btn) {
+        if (!btn) return;
+        btn.classList.add('pressed');
+        setTimeout(() => btn.classList.remove('pressed'), 150);
+    }
+
+    window.FULUTOOL_MESSAGES = window.FULUTOOL_MESSAGES || {};
+    window.FULUTOOL_MESSAGES.zh = Object.assign({
+        selectPdfFirst: '请先选择 PDF 文件',
+        invalidPdf: '请选择有效的 PDF 文件',
+        convertingPdf: '正在提取 PDF 内容，请稍候…',
+        convertPdfDone: '转换完成，可以保存 Word 文件了',
+        convertPdfFailed: '转换失败，请换一个 PDF 文件再试试',
+        saveWordFirst: '请先完成转换',
+        noPdfPreview: '上传 PDF 文件后，这里会展示提取出的文本预览',
+        waitingUpload: '等待上传文件',
+        fileNotSelected: '📎 尚未选择文件',
+        selectedFile: '📎 已选择文件：',
+        dropPdfHint: '支持将 PDF 文件拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件',
+        browserPdfNote: '💡 当前为浏览器版转换，适合文本型 PDF；扫描件或复杂排版文档的还原度会有限',
+        layoutPdfNote: '💡 导出的 Word 会尽量保留分页顺序，但图片、批注、表单和复杂表格可能无法完整还原',
+        pagePrefix: '第',
+        pageSuffix: '页'
+    }, window.FULUTOOL_MESSAGES.zh || {});
+    window.FULUTOOL_MESSAGES.en = Object.assign({
+        selectPdfFirst: 'Please choose a PDF file first',
+        invalidPdf: 'Please choose a valid PDF file',
+        convertingPdf: 'Extracting PDF content, please wait…',
+        convertPdfDone: 'Conversion complete. Your Word file is ready to save.',
+        convertPdfFailed: 'Conversion failed. Please try another PDF file.',
+        saveWordFirst: 'Please complete the conversion first',
+        noPdfPreview: 'Upload a PDF file and the extracted text preview will appear here',
+        waitingUpload: 'Waiting for a file',
+        fileNotSelected: '📎 No file selected yet',
+        selectedFile: '📎 Selected file:',
+        dropPdfHint: 'Drag a PDF file here to upload on desktop, or tap the button to choose a file on mobile.',
+        browserPdfNote: '💡 Browser-mode conversion works best for text-based PDFs. Scanned files or complex layouts may convert imperfectly.',
+        layoutPdfNote: '💡 The exported Word file keeps the page order where possible, but images, annotations, forms, and complex tables may not fully survive.',
+        pagePrefix: 'Page ',
+        pageSuffix: ''
+    }, window.FULUTOOL_MESSAGES.en || {});
+
+    const T = (key, fallback) => (window.Fulutool ? Fulutool.t(key, fallback) : fallback);
+
+    function setStatus(type, text) {
+        convertStatus.classList.remove('is-success', 'is-busy', 'is-error');
+        if (type) convertStatus.classList.add(type);
+        convertStatusText.textContent = text;
+    }
+
+    function resetPreview() {
+        preview.innerHTML = '';
+        preview.style.display = 'none';
+        placeholder.style.display = 'flex';
+        placeholder.textContent = T('noPdfPreview', '上传 PDF 文件后，这里会展示提取出的文本预览');
+    }
+
+    function pageTitleText(pageNumber) {
+        const lang = window.Fulutool ? Fulutool.lang : 'zh';
+        if (lang === 'en') {
+            return `${T('pagePrefix', 'Page ')}${pageNumber}`;
+        }
+        return `${T('pagePrefix', '第')}${pageNumber}${T('pageSuffix', '页')}`;
+    }
+
+    function syncStaticText() {
+        fileStatus.textContent = currentFile
+            ? `${T('selectedFile', '📎 已选择文件：')} ${currentFile.name}`
+            : T('fileNotSelected', '📎 尚未选择文件');
+        if (dropzoneCopy) {
+            dropzoneCopy.textContent = T('dropPdfHint', '支持将 PDF 文件拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件');
+        }
+        if (!currentFile && !wordBlob) {
+            setStatus('', T('waitingUpload', '等待上传文件'));
+        }
+        const browserNote = document.getElementById('browserNote');
+        const layoutNote = document.getElementById('layoutNote');
+        if (browserNote) browserNote.textContent = T('browserPdfNote', '💡 当前为浏览器版转换，适合文本型 PDF；扫描件或复杂排版文档的还原度会有限');
+        if (layoutNote) layoutNote.textContent = T('layoutPdfNote', '💡 导出的 Word 会尽量保留分页顺序，但图片、批注、表单和复杂表格可能无法完整还原');
+        renderPreview();
+    }
+
+    function applySelectedFile(file) {
+        currentFile = file || null;
+        wordBlob = null;
+        extractedPages = [];
+        saveBtn.disabled = true;
+        convertBtn.disabled = !currentFile;
+        resetPreview();
+        syncStaticText();
+    }
+
+    function normalizeTextItem(item) {
+        return {
+            text: (item.str || '').trim(),
+            x: item.transform[4],
+            y: item.transform[5]
+        };
+    }
+
+    function buildPageParagraphs(items) {
+        const normalized = items
+            .map(normalizeTextItem)
+            .filter((item) => item.text);
+
+        if (!normalized.length) return [];
+
+        normalized.sort((a, b) => {
+            if (Math.abs(b.y - a.y) > 2) return b.y - a.y;
+            return a.x - b.x;
+        });
+
+        const lines = [];
+        normalized.forEach((item) => {
+            const lastLine = lines[lines.length - 1];
+            if (!lastLine || Math.abs(lastLine.y - item.y) > 4) {
+                lines.push({ y: item.y, items: [item] });
+            } else {
+                lastLine.items.push(item);
+            }
+        });
+
+        const lineTexts = lines.map((line) => {
+            line.items.sort((a, b) => a.x - b.x);
+            let text = '';
+            line.items.forEach((item, index) => {
+                if (!index) {
+                    text = item.text;
+                    return;
+                }
+                const prev = line.items[index - 1];
+                const gap = item.x - prev.x;
+                const needsSpace = /[A-Za-z0-9]$/.test(prev.text) && /^[A-Za-z0-9]/.test(item.text) && gap > 3;
+                text += needsSpace ? ` ${item.text}` : item.text;
+            });
+            return text.trim();
+        }).filter(Boolean);
+
+        const paragraphs = [];
+        let current = [];
+        lineTexts.forEach((line) => {
+            if (!line) return;
+            if (/^[•\-●]/.test(line) || /^[0-9]+\./.test(line)) {
+                if (current.length) {
+                    paragraphs.push(current.join(' '));
+                    current = [];
+                }
+                paragraphs.push(line);
+                return;
+            }
+            current.push(line);
+            const punctuationEnd = /[。！？.!?;；:]$/.test(line);
+            if (punctuationEnd || current.length >= 4) {
+                paragraphs.push(current.join(' '));
+                current = [];
+            }
+        });
+        if (current.length) paragraphs.push(current.join(' '));
+        return paragraphs;
+    }
+
+    function renderPreview() {
+        if (!extractedPages.length) return;
+        preview.innerHTML = extractedPages.map((page, index) => `
+            <section class="preview-page-card">
+                <div class="preview-page-title">${pageTitleText(index + 1)}</div>
+                ${page.length
+                    ? page.map((paragraph) => `<p class="preview-paragraph">${paragraph.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`).join('')
+                    : `<p class="preview-paragraph">-</p>`
+                }
+            </section>
+        `).join('');
+        preview.style.display = 'block';
+        placeholder.style.display = 'none';
+    }
+
+    async function convertPdfToWord() {
+        if (!currentFile) {
+            alert(T('selectPdfFirst', '请先选择 PDF 文件'));
+            return;
+        }
+        const isPdf = /\.pdf$/i.test(currentFile.name) || currentFile.type === 'application/pdf';
+        if (!isPdf) {
+            alert(T('invalidPdf', '请选择有效的 PDF 文件'));
+            return;
+        }
+
+        convertBtn.disabled = true;
+        saveBtn.disabled = true;
+        wordBlob = null;
+        extractedPages = [];
+        setStatus('is-busy', T('convertingPdf', '正在提取 PDF 内容，请稍候…'));
+
+        try {
+            const arrayBuffer = await currentFile.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            const pageBuckets = [];
+
+            for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+                const page = await pdf.getPage(pageNumber);
+                const textContent = await page.getTextContent();
+                pageBuckets.push(buildPageParagraphs(textContent.items));
+            }
+
+            extractedPages = pageBuckets;
+            renderPreview();
+
+            const {
+                Document,
+                Packer,
+                Paragraph,
+                TextRun,
+                HeadingLevel
+            } = window.docx;
+
+            const children = [];
+            pageBuckets.forEach((paragraphs, index) => {
+                children.push(new Paragraph({
+                    text: pageTitleText(index + 1),
+                    heading: HeadingLevel.HEADING_2,
+                    pageBreakBefore: index > 0,
+                    spacing: { after: 200 }
+                }));
+
+                if (!paragraphs.length) {
+                    children.push(new Paragraph({
+                        children: [new TextRun('-')]
+                    }));
+                    return;
+                }
+
+                paragraphs.forEach((paragraph) => {
+                    children.push(new Paragraph({
+                        children: [new TextRun(paragraph)],
+                        spacing: { after: 160 }
+                    }));
+                });
+            });
+
+            const doc = new Document({
+                sections: [{
+                    properties: {},
+                    children
+                }]
+            });
+
+            wordBlob = await Packer.toBlob(doc);
+            wordFileName = currentFile.name.replace(/\.pdf$/i, '.docx');
+            saveBtn.disabled = false;
+            setStatus('is-success', T('convertPdfDone', '转换完成，可以保存 Word 文件了'));
+        } catch (error) {
+            console.error(error);
+            wordBlob = null;
+            extractedPages = [];
+            resetPreview();
+            setStatus('is-error', T('convertPdfFailed', '转换失败，请换一个 PDF 文件再试试'));
+        } finally {
+            convertBtn.disabled = false;
+        }
+    }
+
+    function saveWord() {
+        if (!wordBlob) {
+            alert(T('saveWordFirst', '请先完成转换'));
+            return;
+        }
+        const blobUrl = URL.createObjectURL(wordBlob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = wordFileName;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    }
+
+    selectBtn.addEventListener('click', () => {
+        addPressedEffect(selectBtn);
+        input.click();
+    });
+
+    input.addEventListener('change', () => {
+        applySelectedFile(input.files && input.files[0] ? input.files[0] : null);
+    });
+
+    ['dragenter', 'dragover'].forEach((eventName) => {
+        dropzone.addEventListener(eventName, (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            dropzone.classList.add('is-dragover');
+        });
+    });
+
+    ['dragleave', 'dragend', 'drop'].forEach((eventName) => {
+        dropzone.addEventListener(eventName, (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            if (eventName !== 'drop') {
+                dropzone.classList.remove('is-dragover');
+            }
+        });
+    });
+
+    dropzone.addEventListener('drop', (event) => {
+        dropzone.classList.remove('is-dragover');
+        const files = event.dataTransfer && event.dataTransfer.files;
+        if (!files || !files.length) return;
+        const [file] = files;
+        try {
+            const transfer = new DataTransfer();
+            transfer.items.add(file);
+            input.files = transfer.files;
+        } catch (err) {}
+        applySelectedFile(file);
+    });
+
+    convertBtn.addEventListener('click', () => {
+        addPressedEffect(convertBtn);
+        convertPdfToWord();
+    });
+
+    saveBtn.addEventListener('click', () => {
+        addPressedEffect(saveBtn);
+        saveWord();
+    });
+
+    window.FULUTOOL_HOOKS = window.FULUTOOL_HOOKS || {};
+    const previousReady = window.FULUTOOL_HOOKS.onReady;
+    const previousLanguageChange = window.FULUTOOL_HOOKS.onLanguageChange;
+    window.FULUTOOL_HOOKS.onReady = function (lang) {
+        if (typeof previousReady === 'function') previousReady(lang);
+        syncStaticText(lang);
+    };
+    window.FULUTOOL_HOOKS.onLanguageChange = function (lang) {
+        if (typeof previousLanguageChange === 'function') previousLanguageChange(lang);
+        syncStaticText(lang);
+    };
+</script>
+</body>
+</html>
