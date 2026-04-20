@@ -1,0 +1,34 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "fulutool",
+  "pages_build_output_dir": ".",
+  "compatibility_date": "2026-04-20",
+
+  "r2_buckets": [
+    {
+      "binding": "PDF_INPUTS",
+      "bucket_name": "fulutool-inputs"
+    },
+    {
+      "binding": "PDF_OUTPUTS",
+      "bucket_name": "fulutool-outputs"
+    }
+  ],
+
+  "d1_databases": [
+    {
+      "binding": "JOBS_DB",
+      "database_name": "fulutool-jobs",
+      "database_id": "9427c245-d3fc-4bc4-99cc-d5f1b42e9e0f"
+    }
+  ],
+
+  "queues": {
+    "producers": [
+      {
+        "binding": "CONVERT_QUEUE",
+        "queue": "document-convert-jobs"
+      }
+    ]
+  }
+}
