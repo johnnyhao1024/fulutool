@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>免费 PDF 转 Word 工具 · 福禄工具箱</title>
     <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
-    <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs" type="module"></script>
-    <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -246,7 +244,7 @@
 <div class="container">
     <div class="tool-panel">
         <div class="tool-title">📘 PDF 转 Word 工具</div>
-        <div class="tool-desc">上传 PDF 文档，提取文本与基础分页结构并导出为 Word，适合继续编辑与整理内容</div>
+        <div class="tool-desc">上传 PDF 文档，提交高精度转换任务，完成后下载 Word 文件，复杂版式的还原效果更稳定</div>
 
         <div class="dropzone" id="dropzone">
             <div class="upload-row">
@@ -272,8 +270,8 @@
         </div>
 
         <div class="notes">
-            <div class="note" id="browserNote">💡 当前为浏览器版转换，适合文本型 PDF；扫描件或复杂排版文档的还原度会有限</div>
-            <div class="note" id="layoutNote">💡 导出的 Word 会尽量保留分页顺序，但图片、批注、表单和复杂表格可能无法完整还原</div>
+            <div class="note" id="browserNote">💡 当前为服务器任务版转换，完成后可直接下载 Word 文件，大文件或复杂文档需要稍等片刻</div>
+            <div class="note" id="layoutNote">💡 预览区会先展示本地提取的文本概览，真正导出的 Word 结果以后台高精度转换结果为准</div>
         </div>
     </div>
 
@@ -309,9 +307,11 @@
     const placeholder = document.getElementById('previewPlaceholder');
 
     let currentFile = null;
-    let wordBlob = null;
     let wordFileName = 'document.docx';
     let extractedPages = [];
+    let currentJobId = '';
+    let downloadUrl = '';
+    let pollTimer = null;
 
     function addPressedEffect(btn) {
         if (!btn) return;
@@ -323,36 +323,44 @@
     window.FULUTOOL_MESSAGES.zh = Object.assign({
         selectPdfFirst: '请先选择 PDF 文件',
         invalidPdf: '请选择有效的 PDF 文件',
-        convertingPdf: '正在提取 PDF 内容，请稍候…',
+        submittingPdfJob: '正在上传 PDF 并创建转换任务，请稍候…',
+        queuedPdfJob: '任务已提交，正在排队转换…',
+        processingPdfJob: '正在执行高精度转换，请稍候…',
         convertPdfDone: '转换完成，可以保存 Word 文件了',
         convertPdfFailed: '转换失败，请换一个 PDF 文件再试试',
+        queryJobFailed: '状态查询失败，请稍后刷新页面重试',
         saveWordFirst: '请先完成转换',
         noPdfPreview: '上传 PDF 文件后，这里会展示提取出的文本预览',
         waitingUpload: '等待上传文件',
         fileNotSelected: '📎 尚未选择文件',
         selectedFile: '📎 已选择文件：',
         dropPdfHint: '支持将 PDF 文件拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件',
-        browserPdfNote: '💡 当前为浏览器版转换，适合文本型 PDF；扫描件或复杂排版文档的还原度会有限',
-        layoutPdfNote: '💡 导出的 Word 会尽量保留分页顺序，但图片、批注、表单和复杂表格可能无法完整还原',
+        browserPdfNote: '💡 当前为服务器任务版转换，完成后可直接下载 Word 文件，大文件或复杂文档需要稍等片刻',
+        layoutPdfNote: '💡 预览区会先展示本地提取的文本概览，真正导出的 Word 结果以后台高精度转换结果为准',
         pagePrefix: '第',
-        pageSuffix: '页'
+        pageSuffix: '页',
+        uploadConfigError: 'PDF 转 Word 后端接口尚未配置完成，请先检查 Pages 绑定和 Worker 任务流'
     }, window.FULUTOOL_MESSAGES.zh || {});
     window.FULUTOOL_MESSAGES.en = Object.assign({
         selectPdfFirst: 'Please choose a PDF file first',
         invalidPdf: 'Please choose a valid PDF file',
-        convertingPdf: 'Extracting PDF content, please wait…',
+        submittingPdfJob: 'Uploading the PDF and creating a conversion job…',
+        queuedPdfJob: 'Your job has been queued. Waiting for conversion…',
+        processingPdfJob: 'High-fidelity conversion is running. Please wait…',
         convertPdfDone: 'Conversion complete. Your Word file is ready to save.',
         convertPdfFailed: 'Conversion failed. Please try another PDF file.',
+        queryJobFailed: 'Failed to query the job status. Please refresh and try again.',
         saveWordFirst: 'Please complete the conversion first',
         noPdfPreview: 'Upload a PDF file and the extracted text preview will appear here',
         waitingUpload: 'Waiting for a file',
         fileNotSelected: '📎 No file selected yet',
         selectedFile: '📎 Selected file:',
         dropPdfHint: 'Drag a PDF file here to upload on desktop, or tap the button to choose a file on mobile.',
-        browserPdfNote: '💡 Browser-mode conversion works best for text-based PDFs. Scanned files or complex layouts may convert imperfectly.',
-        layoutPdfNote: '💡 The exported Word file keeps the page order where possible, but images, annotations, forms, and complex tables may not fully survive.',
+        browserPdfNote: '💡 This server-side job mode creates a downloadable Word file. Large or complex documents may take a little longer.',
+        layoutPdfNote: '💡 The preview shows a local text outline first. The final downloadable Word file comes from the server-side high-fidelity conversion.',
         pagePrefix: 'Page ',
-        pageSuffix: ''
+        pageSuffix: '',
+        uploadConfigError: 'The PDF-to-Word backend is not configured yet. Please verify your Pages bindings and Worker pipeline first.'
     }, window.FULUTOOL_MESSAGES.en || {});
 
     const T = (key, fallback) => (window.Fulutool ? Fulutool.t(key, fallback) : fallback);
@@ -378,6 +386,13 @@
         return `${T('pagePrefix', '第')}${pageNumber}${T('pageSuffix', '页')}`;
     }
 
+    function clearPolling() {
+        if (pollTimer) {
+            clearTimeout(pollTimer);
+            pollTimer = null;
+        }
+    }
+
     function syncStaticText() {
         fileStatus.textContent = currentFile
             ? `${T('selectedFile', '📎 已选择文件：')} ${currentFile.name}`
@@ -385,20 +400,22 @@
         if (dropzoneCopy) {
             dropzoneCopy.textContent = T('dropPdfHint', '支持将 PDF 文件拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件');
         }
-        if (!currentFile && !wordBlob) {
+        if (!currentFile && !downloadUrl) {
             setStatus('', T('waitingUpload', '等待上传文件'));
         }
         const browserNote = document.getElementById('browserNote');
         const layoutNote = document.getElementById('layoutNote');
-        if (browserNote) browserNote.textContent = T('browserPdfNote', '💡 当前为浏览器版转换，适合文本型 PDF；扫描件或复杂排版文档的还原度会有限');
-        if (layoutNote) layoutNote.textContent = T('layoutPdfNote', '💡 导出的 Word 会尽量保留分页顺序，但图片、批注、表单和复杂表格可能无法完整还原');
+        if (browserNote) browserNote.textContent = T('browserPdfNote', '💡 当前为服务器任务版转换，完成后可直接下载 Word 文件，大文件或复杂文档需要稍等片刻');
+        if (layoutNote) layoutNote.textContent = T('layoutPdfNote', '💡 预览区会先展示本地提取的文本概览，真正导出的 Word 结果以后台高精度转换结果为准');
         renderPreview();
     }
 
     function applySelectedFile(file) {
         currentFile = file || null;
-        wordBlob = null;
         extractedPages = [];
+        currentJobId = '';
+        downloadUrl = '';
+        clearPolling();
         saveBtn.disabled = true;
         convertBtn.disabled = !currentFile;
         resetPreview();
@@ -489,6 +506,87 @@
         placeholder.style.display = 'none';
     }
 
+    async function buildPreviewFromPdf(file) {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const pageBuckets = [];
+
+        for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+            const page = await pdf.getPage(pageNumber);
+            const textContent = await page.getTextContent();
+            pageBuckets.push(buildPageParagraphs(textContent.items));
+        }
+
+        extractedPages = pageBuckets;
+        renderPreview();
+    }
+
+    async function createPdfToWordJob(file) {
+        const formData = new FormData();
+        formData.append('file', file, file.name);
+
+        const response = await fetch('/api/pdf-to-word/jobs', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || data.error || T('uploadConfigError', 'PDF 转 Word 后端接口尚未配置完成，请先检查 Pages 绑定和 Worker 任务流'));
+        }
+
+        return data;
+    }
+
+    async function pollJobStatus() {
+        if (!currentJobId) return;
+
+        try {
+            const response = await fetch(`/api/pdf-to-word/job-status?id=${encodeURIComponent(currentJobId)}`, {
+                cache: 'no-store'
+            });
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || data.error || 'Status request failed');
+            }
+
+            if (data.status === 'queued') {
+                setStatus('is-busy', T('queuedPdfJob', '任务已提交，正在排队转换…'));
+                pollTimer = setTimeout(pollJobStatus, 2500);
+                return;
+            }
+
+            if (data.status === 'processing') {
+                setStatus('is-busy', T('processingPdfJob', '正在执行高精度转换，请稍候…'));
+                pollTimer = setTimeout(pollJobStatus, 2500);
+                return;
+            }
+
+            if (data.status === 'done') {
+                downloadUrl = data.download_url || '';
+                wordFileName = data.result_name || wordFileName;
+                saveBtn.disabled = !downloadUrl;
+                convertBtn.disabled = false;
+                setStatus('is-success', T('convertPdfDone', '转换完成，可以保存 Word 文件了'));
+                clearPolling();
+                return;
+            }
+
+            if (data.status === 'failed') {
+                throw new Error(data.error_message || T('convertPdfFailed', '转换失败，请换一个 PDF 文件再试试'));
+            }
+
+            pollTimer = setTimeout(pollJobStatus, 2500);
+        } catch (error) {
+            console.error(error);
+            convertBtn.disabled = false;
+            saveBtn.disabled = true;
+            setStatus('is-error', error.message || T('queryJobFailed', '状态查询失败，请稍后刷新页面重试'));
+            clearPolling();
+        }
+    }
+
     async function convertPdfToWord() {
         if (!currentFile) {
             alert(T('selectPdfFirst', '请先选择 PDF 文件'));
@@ -502,89 +600,37 @@
 
         convertBtn.disabled = true;
         saveBtn.disabled = true;
-        wordBlob = null;
         extractedPages = [];
-        setStatus('is-busy', T('convertingPdf', '正在提取 PDF 内容，请稍候…'));
+        currentJobId = '';
+        downloadUrl = '';
+        clearPolling();
+        setStatus('is-busy', T('submittingPdfJob', '正在上传 PDF 并创建转换任务，请稍候…'));
 
         try {
-            const arrayBuffer = await currentFile.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-            const pageBuckets = [];
-
-            for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
-                const page = await pdf.getPage(pageNumber);
-                const textContent = await page.getTextContent();
-                pageBuckets.push(buildPageParagraphs(textContent.items));
-            }
-
-            extractedPages = pageBuckets;
-            renderPreview();
-
-            const {
-                Document,
-                Packer,
-                Paragraph,
-                TextRun,
-                HeadingLevel
-            } = window.docx;
-
-            const children = [];
-            pageBuckets.forEach((paragraphs, index) => {
-                children.push(new Paragraph({
-                    text: pageTitleText(index + 1),
-                    heading: HeadingLevel.HEADING_2,
-                    pageBreakBefore: index > 0,
-                    spacing: { after: 200 }
-                }));
-
-                if (!paragraphs.length) {
-                    children.push(new Paragraph({
-                        children: [new TextRun('-')]
-                    }));
-                    return;
-                }
-
-                paragraphs.forEach((paragraph) => {
-                    children.push(new Paragraph({
-                        children: [new TextRun(paragraph)],
-                        spacing: { after: 160 }
-                    }));
-                });
-            });
-
-            const doc = new Document({
-                sections: [{
-                    properties: {},
-                    children
-                }]
-            });
-
-            wordBlob = await Packer.toBlob(doc);
-            wordFileName = currentFile.name.replace(/\.pdf$/i, '.docx');
-            saveBtn.disabled = false;
-            setStatus('is-success', T('convertPdfDone', '转换完成，可以保存 Word 文件了'));
+            await buildPreviewFromPdf(currentFile);
+            const job = await createPdfToWordJob(currentFile);
+            currentJobId = job.job_id || '';
+            wordFileName = job.result_name || currentFile.name.replace(/\.pdf$/i, '.docx');
+            setStatus('is-busy', T('queuedPdfJob', '任务已提交，正在排队转换…'));
+            pollTimer = setTimeout(pollJobStatus, 2000);
         } catch (error) {
             console.error(error);
-            wordBlob = null;
             extractedPages = [];
             resetPreview();
-            setStatus('is-error', T('convertPdfFailed', '转换失败，请换一个 PDF 文件再试试'));
-        } finally {
+            setStatus('is-error', error.message || T('convertPdfFailed', '转换失败，请换一个 PDF 文件再试试'));
             convertBtn.disabled = false;
         }
     }
 
     function saveWord() {
-        if (!wordBlob) {
+        if (!downloadUrl) {
             alert(T('saveWordFirst', '请先完成转换'));
             return;
         }
-        const blobUrl = URL.createObjectURL(wordBlob);
         const link = document.createElement('a');
-        link.href = blobUrl;
+        link.href = downloadUrl;
         link.download = wordFileName;
         link.click();
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
     }
 
     selectBtn.addEventListener('click', () => {
@@ -636,6 +682,8 @@
         addPressedEffect(saveBtn);
         saveWord();
     });
+
+    window.addEventListener('beforeunload', clearPolling);
 
     window.FULUTOOL_HOOKS = window.FULUTOOL_HOOKS || {};
     const previousReady = window.FULUTOOL_HOOKS.onReady;
