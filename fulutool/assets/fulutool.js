@@ -109,7 +109,7 @@
       text: [
         { selector: '.ft-brand-copy small', zh: '免费使用·无需注册·即用即走', en: 'Free to use · No sign-up · Instant access' },
         { selector: '.tool-title', zh: '📘 PDF 转 Word 工具', en: '📘 PDF to Word Converter' },
-        { selector: '.tool-desc', zh: '上传 PDF 文档，提取文本与基础分页结构并导出为 Word，适合继续编辑与整理内容', en: 'Upload a PDF document, extract its text and basic page structure, then export it as Word for further editing.' },
+        { selector: '.tool-desc', zh: '上传 PDF 文档，提交高精度转换任务，完成后下载 Word 文件，复杂版式的还原效果更稳定', en: 'Upload a PDF document, submit a high-fidelity conversion job, and download the Word file when it finishes for more reliable layout recovery.' },
         { selector: '#selectPdfBtn', zh: '📂 选择 PDF 文件', en: '📂 Choose PDF file' },
         { selector: '#convertBtn', zh: '⚡ 开始转换', en: '⚡ Start conversion' },
         { selector: '#saveWordBtn', zh: '💾 保存文件', en: '💾 Save file' },
