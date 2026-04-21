@@ -121,14 +121,15 @@
             background: #ffffff;
             border: 1px solid #e5e7eb;
             border-radius: 18px;
-            min-height: 340px;
-            max-height: 72vh;
-            overflow: auto;
+            min-height: 250px;
             padding: 1.2rem;
             box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         .preview-placeholder {
-            min-height: 280px;
+            min-height: 140px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -137,28 +138,77 @@
             font-size: 0.95rem;
             padding: 1.5rem;
         }
-        .pdf-preview {
-            max-width: 860px;
-            margin: 0 auto;
+        .task-status-body {
+            display: grid;
+            gap: 1rem;
         }
-        .preview-page-card {
-            background: linear-gradient(180deg, #ffffff, #fbfdff);
-            border: 1px solid #e2e8f0;
-            border-radius: 20px;
-            padding: 1rem 1.1rem;
-            margin-bottom: 1rem;
+        .task-stage {
+            display: grid;
+            gap: 0.45rem;
         }
-        .preview-page-title {
-            font-size: 0.82rem;
+        .task-stage-label {
+            font-size: 0.8rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #94a3b8;
             font-weight: 700;
-            color: #475569;
-            margin-bottom: 0.75rem;
         }
-        .preview-paragraph {
+        .task-stage-text {
             color: #0f172a;
             line-height: 1.8;
-            margin-bottom: 0.8rem;
+            font-size: 1rem;
+            font-weight: 600;
             word-break: break-word;
+        }
+        .progress-shell {
+            display: grid;
+            gap: 0.55rem;
+        }
+        .progress-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: center;
+            color: #64748b;
+            font-size: 0.82rem;
+        }
+        .progress-track {
+            width: 100%;
+            height: 14px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, #e2e8f0, #f1f5f9);
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #0f766e, #0f172a);
+            transition: width 0.35s ease;
+            position: relative;
+        }
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+            transform: translateX(-100%);
+            animation: progressShimmer 1.6s linear infinite;
+        }
+        @keyframes progressShimmer {
+            to {
+                transform: translateX(100%);
+            }
+        }
+        .progress-fill.is-complete::after,
+        .progress-fill.is-idle::after {
+            display: none;
+        }
+        .save-row {
+            display: flex;
+            justify-content: center;
+            margin-top: 1.1rem;
         }
         input[type="file"] { display: none; }
         button {
@@ -187,18 +237,6 @@
             box-shadow: none;
         }
         button.pressed { background: #cbd5e1 !important; transform: scale(0.96); transition: 0.05s; }
-        .notes {
-            margin-top: 1rem;
-            display: grid;
-            gap: 0.6rem;
-        }
-        .note {
-            font-size: 0.78rem;
-            color: #5b6e8c;
-            background: rgba(241, 245, 249, 0.9);
-            border-radius: 16px;
-            padding: 0.8rem 0.95rem;
-        }
         .other-tools-section { margin-top: 1rem; padding-top: 1rem; }
         .section-label {
             font-size: 0.85rem;
@@ -247,7 +285,8 @@
             .cards-grid { grid-template-columns: repeat(2, 1fr); }
             .tool-card { padding: 0.6rem 0.8rem; min-height: 60px; }
             .tool-card-name { font-size: 0.85rem; }
-            .preview-frame { min-height: 260px; max-height: none; }
+            .preview-frame { min-height: 220px; }
+            .progress-meta { flex-direction: column; align-items: flex-start; }
         }
     </style>
     <link rel="stylesheet" href="/assets/fulutool.css">
@@ -270,21 +309,31 @@
 
         <div class="action-row">
             <button id="convertBtn" class="primary" disabled>⚡ 开始转换</button>
-            <button id="saveWordBtn" disabled>💾 保存文件</button>
             <div class="status-pill" id="convertStatus"><strong>状态：</strong><span id="convertStatusText">等待上传文件</span></div>
         </div>
 
         <div class="preview-shell">
-            <div class="preview-title">👀 文档预览</div>
+            <div class="preview-title">📈 任务状态</div>
             <div class="preview-frame" id="previewFrame">
-                <div class="preview-placeholder" id="previewPlaceholder">上传 PDF 文件后，这里会展示提取出的文本预览</div>
-                <div class="pdf-preview" id="pdfPreview" style="display:none;"></div>
+                <div class="task-status-body">
+                    <div class="task-stage">
+                        <div class="task-stage-label" id="taskStageLabel">任务阶段</div>
+                        <div class="task-stage-text" id="taskStageText">等待文件上传</div>
+                    </div>
+                    <div class="progress-shell">
+                        <div class="progress-meta">
+                            <span id="progressHint">文件上传后即可开始转换任务</span>
+                            <span id="progressPercent">0%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill is-idle" id="progressFill"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <div class="notes">
-            <div class="note" id="browserNote">💡 当前为服务器任务版转换，完成后可直接下载 Word 文件，大文件或复杂文档需要稍等片刻</div>
-            <div class="note" id="layoutNote">💡 预览区会先展示本地提取的文本概览，真正导出的 Word 结果以后台高精度转换结果为准</div>
+        <div class="save-row">
+            <button id="saveWordBtn" disabled>💾 保存文件</button>
         </div>
     </div>
 
@@ -303,10 +352,6 @@
 </div>
 
 <script type="module">
-    import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs';
-
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs';
-
     const input = document.getElementById('pdfFileInput');
     const selectBtn = document.getElementById('selectPdfBtn');
     const convertBtn = document.getElementById('convertBtn');
@@ -316,12 +361,13 @@
     const dropzoneCopy = document.getElementById('dropzoneCopy');
     const convertStatus = document.getElementById('convertStatus');
     const convertStatusText = document.getElementById('convertStatusText');
-    const preview = document.getElementById('pdfPreview');
-    const placeholder = document.getElementById('previewPlaceholder');
+    const taskStageText = document.getElementById('taskStageText');
+    const progressHint = document.getElementById('progressHint');
+    const progressPercent = document.getElementById('progressPercent');
+    const progressFill = document.getElementById('progressFill');
 
     let currentFile = null;
     let wordFileName = 'document.docx';
-    let extractedPages = [];
     let currentJobId = '';
     let downloadUrl = '';
     let pollTimer = null;
@@ -343,15 +389,25 @@
         convertPdfFailed: '转换失败，请换一个 PDF 文件再试试',
         queryJobFailed: '状态查询失败，请稍后刷新页面重试',
         saveWordFirst: '请先完成转换',
-        noPdfPreview: '上传 PDF 文件后，这里会展示提取出的文本预览',
         waitingUpload: '等待上传文件',
+        waitingConvert: '等待开始转换',
+        taskStageIdle: '等待文件上传',
+        taskStageReady: '文件已就绪，等待开始转换',
+        taskStageSubmitting: '正在创建转换任务',
+        taskStageQueued: '任务已进入队列',
+        taskStageProcessing: '正在执行高精度转换',
+        taskStageDone: '转换任务已完成',
+        taskStageFailed: '转换任务失败',
         fileNotSelected: '📎 尚未选择文件',
         selectedFile: '📎 已选择文件：',
         dropPdfHint: '支持将 PDF 文件拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件',
-        browserPdfNote: '💡 当前为服务器任务版转换，完成后可直接下载 Word 文件，大文件或复杂文档需要稍等片刻',
-        layoutPdfNote: '💡 预览区会先展示本地提取的文本概览，真正导出的 Word 结果以后台高精度转换结果为准',
-        pagePrefix: '第',
-        pageSuffix: '页',
+        progressIdleHint: '文件上传后即可开始转换任务',
+        progressReadyHint: '已选择文件，点击上方开始转换按钮继续',
+        progressSubmittingHint: '正在上传 PDF 并初始化任务',
+        progressQueuedHint: '任务已提交，系统正在排队处理',
+        progressProcessingHint: '系统正在转换文档，请稍候',
+        progressDoneHint: '转换已完成，请点击下方保存文件按钮下载 Word 文档',
+        progressFailedHint: '任务执行失败，请重新上传或稍后再试',
         uploadConfigError: 'PDF 转 Word 后端接口尚未配置完成，请先检查 Pages 绑定和 Worker 任务流'
     }, window.FULUTOOL_MESSAGES.zh || {});
     window.FULUTOOL_MESSAGES.en = Object.assign({
@@ -364,39 +420,49 @@
         convertPdfFailed: 'Conversion failed. Please try another PDF file.',
         queryJobFailed: 'Failed to query the job status. Please refresh and try again.',
         saveWordFirst: 'Please complete the conversion first',
-        noPdfPreview: 'Upload a PDF file and the extracted text preview will appear here',
         waitingUpload: 'Waiting for a file',
+        waitingConvert: 'Waiting to start conversion',
+        taskStageIdle: 'Waiting for file upload',
+        taskStageReady: 'File ready, waiting to start',
+        taskStageSubmitting: 'Creating conversion job',
+        taskStageQueued: 'Job queued successfully',
+        taskStageProcessing: 'High-fidelity conversion in progress',
+        taskStageDone: 'Conversion task completed',
+        taskStageFailed: 'Conversion task failed',
         fileNotSelected: '📎 No file selected yet',
         selectedFile: '📎 Selected file:',
         dropPdfHint: 'Drag a PDF file here to upload on desktop, or tap the button to choose a file on mobile.',
-        browserPdfNote: '💡 This server-side job mode creates a downloadable Word file. Large or complex documents may take a little longer.',
-        layoutPdfNote: '💡 The preview shows a local text outline first. The final downloadable Word file comes from the server-side high-fidelity conversion.',
-        pagePrefix: 'Page ',
-        pageSuffix: '',
+        progressIdleHint: 'Upload a file to unlock the conversion task',
+        progressReadyHint: 'Your file is ready. Click Start conversion above to continue.',
+        progressSubmittingHint: 'Uploading the PDF and creating the task',
+        progressQueuedHint: 'The task is queued and waiting to run',
+        progressProcessingHint: 'The document is being converted now',
+        progressDoneHint: 'The task is complete. Click Save file below to download the Word document.',
+        progressFailedHint: 'The task failed. Please upload again or try later.',
         uploadConfigError: 'The PDF-to-Word backend is not configured yet. Please verify your Pages bindings and Worker pipeline first.'
     }, window.FULUTOOL_MESSAGES.en || {});
 
     const T = (key, fallback) => (window.Fulutool ? Fulutool.t(key, fallback) : fallback);
 
+    function setProgress(percent, state) {
+        const safePercent = Math.max(0, Math.min(100, percent));
+        progressPercent.textContent = `${safePercent}%`;
+        progressFill.style.width = `${safePercent}%`;
+        progressFill.classList.remove('is-idle', 'is-complete');
+        if (state === 'idle') progressFill.classList.add('is-idle');
+        if (state === 'complete') progressFill.classList.add('is-complete');
+    }
+
+    function updateTaskWindow(stageKey, hintKey, percent, state) {
+        taskStageText.textContent = T(stageKey, '');
+        progressHint.textContent = T(hintKey, '');
+        setProgress(percent, state);
+    }
+
     function setStatus(type, text) {
         convertStatus.classList.remove('is-success', 'is-busy', 'is-error');
         if (type) convertStatus.classList.add(type);
         convertStatusText.textContent = text;
-    }
-
-    function resetPreview() {
-        preview.innerHTML = '';
-        preview.style.display = 'none';
-        placeholder.style.display = 'flex';
-        placeholder.textContent = T('noPdfPreview', '上传 PDF 文件后，这里会展示提取出的文本预览');
-    }
-
-    function pageTitleText(pageNumber) {
-        const lang = window.Fulutool ? Fulutool.lang : 'zh';
-        if (lang === 'en') {
-            return `${T('pagePrefix', 'Page ')}${pageNumber}`;
-        }
-        return `${T('pagePrefix', '第')}${pageNumber}${T('pageSuffix', '页')}`;
     }
 
     function clearPolling() {
@@ -415,123 +481,21 @@
         }
         if (!currentFile && !downloadUrl) {
             setStatus('', T('waitingUpload', '等待上传文件'));
+            updateTaskWindow('taskStageIdle', 'progressIdleHint', 0, 'idle');
+        } else if (currentFile && !currentJobId && !downloadUrl) {
+            setStatus('', T('waitingConvert', '等待开始转换'));
+            updateTaskWindow('taskStageReady', 'progressReadyHint', 18, 'idle');
         }
-        const browserNote = document.getElementById('browserNote');
-        const layoutNote = document.getElementById('layoutNote');
-        if (browserNote) browserNote.textContent = T('browserPdfNote', '💡 当前为服务器任务版转换，完成后可直接下载 Word 文件，大文件或复杂文档需要稍等片刻');
-        if (layoutNote) layoutNote.textContent = T('layoutPdfNote', '💡 预览区会先展示本地提取的文本概览，真正导出的 Word 结果以后台高精度转换结果为准');
-        renderPreview();
     }
 
     function applySelectedFile(file) {
         currentFile = file || null;
-        extractedPages = [];
         currentJobId = '';
         downloadUrl = '';
         clearPolling();
         saveBtn.disabled = true;
         convertBtn.disabled = !currentFile;
-        resetPreview();
         syncStaticText();
-    }
-
-    function normalizeTextItem(item) {
-        return {
-            text: (item.str || '').trim(),
-            x: item.transform[4],
-            y: item.transform[5]
-        };
-    }
-
-    function buildPageParagraphs(items) {
-        const normalized = items
-            .map(normalizeTextItem)
-            .filter((item) => item.text);
-
-        if (!normalized.length) return [];
-
-        normalized.sort((a, b) => {
-            if (Math.abs(b.y - a.y) > 2) return b.y - a.y;
-            return a.x - b.x;
-        });
-
-        const lines = [];
-        normalized.forEach((item) => {
-            const lastLine = lines[lines.length - 1];
-            if (!lastLine || Math.abs(lastLine.y - item.y) > 4) {
-                lines.push({ y: item.y, items: [item] });
-            } else {
-                lastLine.items.push(item);
-            }
-        });
-
-        const lineTexts = lines.map((line) => {
-            line.items.sort((a, b) => a.x - b.x);
-            let text = '';
-            line.items.forEach((item, index) => {
-                if (!index) {
-                    text = item.text;
-                    return;
-                }
-                const prev = line.items[index - 1];
-                const gap = item.x - prev.x;
-                const needsSpace = /[A-Za-z0-9]$/.test(prev.text) && /^[A-Za-z0-9]/.test(item.text) && gap > 3;
-                text += needsSpace ? ` ${item.text}` : item.text;
-            });
-            return text.trim();
-        }).filter(Boolean);
-
-        const paragraphs = [];
-        let current = [];
-        lineTexts.forEach((line) => {
-            if (!line) return;
-            if (/^[•\-●]/.test(line) || /^[0-9]+\./.test(line)) {
-                if (current.length) {
-                    paragraphs.push(current.join(' '));
-                    current = [];
-                }
-                paragraphs.push(line);
-                return;
-            }
-            current.push(line);
-            const punctuationEnd = /[。！？.!?;；:]$/.test(line);
-            if (punctuationEnd || current.length >= 4) {
-                paragraphs.push(current.join(' '));
-                current = [];
-            }
-        });
-        if (current.length) paragraphs.push(current.join(' '));
-        return paragraphs;
-    }
-
-    function renderPreview() {
-        if (!extractedPages.length) return;
-        preview.innerHTML = extractedPages.map((page, index) => `
-            <section class="preview-page-card">
-                <div class="preview-page-title">${pageTitleText(index + 1)}</div>
-                ${page.length
-                    ? page.map((paragraph) => `<p class="preview-paragraph">${paragraph.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`).join('')
-                    : `<p class="preview-paragraph">-</p>`
-                }
-            </section>
-        `).join('');
-        preview.style.display = 'block';
-        placeholder.style.display = 'none';
-    }
-
-    async function buildPreviewFromPdf(file) {
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        const pageBuckets = [];
-
-        for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
-            const page = await pdf.getPage(pageNumber);
-            const textContent = await page.getTextContent();
-            pageBuckets.push(buildPageParagraphs(textContent.items));
-        }
-
-        extractedPages = pageBuckets;
-        renderPreview();
     }
 
     async function createPdfToWordJob(file) {
@@ -566,12 +530,14 @@
 
             if (data.status === 'queued') {
                 setStatus('is-busy', T('queuedPdfJob', '任务已提交，正在排队转换…'));
+                updateTaskWindow('taskStageQueued', 'progressQueuedHint', 42, 'busy');
                 pollTimer = setTimeout(pollJobStatus, 2500);
                 return;
             }
 
             if (data.status === 'processing') {
                 setStatus('is-busy', T('processingPdfJob', '正在执行高精度转换，请稍候…'));
+                updateTaskWindow('taskStageProcessing', 'progressProcessingHint', 74, 'busy');
                 pollTimer = setTimeout(pollJobStatus, 2500);
                 return;
             }
@@ -582,6 +548,7 @@
                 saveBtn.disabled = !downloadUrl;
                 convertBtn.disabled = false;
                 setStatus('is-success', T('convertPdfDone', '转换完成，可以保存 Word 文件了'));
+                updateTaskWindow('taskStageDone', 'progressDoneHint', 100, 'complete');
                 clearPolling();
                 return;
             }
@@ -596,6 +563,7 @@
             convertBtn.disabled = false;
             saveBtn.disabled = true;
             setStatus('is-error', error.message || T('queryJobFailed', '状态查询失败，请稍后刷新页面重试'));
+            updateTaskWindow('taskStageFailed', 'progressFailedHint', 100, 'complete');
             clearPolling();
         }
     }
@@ -613,24 +581,23 @@
 
         convertBtn.disabled = true;
         saveBtn.disabled = true;
-        extractedPages = [];
         currentJobId = '';
         downloadUrl = '';
         clearPolling();
         setStatus('is-busy', T('submittingPdfJob', '正在上传 PDF 并创建转换任务，请稍候…'));
+        updateTaskWindow('taskStageSubmitting', 'progressSubmittingHint', 24, 'busy');
 
         try {
-            await buildPreviewFromPdf(currentFile);
             const job = await createPdfToWordJob(currentFile);
             currentJobId = job.job_id || '';
             wordFileName = job.result_name || currentFile.name.replace(/\.pdf$/i, '.docx');
             setStatus('is-busy', T('queuedPdfJob', '任务已提交，正在排队转换…'));
+            updateTaskWindow('taskStageQueued', 'progressQueuedHint', 42, 'busy');
             pollTimer = setTimeout(pollJobStatus, 2000);
         } catch (error) {
             console.error(error);
-            extractedPages = [];
-            resetPreview();
             setStatus('is-error', error.message || T('convertPdfFailed', '转换失败，请换一个 PDF 文件再试试'));
+            updateTaskWindow('taskStageFailed', 'progressFailedHint', 100, 'complete');
             convertBtn.disabled = false;
         }
     }

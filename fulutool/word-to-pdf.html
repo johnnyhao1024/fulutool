@@ -110,14 +110,15 @@
             background: #ffffff;
             border: 1px solid #e5e7eb;
             border-radius: 18px;
-            min-height: 340px;
-            max-height: 72vh;
-            overflow: auto;
+            min-height: 250px;
             padding: 1.2rem;
             box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         .preview-placeholder {
-            min-height: 280px;
+            min-height: 140px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -125,6 +126,89 @@
             color: #64748b;
             font-size: 0.95rem;
             padding: 1.5rem;
+        }
+        .task-status-body {
+            display: grid;
+            gap: 1rem;
+        }
+        .task-stage {
+            display: grid;
+            gap: 0.45rem;
+        }
+        .task-stage-label {
+            font-size: 0.8rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #94a3b8;
+            font-weight: 700;
+        }
+        .task-stage-text {
+            color: #0f172a;
+            line-height: 1.8;
+            font-size: 1rem;
+            font-weight: 600;
+            word-break: break-word;
+        }
+        .progress-shell {
+            display: grid;
+            gap: 0.55rem;
+        }
+        .progress-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: center;
+            color: #64748b;
+            font-size: 0.82rem;
+        }
+        .progress-track {
+            width: 100%;
+            height: 14px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, #e2e8f0, #f1f5f9);
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #0f766e, #0f172a);
+            transition: width 0.35s ease;
+            position: relative;
+        }
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+            transform: translateX(-100%);
+            animation: progressShimmer 1.6s linear infinite;
+        }
+        @keyframes progressShimmer {
+            to {
+                transform: translateX(100%);
+            }
+        }
+        .progress-fill.is-complete::after,
+        .progress-fill.is-idle::after {
+            display: none;
+        }
+        .save-row {
+            display: flex;
+            justify-content: center;
+            margin-top: 1.1rem;
+        }
+        .pdf-render-surface {
+            position: fixed;
+            left: -99999px;
+            top: 0;
+            width: 794px;
+            background: #ffffff;
+            padding: 18px 22px;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0;
         }
         .word-preview {
             max-width: 820px;
@@ -214,18 +298,6 @@
             box-shadow: none;
         }
         button.pressed { background: #cbd5e1 !important; transform: scale(0.96); transition: 0.05s; }
-        .notes {
-            margin-top: 1rem;
-            display: grid;
-            gap: 0.6rem;
-        }
-        .note {
-            font-size: 0.78rem;
-            color: #5b6e8c;
-            background: rgba(241, 245, 249, 0.9);
-            border-radius: 16px;
-            padding: 0.8rem 0.95rem;
-        }
         .other-tools-section { margin-top: 1rem; padding-top: 1rem; }
         .section-label {
             font-size: 0.85rem;
@@ -274,7 +346,8 @@
             .cards-grid { grid-template-columns: repeat(2, 1fr); }
             .tool-card { padding: 0.6rem 0.8rem; min-height: 60px; }
             .tool-card-name { font-size: 0.85rem; }
-            .preview-frame { min-height: 260px; max-height: none; }
+            .preview-frame { min-height: 220px; }
+            .progress-meta { flex-direction: column; align-items: flex-start; }
         }
     </style>
     <link rel="stylesheet" href="/assets/fulutool.css">
@@ -297,21 +370,31 @@
 
         <div class="action-row">
             <button id="convertBtn" class="primary" disabled>⚡ 开始转换</button>
-            <button id="savePdfBtn" disabled>💾 保存文件</button>
             <div class="status-pill" id="convertStatus"><strong>状态：</strong><span id="convertStatusText">等待上传文件</span></div>
         </div>
 
         <div class="preview-shell">
-            <div class="preview-title">👀 文档预览</div>
+            <div class="preview-title">📈 任务状态</div>
             <div class="preview-frame" id="previewFrame">
-                <div class="preview-placeholder" id="previewPlaceholder">上传 .docx 文件后，这里会展示转换后的预览内容</div>
-                <div class="word-preview" id="wordPreview" style="display:none;"></div>
+                <div class="task-status-body">
+                    <div class="task-stage">
+                        <div class="task-stage-label" id="taskStageLabel">任务阶段</div>
+                        <div class="task-stage-text" id="taskStageText">等待文件上传</div>
+                    </div>
+                    <div class="progress-shell">
+                        <div class="progress-meta">
+                            <span id="progressHint">文件上传后即可开始转换任务</span>
+                            <span id="progressPercent">0%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill is-idle" id="progressFill"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <div class="notes">
-            <div class="note" id="browserNote">💡 纯浏览器转换更适合 .docx 文件，旧版 .doc 建议先另存为 .docx 再转换</div>
-            <div class="note" id="layoutNote">💡 若原文档含复杂页眉、批注或特殊字体，导出的 PDF 排版可能与 Word 略有差异</div>
+        <div class="save-row">
+            <button id="savePdfBtn" disabled>💾 保存文件</button>
         </div>
     </div>
 
@@ -329,6 +412,9 @@
     </div>
     <div class="footer">🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪</div>
 </div>
+<div class="pdf-render-surface">
+    <div class="word-preview" id="wordPreview"></div>
+</div>
 
 <script>
     (function () {
@@ -342,7 +428,10 @@
         const convertStatus = document.getElementById('convertStatus');
         const convertStatusText = document.getElementById('convertStatusText');
         const preview = document.getElementById('wordPreview');
-        const placeholder = document.getElementById('previewPlaceholder');
+        const taskStageText = document.getElementById('taskStageText');
+        const progressHint = document.getElementById('progressHint');
+        const progressPercent = document.getElementById('progressPercent');
+        const progressFill = document.getElementById('progressFill');
 
         let currentFile = null;
         let pdfBlob = null;
@@ -362,13 +451,23 @@
             convertDone: '转换完成，可以保存 PDF 了',
             convertFailed: '转换失败，请换一个 .docx 文件再试试',
             saveFirst: '请先完成转换',
-            noPreview: '上传 .docx 文件后，这里会展示转换后的预览内容',
             waitingUpload: '等待上传文件',
+            waitingConvert: '等待开始转换',
+            taskStageIdle: '等待文件上传',
+            taskStageReady: '文件已就绪，等待开始转换',
+            taskStageParsing: '正在读取 Word 内容',
+            taskStageRendering: '正在生成 PDF 文件',
+            taskStageDone: '转换任务已完成',
+            taskStageFailed: '转换任务失败',
             fileNotSelected: '📎 尚未选择文件',
             selectedFile: '📎 已选择文件：',
             dropHint: '支持将 .docx 文件拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件',
-            browserNote: '💡 纯浏览器转换更适合 .docx 文件，旧版 .doc 建议先另存为 .docx 再转换',
-            layoutNote: '💡 若原文档含复杂页眉、批注或特殊字体，导出的 PDF 排版可能与 Word 略有差异'
+            progressIdleHint: '文件上传后即可开始转换任务',
+            progressReadyHint: '已选择文件，点击上方开始转换按钮继续',
+            progressParsingHint: '正在解析 Word 文档结构',
+            progressRenderingHint: '正在把文档内容写入 PDF',
+            progressDoneHint: '转换已完成，请点击下方保存文件按钮下载 PDF 文档',
+            progressFailedHint: '任务执行失败，请重新上传或稍后再试'
         }, window.FULUTOOL_MESSAGES.zh || {});
         window.FULUTOOL_MESSAGES.en = Object.assign({
             selectWordFirst: 'Please choose a Word file first',
@@ -377,28 +476,46 @@
             convertDone: 'Conversion complete. Your PDF is ready to save.',
             convertFailed: 'Conversion failed. Please try another .docx file.',
             saveFirst: 'Please convert the document first',
-            noPreview: 'Upload a .docx file and the converted preview will appear here',
             waitingUpload: 'Waiting for a file',
+            waitingConvert: 'Waiting to start conversion',
+            taskStageIdle: 'Waiting for file upload',
+            taskStageReady: 'File ready, waiting to start',
+            taskStageParsing: 'Reading Word content',
+            taskStageRendering: 'Generating PDF output',
+            taskStageDone: 'Conversion task completed',
+            taskStageFailed: 'Conversion task failed',
             fileNotSelected: '📎 No file selected yet',
             selectedFile: '📎 Selected file:',
             dropHint: 'Drag a .docx file here to upload on desktop, or tap the button to choose a file on mobile.',
-            browserNote: '💡 Browser-based conversion works best with .docx files. Please resave legacy .doc files as .docx first.',
-            layoutNote: '💡 Complex headers, comments, or special fonts may look slightly different in the exported PDF.'
+            progressIdleHint: 'Upload a file to unlock the conversion task',
+            progressReadyHint: 'Your file is ready. Click Start conversion above to continue.',
+            progressParsingHint: 'Reading the Word document structure',
+            progressRenderingHint: 'Writing the document into a PDF file',
+            progressDoneHint: 'The task is complete. Click Save file below to download the PDF document.',
+            progressFailedHint: 'The task failed. Please upload again or try later.'
         }, window.FULUTOOL_MESSAGES.en || {});
 
         const T = (key, fallback) => (window.Fulutool ? Fulutool.t(key, fallback) : fallback);
+
+        function setProgress(percent, state) {
+            const safePercent = Math.max(0, Math.min(100, percent));
+            progressPercent.textContent = `${safePercent}%`;
+            progressFill.style.width = `${safePercent}%`;
+            progressFill.classList.remove('is-idle', 'is-complete');
+            if (state === 'idle') progressFill.classList.add('is-idle');
+            if (state === 'complete') progressFill.classList.add('is-complete');
+        }
+
+        function updateTaskWindow(stageKey, hintKey, percent, state) {
+            taskStageText.textContent = T(stageKey, '');
+            progressHint.textContent = T(hintKey, '');
+            setProgress(percent, state);
+        }
 
         function setStatus(type, text) {
             convertStatus.classList.remove('is-success', 'is-busy', 'is-error');
             if (type) convertStatus.classList.add(type);
             convertStatusText.textContent = text;
-        }
-
-        function resetPreview() {
-            preview.innerHTML = '';
-            preview.style.display = 'none';
-            placeholder.style.display = 'flex';
-            placeholder.textContent = T('noPreview', '上传 .docx 文件后，这里会展示转换后的预览内容');
         }
 
         function syncStaticText(lang) {
@@ -411,12 +528,11 @@
 
             if (!currentFile && !pdfBlob) {
                 setStatus('', T('waitingUpload', '等待上传文件'));
+                updateTaskWindow('taskStageIdle', 'progressIdleHint', 0, 'idle');
+            } else if (currentFile && !pdfBlob) {
+                setStatus('', T('waitingConvert', '等待开始转换'));
+                updateTaskWindow('taskStageReady', 'progressReadyHint', 18, 'idle');
             }
-
-            const browserNote = document.getElementById('browserNote');
-            const layoutNote = document.getElementById('layoutNote');
-            if (browserNote) browserNote.textContent = T('browserNote', '💡 纯浏览器转换更适合 .docx 文件，旧版 .doc 建议先另存为 .docx 再转换');
-            if (layoutNote) layoutNote.textContent = T('layoutNote', '💡 若原文档含复杂页眉、批注或特殊字体，导出的 PDF 排版可能与 Word 略有差异');
         }
 
         function applySelectedFile(file) {
@@ -424,7 +540,7 @@
             pdfBlob = null;
             saveBtn.disabled = true;
             convertBtn.disabled = !currentFile;
-            resetPreview();
+            preview.innerHTML = '';
             syncStaticText(window.Fulutool ? Fulutool.lang : 'zh');
         }
 
@@ -444,6 +560,7 @@
             saveBtn.disabled = true;
             pdfBlob = null;
             setStatus('is-busy', T('converting', '正在转换，请稍候…'));
+            updateTaskWindow('taskStageParsing', 'progressParsingHint', 38, 'busy');
 
             try {
                 const arrayBuffer = await currentFile.arrayBuffer();
@@ -452,8 +569,7 @@
                 preview.querySelectorAll('p, h1, h2, h3, h4, h5, h6, ul, ol, li, blockquote, pre, table, thead, tbody, tr, td, th, figure, img').forEach((el) => {
                     el.classList.add('pdf-avoid-break');
                 });
-                preview.style.display = 'block';
-                placeholder.style.display = 'none';
+                updateTaskWindow('taskStageRendering', 'progressRenderingHint', 72, 'busy');
 
                 const worker = html2pdf().set({
                     margin: [14, 12, 14, 12],
@@ -481,10 +597,12 @@
                 pdfFileName = currentFile.name.replace(/\.docx?$/i, '.pdf');
                 saveBtn.disabled = false;
                 setStatus('is-success', T('convertDone', '转换完成，可以保存 PDF 了'));
+                updateTaskWindow('taskStageDone', 'progressDoneHint', 100, 'complete');
             } catch (error) {
                 console.error(error);
                 pdfBlob = null;
                 setStatus('is-error', T('convertFailed', '转换失败，请换一个 .docx 文件再试试'));
+                updateTaskWindow('taskStageFailed', 'progressFailedHint', 100, 'complete');
             } finally {
                 convertBtn.disabled = false;
             }
