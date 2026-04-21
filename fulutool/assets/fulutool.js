@@ -62,6 +62,8 @@
         { selector: '.input-group label', zh: '📄 输入文本', en: '📄 Input text' },
         { selector: '#updateStatsBtn', zh: '📈 立即统计', en: '📈 Count now' },
         { selector: '#removeEmptyLinesBtn', zh: '🚫 去除所有空行', en: '🚫 Remove empty lines' },
+        { selector: '#removeAllSpacesBtn', zh: '🧹 去除所有空格', en: '🧹 Remove all spaces' },
+        { selector: '#singleBlankParagraphBtn', zh: '↕️ 段间只空一行', en: '↕️ Keep one blank line between paragraphs' },
         { selector: '#addFirstLineIndentBtn', zh: '📝 首行缩进2字符', en: '📝 Indent first line' },
         { selector: '#copyFormattedTextBtn', zh: '📋 复制文本', en: '📋 Copy text' },
         { selector: '.result-label', zh: '📊 统计结果', en: '📊 Text stats' },
