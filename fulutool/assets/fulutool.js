@@ -1,6 +1,31 @@
 (function () {
   const STORAGE_KEY = 'fulutool.lang';
   const DEFAULT_LANG = 'zh';
+  const TOOL_ICON_STYLE = 'solid';
+  const TOOL_ICON_MAP = {
+    '/shortlink.html': '/assets/tool-icons/shortlink.svg',
+    '/qrcode.html': '/assets/tool-icons/qrcode.svg',
+    '/textstats.html': '/assets/tool-icons/textstats.svg',
+    '/imagecompress.html': '/assets/tool-icons/imagecompress.svg',
+    '/password.html': '/assets/tool-icons/password.svg',
+    '/ip-lookup.html': '/assets/tool-icons/ip-lookup.svg',
+    '/pixel-avatar.html': '/assets/tool-icons/pixel-avatar.svg',
+    '/watermark.html': '/assets/tool-icons/watermark.svg',
+    '/puzzle.html': '/assets/tool-icons/puzzle.svg',
+    '/word-to-pdf.html': '/assets/tool-icons/word-to-pdf.svg',
+    '/pdf-to-word.html': '/assets/tool-icons/pdf-to-word.svg',
+    '/pdf-compress.html': '/assets/tool-icons/pdf-compress.svg',
+    '/tools.html': '/assets/tool-icons/tools.svg',
+    '/index.html': '/assets/tool-icons/tools.svg'
+  };
+
+  function resolveToolIconPath(iconPath) {
+    if (!iconPath) return '';
+    if (TOOL_ICON_STYLE === 'line') {
+      return iconPath.replace('/assets/tool-icons/', '/assets/tool-icons-line/');
+    }
+    return iconPath;
+  }
   const PAGE_BINDINGS = {
     '/index.html': {
       title: { zh: '福禄工具箱 · 常用工具大全', en: 'Fulutool Toolbox · Everyday Utilities' },
@@ -762,6 +787,76 @@
     });
   }
 
+  function normalizeToolPath(pathOrUrl) {
+    if (!pathOrUrl) return '';
+    let path = String(pathOrUrl).trim();
+    try {
+      path = new URL(path, location.origin).pathname;
+    } catch (err) {}
+    if (path.endsWith('/')) return `${path}index.html`;
+    return path;
+  }
+
+  function stripLeadingDecorators(value) {
+    const chars = Array.from((value || '').trimStart());
+    while (chars.length) {
+      const ch = chars[0];
+      if (/[A-Za-z0-9\u4e00-\u9fff]/.test(ch)) break;
+      chars.shift();
+    }
+    return chars.join('').trim();
+  }
+
+  function createIconImage(src, className) {
+    const img = document.createElement('img');
+    img.className = className;
+    img.src = src;
+    img.alt = '';
+    img.setAttribute('aria-hidden', 'true');
+    return img;
+  }
+
+  function applyToolIcons() {
+    document.querySelectorAll('a.tool-card').forEach((card) => {
+      const targetPath = normalizeToolPath(card.getAttribute('href'));
+      const iconSrcRaw = TOOL_ICON_MAP[targetPath];
+      if (!iconSrcRaw) return;
+      const iconSrc = resolveToolIconPath(iconSrcRaw);
+
+      const iconWrap = card.querySelector('.tool-icon');
+      if (iconWrap) {
+        iconWrap.classList.add('is-svg-icon');
+        iconWrap.textContent = '';
+        iconWrap.appendChild(createIconImage(iconSrc, 'ft-card-tool-icon'));
+      }
+
+      const nameEl = card.querySelector('.tool-card-name');
+      if (nameEl) {
+        const cleanLabel = stripLeadingDecorators(nameEl.textContent);
+        nameEl.classList.add('has-tool-icon');
+        nameEl.textContent = '';
+        nameEl.appendChild(createIconImage(iconSrc, 'ft-inline-tool-icon'));
+        const textNode = document.createElement('span');
+        textNode.textContent = cleanLabel;
+        nameEl.appendChild(textNode);
+      }
+    });
+
+    const currentPath = normalizeToolPath(location.pathname);
+    const currentIconRaw = TOOL_ICON_MAP[currentPath];
+    if (!currentIconRaw) return;
+    const currentIcon = resolveToolIconPath(currentIconRaw);
+
+    document.querySelectorAll('.tool-title').forEach((title) => {
+      const cleanTitle = stripLeadingDecorators(title.textContent);
+      title.textContent = '';
+      title.appendChild(createIconImage(currentIcon, 'ft-title-tool-icon'));
+      const textNode = document.createElement('span');
+      textNode.textContent = cleanTitle;
+      title.appendChild(textNode);
+    });
+  }
+
   function setToolbarLang(lang) {
     const resolved = normalizeLang(lang);
     document.documentElement.lang = resolved === 'en' ? 'en' : 'zh-CN';
@@ -830,6 +925,7 @@
     }
 
     translateTextNodes(resolved);
+    applyToolIcons();
   }
 
   function init() {
@@ -848,6 +944,7 @@
     }
 
     translateTextNodes(lang);
+    applyToolIcons();
   }
 
   if (document.readyState === 'loading') {

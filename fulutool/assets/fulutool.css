@@ -154,6 +154,16 @@ body > * {
   background: linear-gradient(135deg, var(--ft-primary), #0b4b45);
 }
 
+.tool-icon.is-svg-icon {
+  line-height: 1;
+}
+
+.ft-card-tool-icon {
+  width: 54px;
+  height: 54px;
+  display: inline-block;
+}
+
 .tool-panel,
 .result-area,
 .preview-card,
@@ -177,6 +187,16 @@ body > * {
   font-size: clamp(1.35rem, 2.4vw, 1.75rem);
   font-weight: 800;
   margin-bottom: 0.5rem;
+  align-items: center;
+}
+
+.tool-title .ft-title-tool-icon {
+  width: 1.45em;
+  height: 1.45em;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 0.18em;
+  flex: 0 0 auto;
 }
 
 .tool-desc {
@@ -392,6 +412,19 @@ button.pressed {
 .tool-card-name {
   font-weight: 800;
   font-size: 0.96rem;
+}
+
+.tool-card-name.has-tool-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.tool-card-name .ft-inline-tool-icon {
+  width: 1.05rem;
+  height: 1.05rem;
+  display: inline-block;
+  flex: 0 0 auto;
 }
 
 .footer {
