@@ -176,6 +176,8 @@
         <div class="action-group">
             <button id="updateStatsBtn" class="primary">📈 立即统计</button>
             <button id="removeEmptyLinesBtn">🚫 去除所有空行</button>
+            <button id="removeAllSpacesBtn">🧹 去除所有空格</button>
+            <button id="singleBlankParagraphBtn">↕️ 段间只空一行</button>
             <button id="addFirstLineIndentBtn">📝 首行缩进2字符</button>
             <button id="copyFormattedTextBtn">📋 复制文本</button>
         </div>
@@ -246,6 +248,28 @@
         document.getElementById('statsDetail').innerHTML = `<div class="stat-grid"><span class="stat-item">📝 ${charsLabel}: ${charCount}</span><span class="stat-item">🇨🇳 ${chineseLabel}: ${chineseCount}</span><span class="stat-item">📖 ${wordsLabel}: ${words}</span><span class="stat-item">📃 ${linesLabel}: ${lines}</span><span class="stat-item">📑 ${paragraphsLabel}: ${paragraphs}</span></div>`;
     }
     function removeEmptyLines(text) { return text.split(/\r?\n/).filter(line => line.trim().length > 0).join('\n'); }
+    function removeAllSpaces(text) {
+        return text.replace(/[ \t\u3000]+/g, '');
+    }
+    function normalizeParagraphSpacing(text) {
+        const normalized = text.replace(/\r\n?/g, '\n');
+        const lines = normalized.split('\n');
+        const output = [];
+        let prevBlank = true;
+        lines.forEach((line) => {
+            if (line.trim().length === 0) {
+                if (prevBlank) return;
+                output.push('');
+                prevBlank = true;
+                return;
+            }
+            output.push(line);
+            prevBlank = false;
+        });
+        while (output.length && output[0] === '') output.shift();
+        while (output.length && output[output.length - 1] === '') output.pop();
+        return output.join('\n');
+    }
     function addChineseIndent(text) {
         const lines = text.split(/\r?\n/);
         const processed = lines.map(line => {
@@ -314,6 +338,10 @@
     if (statsBtn) statsBtn.addEventListener('click', () => { addPressedEffect(statsBtn); updateTextStatistics(); });
     const removeEmpty = document.getElementById('removeEmptyLinesBtn');
     if (removeEmpty) removeEmpty.addEventListener('click', () => applyTextFormat(removeEmptyLines, removeEmpty));
+    const removeSpaces = document.getElementById('removeAllSpacesBtn');
+    if (removeSpaces) removeSpaces.addEventListener('click', () => applyTextFormat(removeAllSpaces, removeSpaces));
+    const singleBlankParagraphBtn = document.getElementById('singleBlankParagraphBtn');
+    if (singleBlankParagraphBtn) singleBlankParagraphBtn.addEventListener('click', () => applyTextFormat(normalizeParagraphSpacing, singleBlankParagraphBtn));
     const indentBtn = document.getElementById('addFirstLineIndentBtn');
     if (indentBtn) indentBtn.addEventListener('click', () => applyTextFormat(addChineseIndent, indentBtn));
     const copyTextBtn = document.getElementById('copyFormattedTextBtn');
