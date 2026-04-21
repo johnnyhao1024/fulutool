@@ -27,6 +27,40 @@
             margin: 0 auto;
         }
 
+        .tool-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.65rem;
+            margin: 0.4rem 0 1.1rem;
+        }
+
+        .tool-filter-btn {
+            border: 1px solid #d7e0eb;
+            background: #ffffff;
+            color: #334155;
+            border-radius: 999px;
+            padding: 0.52rem 1rem;
+            font-size: 0.84rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 0;
+            box-shadow: none;
+        }
+
+        .tool-filter-btn:hover {
+            border-color: #0f766e;
+            color: #0f766e;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .tool-filter-btn.is-active {
+            border-color: #0f766e;
+            background: linear-gradient(135deg, #0f766e, #0b4b45);
+            color: #ffffff;
+        }
+
         /* 工具卡片网格 */
         .tools-grid {
             display: grid;
@@ -47,6 +81,10 @@
             display: flex;
             flex-direction: column;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+        }
+
+        .tool-card[hidden] {
+            display: none;
         }
 
         .tool-card:hover {
@@ -118,71 +156,77 @@
 <body>
     
     <div class="container">
+    <div class="tool-nav" role="tablist" aria-label="Tool Categories">
+        <button type="button" class="tool-filter-btn is-active" id="filterAllBtn" data-filter="all">所有工具</button>
+        <button type="button" class="tool-filter-btn" id="filterImageBtn" data-filter="image">图片处理</button>
+        <button type="button" class="tool-filter-btn" id="filterDocBtn" data-filter="document">文档处理</button>
+        <button type="button" class="tool-filter-btn" id="filterInfoBtn" data-filter="info">信息查询</button>
+    </div>
     <div class="tools-grid">
-        <a href="/shortlink.html" target="_blank" rel="noopener noreferrer" class="tool-card">
+        <a href="/shortlink.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="link">
             <div class="tool-icon">🔗</div>
             <div class="tool-name">短链接生成器</div>
             <div class="tool-desc">长链接转短链接，干净易传播，直达无延迟。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
 
-        <a href="/qrcode.html" target="_blank" rel="noopener noreferrer" class="tool-card">
+        <a href="/qrcode.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="link">
             <div class="tool-icon">📱</div>
             <div class="tool-name">二维码生成器</div>
             <div class="tool-desc">输入网址，快速生成二维码，扫码访问。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
 
-        <a href="/textstats.html" target="_blank" rel="noopener noreferrer" class="tool-card">
+        <a href="/textstats.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="document">
             <div class="tool-icon">📊</div>
             <div class="tool-name">文本整理器</div>
             <div class="tool-desc">实时统计字数，快速调整文本格式（去空行、首行缩进）。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
 
-        <a href="/imagecompress.html" target="_blank" rel="noopener noreferrer" class="tool-card">
+        <a href="/imagecompress.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="image">
             <div class="tool-icon">🖼️</div>
             <div class="tool-name">图片压缩器</div>
             <div class="tool-desc">调整压缩质量与宽度，减少文件体积，保持画质。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
-        <a href="/password.html" target="_blank" rel="noopener noreferrer" class="tool-card">
+        <a href="/password.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="security">
             <div class="tool-icon">🔐</div>
             <div class="tool-name">随机密码生成器</div>
             <div class="tool-desc">自定义长度和字符类型，生成高强度密码。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
-        <a href="/ip-lookup.html" target="_blank" rel="noopener noreferrer" class="tool-card">
+        <a href="/ip-lookup.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="info">
             <div class="tool-icon">🌐</div>
             <div class="tool-name">IP归属地查询</div>
             <div class="tool-desc">查询公网IP的归属地信息，支持本机IP。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
-        <a href="/pixel-avatar.html" target="_blank" rel="noopener noreferrer" class="tool-card">
+        <a href="/pixel-avatar.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="image">
             <div class="tool-icon">🎨</div>
             <div class="tool-name">像素头像生成器</div>
             <div class="tool-desc">上传照片，裁剪并生成像素风格头像。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
-        <a href="/watermark.html" target="_blank" rel="noopener noreferrer" class="tool-card">
+        <a href="/watermark.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="image">
             <div class="tool-icon">💧</div>
             <div class="tool-name">图片水印工具</div>
             <div class="tool-desc">为图片添加文字水印，支持平铺、透明度和旋转。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
-        <a href="/puzzle.html" target="_blank" rel="noopener noreferrer" class="tool-card">
+        <a href="/puzzle.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="image">
             <div class="tool-icon">🧩</div>
             <div class="tool-name">图片拼图工具</div>
             <div class="tool-desc">多图拼接，支持横向/纵向模板，拖拽排序。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
-        <a href="/word-to-pdf.html" target="_blank" rel="noopener noreferrer" class="tool-card">
+        <a href="/word-to-pdf.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="document">
             <div class="tool-icon">📄</div>
             <div class="tool-name">Word 转 PDF</div>
             <div class="tool-desc">上传 Word 文档，一键转换为 PDF，支持预览与本地保存。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
-        <a href="/pdf-to-word.html" target="_blank" rel="noopener noreferrer" class="tool-card">
+        <a href="/pdf-to-word.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="document">
             <div class="tool-icon">📘</div>
             <div class="tool-name">PDF 转 Word</div>
             <div class="tool-desc">上传 PDF 文档，提取文本并导出为 Word，适合继续编辑与整理。</div>
@@ -195,5 +239,36 @@
     </div>
     
 </div>
+<script>
+  (function () {
+    const nav = document.querySelector('.tool-nav');
+    const cards = Array.from(document.querySelectorAll('.tools-grid .tool-card'));
+    if (!nav || !cards.length) return;
+
+    function setActiveButton(filter) {
+      nav.querySelectorAll('.tool-filter-btn').forEach((btn) => {
+        btn.classList.toggle('is-active', btn.dataset.filter === filter);
+      });
+    }
+
+    function applyFilter(filter) {
+      const activeFilter = filter || 'all';
+      cards.forEach((card) => {
+        const category = card.dataset.category || '';
+        const shouldShow = activeFilter === 'all' || category === activeFilter;
+        card.hidden = !shouldShow;
+      });
+      setActiveButton(activeFilter);
+    }
+
+    nav.addEventListener('click', (event) => {
+      const btn = event.target.closest('.tool-filter-btn');
+      if (!btn) return;
+      applyFilter(btn.dataset.filter);
+    });
+
+    applyFilter('all');
+  })();
+</script>
 </body>
 </html>
