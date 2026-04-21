@@ -6,6 +6,10 @@
       title: { zh: '福禄工具箱 · 常用工具大全', en: 'Fulutool Toolbox · Everyday Utilities' },
       text: [
         { selector: '.ft-brand-copy small', zh: '免费使用·无需注册·即用即走', en: 'Free to use · No sign-up · Instant access' },
+        { selector: '#filterAllBtn', zh: '所有工具', en: 'All tools' },
+        { selector: '#filterImageBtn', zh: '图片处理', en: 'Image tools' },
+        { selector: '#filterDocBtn', zh: '文档处理', en: 'Document tools' },
+        { selector: '#filterInfoBtn', zh: '信息查询', en: 'Info lookup' },
         { selector: '.footer', zh: '🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪', en: '🧰 Fulutool Toolbox · Free tools | Standalone pages | No tracking' }
       ]
     },
@@ -288,6 +292,10 @@
       ['🎨 像素头像生成器', '像素头像生成器'],
       ['💧 图片水印工具', '图片水印工具'],
       ['🧩 图片拼图工具', '图片拼图工具'],
+      ['All tools', '所有工具'],
+      ['Image tools', '图片处理'],
+      ['Document tools', '文档处理'],
+      ['Info lookup', '信息查询'],
       ['📦 全部工具', '全部工具'],
       ['随机密码生成', 'Password Generator'],
       ['🔐 随机密码生成', 'Password Generator'],
@@ -431,6 +439,10 @@
       ['🎨 像素头像生成器', 'Pixel Avatar Generator'],
       ['💧 图片水印工具', 'Watermark Tool'],
       ['🧩 图片拼图工具', 'Photo Collage Maker'],
+      ['所有工具', 'All tools'],
+      ['图片处理', 'Image tools'],
+      ['文档处理', 'Document tools'],
+      ['信息查询', 'Info lookup'],
       ['📦 全部工具', 'All tools'],
       ['随机密码生成', 'Password Generator'],
       ['🔐 随机密码生成', 'Password Generator'],
