@@ -53,6 +53,9 @@
             align-items: center;
             margin-bottom: 1rem;
         }
+        .action-row {
+            justify-content: center;
+        }
         .dropzone {
             border: 1px dashed #cbd5e1;
             border-radius: 24px;
@@ -309,7 +312,6 @@
 
         <div class="action-row">
             <button id="convertBtn" class="primary" disabled>⚡ 开始转换</button>
-            <div class="status-pill" id="convertStatus"><strong>状态：</strong><span id="convertStatusText">等待上传文件</span></div>
         </div>
 
         <div class="preview-shell">
@@ -359,8 +361,6 @@
     const fileStatus = document.getElementById('fileStatus');
     const dropzone = document.getElementById('dropzone');
     const dropzoneCopy = document.getElementById('dropzoneCopy');
-    const convertStatus = document.getElementById('convertStatus');
-    const convertStatusText = document.getElementById('convertStatusText');
     const taskStageText = document.getElementById('taskStageText');
     const progressHint = document.getElementById('progressHint');
     const progressPercent = document.getElementById('progressPercent');
@@ -459,12 +459,6 @@
         setProgress(percent, state);
     }
 
-    function setStatus(type, text) {
-        convertStatus.classList.remove('is-success', 'is-busy', 'is-error');
-        if (type) convertStatus.classList.add(type);
-        convertStatusText.textContent = text;
-    }
-
     function clearPolling() {
         if (pollTimer) {
             clearTimeout(pollTimer);
@@ -480,10 +474,8 @@
             dropzoneCopy.textContent = T('dropPdfHint', '支持将 PDF 文件拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件');
         }
         if (!currentFile && !downloadUrl) {
-            setStatus('', T('waitingUpload', '等待上传文件'));
             updateTaskWindow('taskStageIdle', 'progressIdleHint', 0, 'idle');
         } else if (currentFile && !currentJobId && !downloadUrl) {
-            setStatus('', T('waitingConvert', '等待开始转换'));
             updateTaskWindow('taskStageReady', 'progressReadyHint', 18, 'idle');
         }
     }
@@ -529,14 +521,12 @@
             }
 
             if (data.status === 'queued') {
-                setStatus('is-busy', T('queuedPdfJob', '任务已提交，正在排队转换…'));
                 updateTaskWindow('taskStageQueued', 'progressQueuedHint', 42, 'busy');
                 pollTimer = setTimeout(pollJobStatus, 2500);
                 return;
             }
 
             if (data.status === 'processing') {
-                setStatus('is-busy', T('processingPdfJob', '正在执行高精度转换，请稍候…'));
                 updateTaskWindow('taskStageProcessing', 'progressProcessingHint', 74, 'busy');
                 pollTimer = setTimeout(pollJobStatus, 2500);
                 return;
@@ -547,7 +537,6 @@
                 wordFileName = data.result_name || wordFileName;
                 saveBtn.disabled = !downloadUrl;
                 convertBtn.disabled = false;
-                setStatus('is-success', T('convertPdfDone', '转换完成，可以保存 Word 文件了'));
                 updateTaskWindow('taskStageDone', 'progressDoneHint', 100, 'complete');
                 clearPolling();
                 return;
@@ -562,7 +551,6 @@
             console.error(error);
             convertBtn.disabled = false;
             saveBtn.disabled = true;
-            setStatus('is-error', error.message || T('queryJobFailed', '状态查询失败，请稍后刷新页面重试'));
             updateTaskWindow('taskStageFailed', 'progressFailedHint', 100, 'complete');
             clearPolling();
         }
@@ -584,19 +572,16 @@
         currentJobId = '';
         downloadUrl = '';
         clearPolling();
-        setStatus('is-busy', T('submittingPdfJob', '正在上传 PDF 并创建转换任务，请稍候…'));
         updateTaskWindow('taskStageSubmitting', 'progressSubmittingHint', 24, 'busy');
 
         try {
             const job = await createPdfToWordJob(currentFile);
             currentJobId = job.job_id || '';
             wordFileName = job.result_name || currentFile.name.replace(/\.pdf$/i, '.docx');
-            setStatus('is-busy', T('queuedPdfJob', '任务已提交，正在排队转换…'));
             updateTaskWindow('taskStageQueued', 'progressQueuedHint', 42, 'busy');
             pollTimer = setTimeout(pollJobStatus, 2000);
         } catch (error) {
             console.error(error);
-            setStatus('is-error', error.message || T('convertPdfFailed', '转换失败，请换一个 PDF 文件再试试'));
             updateTaskWindow('taskStageFailed', 'progressFailedHint', 100, 'complete');
             convertBtn.disabled = false;
         }

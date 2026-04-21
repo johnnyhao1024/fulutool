@@ -42,6 +42,9 @@
             align-items: center;
             margin-bottom: 1rem;
         }
+        .action-row {
+            justify-content: center;
+        }
         .dropzone {
             border: 1px dashed #cbd5e1;
             border-radius: 24px;
@@ -370,7 +373,6 @@
 
         <div class="action-row">
             <button id="convertBtn" class="primary" disabled>⚡ 开始转换</button>
-            <div class="status-pill" id="convertStatus"><strong>状态：</strong><span id="convertStatusText">等待上传文件</span></div>
         </div>
 
         <div class="preview-shell">
@@ -425,8 +427,6 @@
         const fileStatus = document.getElementById('fileStatus');
         const dropzone = document.getElementById('dropzone');
         const dropzoneCopy = document.getElementById('dropzoneCopy');
-        const convertStatus = document.getElementById('convertStatus');
-        const convertStatusText = document.getElementById('convertStatusText');
         const preview = document.getElementById('wordPreview');
         const taskStageText = document.getElementById('taskStageText');
         const progressHint = document.getElementById('progressHint');
@@ -512,12 +512,6 @@
             setProgress(percent, state);
         }
 
-        function setStatus(type, text) {
-            convertStatus.classList.remove('is-success', 'is-busy', 'is-error');
-            if (type) convertStatus.classList.add(type);
-            convertStatusText.textContent = text;
-        }
-
         function syncStaticText(lang) {
             fileStatus.textContent = currentFile
                 ? `${T('selectedFile', '📎 已选择文件：')} ${currentFile.name}`
@@ -527,10 +521,8 @@
             }
 
             if (!currentFile && !pdfBlob) {
-                setStatus('', T('waitingUpload', '等待上传文件'));
                 updateTaskWindow('taskStageIdle', 'progressIdleHint', 0, 'idle');
             } else if (currentFile && !pdfBlob) {
-                setStatus('', T('waitingConvert', '等待开始转换'));
                 updateTaskWindow('taskStageReady', 'progressReadyHint', 18, 'idle');
             }
         }
@@ -559,7 +551,6 @@
             convertBtn.disabled = true;
             saveBtn.disabled = true;
             pdfBlob = null;
-            setStatus('is-busy', T('converting', '正在转换，请稍候…'));
             updateTaskWindow('taskStageParsing', 'progressParsingHint', 38, 'busy');
 
             try {
@@ -596,12 +587,10 @@
                 pdfBlob = pdf.output('blob');
                 pdfFileName = currentFile.name.replace(/\.docx?$/i, '.pdf');
                 saveBtn.disabled = false;
-                setStatus('is-success', T('convertDone', '转换完成，可以保存 PDF 了'));
                 updateTaskWindow('taskStageDone', 'progressDoneHint', 100, 'complete');
             } catch (error) {
                 console.error(error);
                 pdfBlob = null;
-                setStatus('is-error', T('convertFailed', '转换失败，请换一个 .docx 文件再试试'));
                 updateTaskWindow('taskStageFailed', 'progressFailedHint', 100, 'complete');
             } finally {
                 convertBtn.disabled = false;
