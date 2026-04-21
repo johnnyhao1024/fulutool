@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>免费 Word 转 PDF 工具 · 福禄工具箱</title>
+    <title>免费 PDF 压缩工具 · 福禄工具箱</title>
     <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
-    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.7.2/mammoth.browser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -64,8 +63,7 @@
             font-size: 0.8rem;
             color: #64748b;
         }
-        .file-pill,
-        .status-pill {
+        .file-pill {
             display: inline-flex;
             align-items: center;
             gap: 0.45rem;
@@ -77,24 +75,6 @@
             color: #475569;
             font-size: 0.86rem;
             flex: 1 1 240px;
-        }
-        .status-pill strong {
-            color: #0f172a;
-        }
-        .status-pill.is-success {
-            border-color: rgba(22, 163, 74, 0.28);
-            background: rgba(22, 163, 74, 0.08);
-            color: #166534;
-        }
-        .status-pill.is-busy {
-            border-color: rgba(15, 118, 110, 0.24);
-            background: rgba(15, 118, 110, 0.08);
-            color: #115e59;
-        }
-        .status-pill.is-error {
-            border-color: rgba(220, 38, 38, 0.22);
-            background: rgba(220, 38, 38, 0.08);
-            color: #991b1b;
         }
         .preview-shell {
             margin-top: 1rem;
@@ -119,16 +99,6 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-        }
-        .preview-placeholder {
-            min-height: 140px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            color: #64748b;
-            font-size: 0.95rem;
-            padding: 1.5rem;
         }
         .task-status-body {
             display: grid;
@@ -201,78 +171,6 @@
             display: flex;
             justify-content: center;
             margin-top: 1.1rem;
-        }
-        .pdf-render-surface {
-            position: fixed;
-            left: -99999px;
-            top: 0;
-            width: 794px;
-            background: #ffffff;
-            padding: 18px 22px;
-            z-index: -1;
-            pointer-events: none;
-            opacity: 0;
-        }
-        .word-preview {
-            max-width: 820px;
-            margin: 0 auto;
-            color: #111827;
-            line-height: 1.7;
-            word-break: break-word;
-        }
-        .word-preview h1,
-        .word-preview h2,
-        .word-preview h3,
-        .word-preview h4 {
-            line-height: 1.3;
-            margin: 1.2rem 0 0.65rem;
-        }
-        .word-preview p,
-        .word-preview li {
-            margin-bottom: 0.75rem;
-        }
-        .word-preview p,
-        .word-preview h1,
-        .word-preview h2,
-        .word-preview h3,
-        .word-preview h4,
-        .word-preview h5,
-        .word-preview h6,
-        .word-preview ul,
-        .word-preview ol,
-        .word-preview li,
-        .word-preview blockquote,
-        .word-preview pre,
-        .word-preview table,
-        .word-preview thead,
-        .word-preview tbody,
-        .word-preview tr,
-        .word-preview td,
-        .word-preview th,
-        .word-preview figure,
-        .word-preview img,
-        .word-preview .pdf-avoid-break {
-            break-inside: avoid;
-            page-break-inside: avoid;
-        }
-        .word-preview p,
-        .word-preview li {
-            orphans: 3;
-            widows: 3;
-        }
-        .word-preview table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1rem 0;
-        }
-        .word-preview td,
-        .word-preview th {
-            border: 1px solid #dbe3ee;
-            padding: 0.55rem 0.7rem;
-        }
-        .word-preview img {
-            max-width: 100%;
-            height: auto;
         }
         input[type="file"] { display: none; }
         button {
@@ -359,25 +257,25 @@
 <body>
 <div class="container">
     <div class="tool-panel">
-        <div class="tool-title">📄 Word 转 PDF 工具</div>
-        <div class="tool-desc">上传本地 Word 文档，一键转换为 PDF 并保存到设备，当前浏览器版支持 .docx 文件</div>
+        <div class="tool-title">🗜️ PDF 压缩工具</div>
+        <div class="tool-desc">上传 PDF 文档，一键进行无损优化压缩，尽量减少文件体积并保持原始清晰度</div>
 
         <div class="dropzone" id="dropzone">
             <div class="upload-row">
-                <input type="file" id="wordFileInput" accept=".docx,.doc,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword">
-                <button id="selectWordBtn" class="primary">📂 选择 Word 文件</button>
+                <input type="file" id="pdfFileInput" accept="application/pdf,.pdf">
+                <button id="selectPdfBtn" class="primary">📂 选择 PDF 文件</button>
                 <div class="file-pill" id="fileStatus">📎 尚未选择文件</div>
             </div>
-            <div class="dropzone-copy" id="dropzoneCopy">支持将 .docx 文件拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件</div>
+            <div class="dropzone-copy" id="dropzoneCopy">支持将 PDF 文件拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件</div>
         </div>
 
         <div class="action-row">
-            <button id="convertBtn" class="primary" disabled>⚡ 开始转换</button>
+            <button id="compressBtn" class="primary" disabled>⚡ 开始压缩</button>
         </div>
 
         <div class="preview-shell">
             <div class="preview-title">📈 任务状态</div>
-            <div class="preview-frame" id="previewFrame">
+            <div class="preview-frame">
                 <div class="task-status-body">
                     <div class="task-stage">
                         <div class="task-stage-label" id="taskStageLabel">任务阶段</div>
@@ -385,7 +283,7 @@
                     </div>
                     <div class="progress-shell">
                         <div class="progress-meta">
-                            <span id="progressHint">文件上传后即可开始转换任务</span>
+                            <span id="progressHint">文件上传后即可开始压缩任务</span>
                             <span id="progressPercent">0%</span>
                         </div>
                         <div class="progress-track">
@@ -403,40 +301,42 @@
     <div class="other-tools-section">
         <div class="section-label">🧩 其他工具 · 点击切换</div>
         <div class="cards-grid">
-            <a href="/pdf-compress.html" class="tool-card"><span class="tool-card-name">🗜️ PDF 压缩工具</span></a>
-            <a href="/shortlink.html" class="tool-card"><span class="tool-card-name">🔗 短链接生成器</span></a>
-            <a href="/qrcode.html" class="tool-card"><span class="tool-card-name">📱 二维码生成器</span></a>
+            <a href="/word-to-pdf.html" class="tool-card"><span class="tool-card-name">📄 Word 转 PDF</span></a>
+            <a href="/pdf-to-word.html" class="tool-card"><span class="tool-card-name">📘 PDF 转 Word</span></a>
+            <a href="/textstats.html" class="tool-card"><span class="tool-card-name">📊 文本整理器</span></a>
             <a href="/imagecompress.html" class="tool-card"><span class="tool-card-name">🖼️ 图片压缩器</span></a>
-            <a href="/password.html" class="tool-card"><span class="tool-card-name">🔐 随机密码生成</span></a>
-            <a href="/puzzle.html" class="tool-card"><span class="tool-card-name">🧩 图片拼图工具</span></a>
-            <a href="/watermark.html" class="tool-card"><span class="tool-card-name">💧 图片水印工具</span></a>
+            <a href="/shortlink.html" class="tool-card"><span class="tool-card-name">🔗 短链接生成器</span></a>
             <a href="/tools.html" class="tool-card"><span class="tool-card-name">📦 全部工具</span></a>
         </div>
     </div>
     <div class="footer">🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪</div>
 </div>
-<div class="pdf-render-surface">
-    <div class="word-preview" id="wordPreview"></div>
-</div>
 
 <script>
     (function () {
-        const input = document.getElementById('wordFileInput');
-        const selectBtn = document.getElementById('selectWordBtn');
-        const convertBtn = document.getElementById('convertBtn');
+        const input = document.getElementById('pdfFileInput');
+        const selectBtn = document.getElementById('selectPdfBtn');
+        const compressBtn = document.getElementById('compressBtn');
         const saveBtn = document.getElementById('savePdfBtn');
         const fileStatus = document.getElementById('fileStatus');
         const dropzone = document.getElementById('dropzone');
         const dropzoneCopy = document.getElementById('dropzoneCopy');
-        const preview = document.getElementById('wordPreview');
         const taskStageText = document.getElementById('taskStageText');
         const progressHint = document.getElementById('progressHint');
         const progressPercent = document.getElementById('progressPercent');
         const progressFill = document.getElementById('progressFill');
 
         let currentFile = null;
-        let pdfBlob = null;
-        let pdfFileName = 'document.pdf';
+        let compressedBlob = null;
+        let compressedFileName = 'compressed.pdf';
+        let isCompressing = false;
+        let resultStats = null;
+        let taskState = {
+            stageKey: 'taskStageIdle',
+            hintKey: 'progressIdleHint',
+            percent: 0,
+            state: 'idle'
+        };
 
         function addPressedEffect(btn) {
             if (!btn) return;
@@ -446,57 +346,81 @@
 
         window.FULUTOOL_MESSAGES = window.FULUTOOL_MESSAGES || {};
         window.FULUTOOL_MESSAGES.zh = Object.assign({
-            selectWordFirst: '请先选择 Word 文件',
-            onlyDocxSupported: '当前浏览器版仅支持 .docx 文件，请先将 .doc 另存为 .docx 再转换',
-            converting: '正在转换，请稍候…',
-            convertDone: '转换完成，可以保存 PDF 了',
-            convertFailed: '转换失败，请换一个 .docx 文件再试试',
-            saveFirst: '请先完成转换',
-            waitingUpload: '等待上传文件',
-            waitingConvert: '等待开始转换',
-            taskStageIdle: '等待文件上传',
-            taskStageReady: '文件已就绪，等待开始转换',
-            taskStageParsing: '正在读取 Word 内容',
-            taskStageRendering: '正在生成 PDF 文件',
-            taskStageDone: '转换任务已完成',
-            taskStageFailed: '转换任务失败',
+            selectPdfFirst: '请先选择 PDF 文件',
+            invalidPdf: '请选择有效的 PDF 文件',
+            compressFailed: '压缩失败，请换一个 PDF 文件再试试',
+            saveFirst: '请先完成压缩',
             fileNotSelected: '📎 尚未选择文件',
             selectedFile: '📎 已选择文件：',
-            dropHint: '支持将 .docx 文件拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件',
-            progressIdleHint: '文件上传后即可开始转换任务',
-            progressReadyHint: '已选择文件，点击上方开始转换按钮继续',
-            progressParsingHint: '正在解析 Word 文档结构',
-            progressRenderingHint: '正在把文档内容写入 PDF',
-            progressDoneHint: '转换已完成，请点击下方保存文件按钮下载 PDF 文档',
-            progressFailedHint: '任务执行失败，请重新上传或稍后再试'
+            dropPdfHint: '支持将 PDF 文件拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件',
+            taskStageIdle: '等待文件上传',
+            taskStageReady: '文件已就绪，等待开始压缩',
+            taskStageWorking: '正在执行无损压缩优化',
+            taskStageDone: '压缩任务已完成',
+            taskStageFailed: '压缩任务失败',
+            progressIdleHint: '文件上传后即可开始压缩任务',
+            progressReadyHint: '已选择文件，点击上方开始压缩按钮继续',
+            progressWorkingHint: '正在优化 PDF 结构，请稍候',
+            progressFailedHint: '任务执行失败，请重新上传或稍后再试',
+            progressDoneFallback: '压缩完成，请点击下方保存文件按钮下载 PDF 文档'
         }, window.FULUTOOL_MESSAGES.zh || {});
         window.FULUTOOL_MESSAGES.en = Object.assign({
-            selectWordFirst: 'Please choose a Word file first',
-            onlyDocxSupported: 'This browser-based converter currently supports .docx files only. Please resave .doc as .docx first.',
-            converting: 'Converting now, please wait…',
-            convertDone: 'Conversion complete. Your PDF is ready to save.',
-            convertFailed: 'Conversion failed. Please try another .docx file.',
-            saveFirst: 'Please convert the document first',
-            waitingUpload: 'Waiting for a file',
-            waitingConvert: 'Waiting to start conversion',
-            taskStageIdle: 'Waiting for file upload',
-            taskStageReady: 'File ready, waiting to start',
-            taskStageParsing: 'Reading Word content',
-            taskStageRendering: 'Generating PDF output',
-            taskStageDone: 'Conversion task completed',
-            taskStageFailed: 'Conversion task failed',
+            selectPdfFirst: 'Please choose a PDF file first',
+            invalidPdf: 'Please choose a valid PDF file',
+            compressFailed: 'Compression failed. Please try another PDF file.',
+            saveFirst: 'Please complete compression first',
             fileNotSelected: '📎 No file selected yet',
             selectedFile: '📎 Selected file:',
-            dropHint: 'Drag a .docx file here to upload on desktop, or tap the button to choose a file on mobile.',
-            progressIdleHint: 'Upload a file to unlock the conversion task',
-            progressReadyHint: 'Your file is ready. Click Start conversion above to continue.',
-            progressParsingHint: 'Reading the Word document structure',
-            progressRenderingHint: 'Writing the document into a PDF file',
-            progressDoneHint: 'The task is complete. Click Save file below to download the PDF document.',
-            progressFailedHint: 'The task failed. Please upload again or try later.'
+            dropPdfHint: 'Drag a PDF file here to upload on desktop, or tap the button to choose a file on mobile.',
+            taskStageIdle: 'Waiting for file upload',
+            taskStageReady: 'File ready, waiting to start',
+            taskStageWorking: 'Running lossless optimization',
+            taskStageDone: 'Compression task completed',
+            taskStageFailed: 'Compression task failed',
+            progressIdleHint: 'Upload a file to unlock the compression task',
+            progressReadyHint: 'Your file is ready. Click Start compression above to continue.',
+            progressWorkingHint: 'Optimizing PDF structure now',
+            progressFailedHint: 'The task failed. Please upload again or try later.',
+            progressDoneFallback: 'Compression is complete. Click Save file below to download the PDF.'
         }, window.FULUTOOL_MESSAGES.en || {});
 
         const T = (key, fallback) => (window.Fulutool ? Fulutool.t(key, fallback) : fallback);
+
+        function formatBytes(bytes) {
+            if (window.Fulutool && typeof window.Fulutool.formatBytes === 'function') {
+                return window.Fulutool.formatBytes(bytes);
+            }
+            if (!Number.isFinite(bytes)) return '-';
+            if (bytes < 1024) return `${bytes} B`;
+            const units = ['KB', 'MB', 'GB'];
+            let value = bytes / 1024;
+            let idx = 0;
+            while (value >= 1024 && idx < units.length - 1) {
+                value /= 1024;
+                idx += 1;
+            }
+            return `${value.toFixed(value >= 10 ? 1 : 2)} ${units[idx]}`;
+        }
+
+        function buildDoneHint(stats) {
+            if (!stats) return T('progressDoneFallback', '压缩完成，请点击下方保存文件按钮下载 PDF 文档');
+            const original = formatBytes(stats.originalBytes);
+            const output = formatBytes(stats.outputBytes);
+            const reduced = formatBytes(Math.max(0, stats.reducedBytes));
+            const lang = window.Fulutool ? window.Fulutool.lang : 'zh';
+
+            if (stats.reducedBytes > 0) {
+                if (lang === 'en') {
+                    return `Compression complete: ${original} → ${output} (saved ${reduced}, ${stats.reductionRate}%). Click Save file below.`;
+                }
+                return `压缩完成：${original} → ${output}（减少 ${reduced}，约 ${stats.reductionRate}%）。请点击下方保存文件。`;
+            }
+
+            if (lang === 'en') {
+                return `Lossless optimization complete. This file is already near optimal size (${output}). Click Save file below.`;
+            }
+            return `无损优化完成，当前文件已接近最优体积（${output}）。请点击下方保存文件。`;
+        }
 
         function setProgress(percent, state) {
             const safePercent = Math.max(0, Math.min(100, percent));
@@ -507,106 +431,134 @@
             if (state === 'complete') progressFill.classList.add('is-complete');
         }
 
-        function updateTaskWindow(stageKey, hintKey, percent, state) {
-            taskStageText.textContent = T(stageKey, '');
-            progressHint.textContent = T(hintKey, '');
-            setProgress(percent, state);
+        function renderTaskState() {
+            taskStageText.textContent = T(taskState.stageKey, '');
+            if (taskState.hintKey === 'progressDoneDynamic') {
+                progressHint.textContent = buildDoneHint(resultStats);
+            } else {
+                progressHint.textContent = T(taskState.hintKey, '');
+            }
+            setProgress(taskState.percent, taskState.state);
         }
 
-        function syncStaticText(lang) {
+        function setTaskState(stageKey, hintKey, percent, state) {
+            taskState = { stageKey, hintKey, percent, state };
+            renderTaskState();
+        }
+
+        function syncStaticText() {
             fileStatus.textContent = currentFile
                 ? `${T('selectedFile', '📎 已选择文件：')} ${currentFile.name}`
                 : T('fileNotSelected', '📎 尚未选择文件');
+
             if (dropzoneCopy) {
-                dropzoneCopy.textContent = T('dropHint', '支持将 .docx 文件拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件');
+                dropzoneCopy.textContent = T('dropPdfHint', '支持将 PDF 文件拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件');
             }
 
-            if (!currentFile && !pdfBlob) {
-                updateTaskWindow('taskStageIdle', 'progressIdleHint', 0, 'idle');
-            } else if (currentFile && !pdfBlob) {
-                updateTaskWindow('taskStageReady', 'progressReadyHint', 18, 'idle');
+            if (isCompressing) {
+                renderTaskState();
+                return;
+            }
+
+            if (taskState.stageKey === 'taskStageDone' && compressedBlob) {
+                renderTaskState();
+                return;
+            }
+
+            if (taskState.stageKey === 'taskStageFailed' && currentFile && !compressedBlob) {
+                renderTaskState();
+                return;
+            }
+
+            if (!currentFile && !compressedBlob) {
+                setTaskState('taskStageIdle', 'progressIdleHint', 0, 'idle');
+            } else if (currentFile && !compressedBlob) {
+                setTaskState('taskStageReady', 'progressReadyHint', 18, 'idle');
             }
         }
 
         function applySelectedFile(file) {
             currentFile = file || null;
-            pdfBlob = null;
+            compressedBlob = null;
+            resultStats = null;
             saveBtn.disabled = true;
-            convertBtn.disabled = !currentFile;
-            preview.innerHTML = '';
-            syncStaticText(window.Fulutool ? Fulutool.lang : 'zh');
+            compressBtn.disabled = !currentFile;
+            syncStaticText();
         }
 
-        async function convertWordToPdf() {
+        async function compressPdfLossless() {
             if (!currentFile) {
-                alert(T('selectWordFirst', '请先选择 Word 文件'));
+                alert(T('selectPdfFirst', '请先选择 PDF 文件'));
                 return;
             }
 
-            const isDocx = /\.docx$/i.test(currentFile.name) || currentFile.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-            if (!isDocx) {
-                alert(T('onlyDocxSupported', '当前浏览器版仅支持 .docx 文件，请先将 .doc 另存为 .docx 再转换'));
+            const isPdf = /\.pdf$/i.test(currentFile.name) || currentFile.type === 'application/pdf';
+            if (!isPdf) {
+                alert(T('invalidPdf', '请选择有效的 PDF 文件'));
                 return;
             }
 
-            convertBtn.disabled = true;
+            isCompressing = true;
+            compressBtn.disabled = true;
             saveBtn.disabled = true;
-            pdfBlob = null;
-            updateTaskWindow('taskStageParsing', 'progressParsingHint', 38, 'busy');
+            compressedBlob = null;
+            resultStats = null;
+            setTaskState('taskStageWorking', 'progressWorkingHint', 26, 'busy');
 
             try {
-                const arrayBuffer = await currentFile.arrayBuffer();
-                const result = await mammoth.convertToHtml({ arrayBuffer });
-                preview.innerHTML = result.value || '<p></p>';
-                preview.querySelectorAll('p, h1, h2, h3, h4, h5, h6, ul, ol, li, blockquote, pre, table, thead, tbody, tr, td, th, figure, img').forEach((el) => {
-                    el.classList.add('pdf-avoid-break');
+                const originalBytesArray = new Uint8Array(await currentFile.arrayBuffer());
+                const originalBytes = originalBytesArray.byteLength;
+                setTaskState('taskStageWorking', 'progressWorkingHint', 52, 'busy');
+
+                const pdfDoc = await PDFLib.PDFDocument.load(originalBytesArray, {
+                    ignoreEncryption: true,
+                    updateMetadata: false
                 });
-                updateTaskWindow('taskStageRendering', 'progressRenderingHint', 72, 'busy');
 
-                const worker = html2pdf().set({
-                    margin: [14, 12, 14, 12],
-                    filename: currentFile.name.replace(/\.docx?$/i, '.pdf'),
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: {
-                        scale: 2,
-                        useCORS: true,
-                        backgroundColor: '#ffffff'
-                    },
-                    jsPDF: {
-                        unit: 'mm',
-                        format: 'a4',
-                        orientation: 'portrait'
-                    },
-                    pagebreak: {
-                        mode: ['avoid-all', 'css', 'legacy'],
-                        avoid: ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'pre', 'table', 'thead', 'tbody', 'tr', 'td', 'th', 'figure', 'img', '.pdf-avoid-break']
-                    }
-                }).from(preview);
+                const optimizedBytesArray = await pdfDoc.save({
+                    useObjectStreams: true,
+                    addDefaultPage: false,
+                    updateFieldAppearances: false,
+                    objectsPerTick: 30
+                });
+                const optimizedBytes = optimizedBytesArray.byteLength;
 
-                await worker.toPdf();
-                const pdf = await worker.get('pdf');
-                pdfBlob = pdf.output('blob');
-                pdfFileName = currentFile.name.replace(/\.docx?$/i, '.pdf');
+                const finalBytesArray = optimizedBytes < originalBytes ? optimizedBytesArray : originalBytesArray;
+                const outputBytes = finalBytesArray.byteLength;
+                compressedBlob = new Blob([finalBytesArray], { type: 'application/pdf' });
+                compressedFileName = currentFile.name.replace(/\.pdf$/i, '') + '-compressed.pdf';
+                if (!/\.pdf$/i.test(compressedFileName)) {
+                    compressedFileName = 'compressed.pdf';
+                }
+
+                const reducedBytes = Math.max(0, originalBytes - outputBytes);
+                const reductionRate = originalBytes > 0 ? ((reducedBytes / originalBytes) * 100).toFixed(1) : '0.0';
+                resultStats = { originalBytes, outputBytes, reducedBytes, reductionRate };
+
                 saveBtn.disabled = false;
-                updateTaskWindow('taskStageDone', 'progressDoneHint', 100, 'complete');
+                setTaskState('taskStageDone', 'progressDoneDynamic', 100, 'complete');
             } catch (error) {
                 console.error(error);
-                pdfBlob = null;
-                updateTaskWindow('taskStageFailed', 'progressFailedHint', 100, 'complete');
+                compressedBlob = null;
+                resultStats = null;
+                saveBtn.disabled = true;
+                setTaskState('taskStageFailed', 'progressFailedHint', 100, 'complete');
+                alert(T('compressFailed', '压缩失败，请换一个 PDF 文件再试试'));
             } finally {
-                convertBtn.disabled = false;
+                isCompressing = false;
+                compressBtn.disabled = !currentFile;
             }
         }
 
-        function savePdf() {
-            if (!pdfBlob) {
-                alert(T('saveFirst', '请先完成转换'));
+        function saveCompressedPdf() {
+            if (!compressedBlob) {
+                alert(T('saveFirst', '请先完成压缩'));
                 return;
             }
-            const blobUrl = URL.createObjectURL(pdfBlob);
+            const blobUrl = URL.createObjectURL(compressedBlob);
             const link = document.createElement('a');
             link.href = blobUrl;
-            link.download = pdfFileName;
+            link.download = compressedFileName;
             link.click();
             setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
         }
@@ -651,14 +603,14 @@
             applySelectedFile(file);
         });
 
-        convertBtn.addEventListener('click', () => {
-            addPressedEffect(convertBtn);
-            convertWordToPdf();
+        compressBtn.addEventListener('click', () => {
+            addPressedEffect(compressBtn);
+            compressPdfLossless();
         });
 
         saveBtn.addEventListener('click', () => {
             addPressedEffect(saveBtn);
-            savePdf();
+            saveCompressedPdf();
         });
 
         window.FULUTOOL_HOOKS = window.FULUTOOL_HOOKS || {};
