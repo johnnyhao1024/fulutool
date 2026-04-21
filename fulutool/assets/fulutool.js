@@ -99,7 +99,8 @@
         { selector: '#selectWordBtn', zh: '📂 选择 Word 文件', en: '📂 Choose Word file' },
         { selector: '#convertBtn', zh: '⚡ 开始转换', en: '⚡ Start conversion' },
         { selector: '#savePdfBtn', zh: '💾 保存文件', en: '💾 Save file' },
-        { selector: '.preview-title', zh: '👀 文档预览', en: '👀 Document preview' },
+        { selector: '.preview-title', zh: '📈 任务状态', en: '📈 Task status' },
+        { selector: '#taskStageLabel', zh: '任务阶段', en: 'Task stage' },
         { selector: '.section-label', zh: '🧩 其他工具 · 点击切换', en: '🧩 More tools · Jump around' },
         { selector: '.footer', zh: '🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪', en: '🧰 Fulutool Toolbox · Free tools | Standalone pages | No tracking' }
       ]
@@ -113,7 +114,8 @@
         { selector: '#selectPdfBtn', zh: '📂 选择 PDF 文件', en: '📂 Choose PDF file' },
         { selector: '#convertBtn', zh: '⚡ 开始转换', en: '⚡ Start conversion' },
         { selector: '#saveWordBtn', zh: '💾 保存文件', en: '💾 Save file' },
-        { selector: '.preview-title', zh: '👀 文档预览', en: '👀 Document preview' },
+        { selector: '.preview-title', zh: '📈 任务状态', en: '📈 Task status' },
+        { selector: '#taskStageLabel', zh: '任务阶段', en: 'Task stage' },
         { selector: '.section-label', zh: '🧩 其他工具 · 点击切换', en: '🧩 More tools · Jump around' },
         { selector: '.footer', zh: '🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪', en: '🧰 Fulutool Toolbox · Free tools | Standalone pages | No tracking' }
       ]
