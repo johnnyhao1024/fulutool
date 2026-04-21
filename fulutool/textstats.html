@@ -253,22 +253,12 @@
     }
     function normalizeParagraphSpacing(text) {
         const normalized = text.replace(/\r\n?/g, '\n');
-        const lines = normalized.split('\n');
-        const output = [];
-        let prevBlank = true;
-        lines.forEach((line) => {
-            if (line.trim().length === 0) {
-                if (prevBlank) return;
-                output.push('');
-                prevBlank = true;
-                return;
-            }
-            output.push(line);
-            prevBlank = false;
-        });
-        while (output.length && output[0] === '') output.shift();
-        while (output.length && output[output.length - 1] === '') output.pop();
-        return output.join('\n');
+        const paragraphs = normalized
+            .split(/\n+/)
+            .map(p => p.trim())
+            .filter(p => p.length > 0);
+        if (!paragraphs.length) return '';
+        return paragraphs.join('\n\n');
     }
     function addChineseIndent(text) {
         const lines = text.split(/\r?\n/);
