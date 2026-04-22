@@ -793,7 +793,9 @@
     try {
       path = new URL(path, location.origin).pathname;
     } catch (err) {}
+    if (path === '/') return '/index.html';
     if (path.endsWith('/')) return `${path}index.html`;
+    if (!/\.[a-z0-9]+$/i.test(path)) return `${path}.html`;
     return path;
   }
 
@@ -817,6 +819,13 @@
   }
 
   function applyToolIcons() {
+    document.querySelectorAll('.tool-card-name').forEach((nameEl) => {
+      const cleanLabel = stripLeadingDecorators(nameEl.textContent);
+      if (cleanLabel && cleanLabel !== nameEl.textContent) {
+        nameEl.textContent = cleanLabel;
+      }
+    });
+
     document.querySelectorAll('a.tool-card').forEach((card) => {
       const targetPath = normalizeToolPath(card.getAttribute('href'));
       const iconSrcRaw = TOOL_ICON_MAP[targetPath];
@@ -828,17 +837,6 @@
         iconWrap.classList.add('is-svg-icon');
         iconWrap.textContent = '';
         iconWrap.appendChild(createIconImage(iconSrc, 'ft-card-tool-icon'));
-      }
-
-      const nameEl = card.querySelector('.tool-card-name');
-      if (nameEl) {
-        const cleanLabel = stripLeadingDecorators(nameEl.textContent);
-        nameEl.classList.add('has-tool-icon');
-        nameEl.textContent = '';
-        nameEl.appendChild(createIconImage(iconSrc, 'ft-inline-tool-icon'));
-        const textNode = document.createElement('span');
-        textNode.textContent = cleanLabel;
-        nameEl.appendChild(textNode);
       }
     });
 
