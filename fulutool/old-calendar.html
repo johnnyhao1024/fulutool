@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>老挂历海报生成器 · 福禄工具箱</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath fill='none' stroke='%23e2e8f0' stroke-width='1' stroke-dasharray='1 2' d='M10 0 L10 20 M0 10 L20 10'/%3E%3C/svg%3E");
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            line-height: 1.5;
+            color: #0f172a;
+            padding: 2rem 1.5rem;
+        }
+        .container { max-width: 1280px; margin: 0 auto; }
+        .tool-panel {
+            background: #ffffff;
+            border-radius: 32px;
+            border: 1px solid #edf2f7;
+            padding: 1.8rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+        .tool-title { font-size: 1.6rem; font-weight: 600; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem; }
+        .tool-desc {
+            color: #5b6e8c;
+            border-left: 3px solid #cbd5e1;
+            padding-left: 0.9rem;
+            margin-bottom: 1.6rem;
+            font-size: 0.9rem;
+        }
+        .dropzone {
+            border: 1px dashed #cbd5e1;
+            border-radius: 24px;
+            padding: 1rem;
+            background: linear-gradient(180deg, rgba(248, 250, 252, 0.92), rgba(255, 255, 255, 0.95));
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, transform 0.2s ease;
+            margin-bottom: 1rem;
+        }
+        .dropzone.is-dragover {
+            border-color: rgba(15, 118, 110, 0.45);
+            box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
+            background: linear-gradient(180deg, rgba(236, 253, 245, 0.96), rgba(255, 255, 255, 0.98));
+            transform: translateY(-1px);
+        }
+        .upload-row,
+        .control-row,
+        .action-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.9rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .action-row {
+            justify-content: center;
+        }
+        .dropzone-copy {
+            margin-top: 0.2rem;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+        .field {
+            display: grid;
+            gap: 0.4rem;
+            min-width: 180px;
+            flex: 1 1 180px;
+        }
+        .field label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #475569;
+        }
+        select {
+            width: 100%;
+            border-radius: 14px;
+            border: 1px solid #d7e1ed;
+            background: #f8fafc;
+            padding: 0.62rem 0.75rem;
+            color: #0f172a;
+            font-size: 0.92rem;
+        }
+        .file-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            min-height: 46px;
+            padding: 0.8rem 1rem;
+            border-radius: 18px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #475569;
+            font-size: 0.86rem;
+            flex: 1 1 240px;
+        }
+        .preview-shell {
+            margin-top: 1rem;
+            background: #f8fafc;
+            border-radius: 24px;
+            border: 1px solid #e2e8f0;
+            padding: 1rem;
+        }
+        .preview-title {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 0.8rem;
+        }
+        .preview-frame {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 18px;
+            min-height: 250px;
+            padding: 1.2rem;
+            box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 1rem;
+        }
+        .task-stage {
+            display: grid;
+            gap: 0.45rem;
+        }
+        .task-stage-label {
+            font-size: 0.8rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #94a3b8;
+            font-weight: 700;
+        }
+        .task-stage-text {
+            color: #0f172a;
+            line-height: 1.7;
+            font-size: 0.98rem;
+            font-weight: 600;
+            word-break: break-word;
+        }
+        .progress-shell {
+            display: grid;
+            gap: 0.55rem;
+        }
+        .progress-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: center;
+            color: #64748b;
+            font-size: 0.82rem;
+        }
+        .progress-track {
+            width: 100%;
+            height: 14px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, #e2e8f0, #f1f5f9);
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #0f766e, #0f172a);
+            transition: width 0.35s ease;
+            position: relative;
+        }
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+            transform: translateX(-100%);
+            animation: progressShimmer 1.6s linear infinite;
+        }
+        @keyframes progressShimmer {
+            to { transform: translateX(100%); }
+        }
+        .progress-fill.is-complete::after,
+        .progress-fill.is-idle::after {
+            display: none;
+        }
+        .result-preview-wrap {
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            display: none;
+        }
+        .result-preview-wrap.show {
+            display: block;
+        }
+        .result-preview-wrap img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .save-row {
+            display: flex;
+            justify-content: center;
+            margin-top: 1.1rem;
+        }
+        input[type="file"] { display: none; }
+        button {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 0.6rem 1.3rem;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #1e293b;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 0.6rem;
+            margin-bottom: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        button.primary { background: #0f172a; color: white; border: none; }
+        button.primary:hover { background: #1e293b; transform: translateY(-1px); }
+        button:hover { background: #e6edf4; border-color: #cbd5e1; }
+        button[disabled] {
+            cursor: not-allowed;
+            opacity: 0.55;
+            transform: none !important;
+            box-shadow: none;
+        }
+        button.pressed { background: #cbd5e1 !important; transform: scale(0.96); transition: 0.05s; }
+        .other-tools-section { margin-top: 1rem; padding-top: 1rem; }
+        .section-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #475569;
+            margin-bottom: 1rem;
+            padding-bottom: 0.6rem;
+        }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 1rem;
+            justify-content: center;
+        }
+        .tool-card {
+            background: #ffffff;
+            border-radius: 20px;
+            border: 2px solid #eef2f8;
+            padding: 0.8rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: #070707;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 70px;
+        }
+        .tool-card:hover {
+            transform: translateY(-2px);
+            border-color: #cbdbe0;
+            background: #fefefe;
+        }
+        .tool-card-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .footer { text-align: center; font-size: 0.75rem; color: #8b9ab0; margin-top: 2rem; padding-top: 1rem; }
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+            .tool-panel { padding: 1.2rem; }
+            .cards-grid { grid-template-columns: repeat(2, 1fr); }
+            .tool-card { padding: 0.6rem 0.8rem; min-height: 60px; }
+            .tool-card-name { font-size: 0.85rem; }
+            .preview-frame { min-height: 220px; }
+            .progress-meta { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+    <link rel="stylesheet" href="/assets/fulutool.css">
+    <script defer src="/assets/fulutool.js"></script>
+</head>
+<body>
+<div class="container">
+    <div class="tool-panel">
+        <div class="tool-title">🗓️ 老挂历海报生成器</div>
+        <div class="tool-desc">上传照片并选择年月，一键生成90年代风格老挂历海报，自动写入真实日历信息</div>
+
+        <div class="dropzone" id="dropzone">
+            <div class="upload-row">
+                <input type="file" id="photoInput" accept="image/*">
+                <button id="selectPhotoBtn" class="primary">📂 选择照片</button>
+                <div class="file-pill" id="fileStatus">📎 尚未选择文件</div>
+            </div>
+            <div class="dropzone-copy" id="dropzoneCopy">支持将图片拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件</div>
+        </div>
+
+        <div class="control-row">
+            <div class="field">
+                <label for="yearSelect">年份</label>
+                <select id="yearSelect"></select>
+            </div>
+            <div class="field">
+                <label for="monthSelect">月份</label>
+                <select id="monthSelect"></select>
+            </div>
+        </div>
+
+        <div class="action-row">
+            <button id="generateBtn" class="primary" disabled>⚡ 开始生成</button>
+        </div>
+
+        <div class="preview-shell">
+            <div class="preview-title">📈 任务状态</div>
+            <div class="preview-frame">
+                <div class="task-stage">
+                    <div class="task-stage-label" id="taskStageLabel">任务阶段</div>
+                    <div class="task-stage-text" id="taskStageText">等待文件上传</div>
+                </div>
+                <div class="progress-shell">
+                    <div class="progress-meta">
+                        <span id="progressHint">文件上传后即可开始生成挂历海报</span>
+                        <span id="progressPercent">0%</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill is-idle" id="progressFill"></div>
+                    </div>
+                </div>
+                <div class="result-preview-wrap" id="resultPreviewWrap">
+                    <img id="resultPreview" alt="Generated vintage calendar poster">
+                </div>
+            </div>
+        </div>
+        <div class="save-row">
+            <button id="saveBtn" disabled>💾 保存图片</button>
+        </div>
+    </div>
+
+    <div class="other-tools-section">
+        <div class="section-label">🧩 其他工具 · 点击切换</div>
+        <div class="cards-grid">
+            <a href="/imagecompress.html" class="tool-card"><span class="tool-card-name">图片压缩器</span></a>
+            <a href="/watermark.html" class="tool-card"><span class="tool-card-name">图片水印工具</span></a>
+            <a href="/puzzle.html" class="tool-card"><span class="tool-card-name">图片拼图工具</span></a>
+            <a href="/pixel-avatar.html" class="tool-card"><span class="tool-card-name">像素头像生成器</span></a>
+            <a href="/word-to-pdf.html" class="tool-card"><span class="tool-card-name">Word 转 PDF</span></a>
+            <a href="/tools.html" class="tool-card"><span class="tool-card-name">全部工具</span></a>
+        </div>
+    </div>
+    <div class="footer">🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪</div>
+</div>
+
+<script>
+    (function () {
+        const photoInput = document.getElementById('photoInput');
+        const selectPhotoBtn = document.getElementById('selectPhotoBtn');
+        const generateBtn = document.getElementById('generateBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const fileStatus = document.getElementById('fileStatus');
+        const dropzone = document.getElementById('dropzone');
+        const dropzoneCopy = document.getElementById('dropzoneCopy');
+        const yearSelect = document.getElementById('yearSelect');
+        const monthSelect = document.getElementById('monthSelect');
+        const taskStageText = document.getElementById('taskStageText');
+        const progressHint = document.getElementById('progressHint');
+        const progressPercent = document.getElementById('progressPercent');
+        const progressFill = document.getElementById('progressFill');
+        const resultPreviewWrap = document.getElementById('resultPreviewWrap');
+        const resultPreview = document.getElementById('resultPreview');
+
+        let currentFile = null;
+        let generatedBlob = null;
+        let generatedName = '';
+        let previewUrl = '';
+        let isGenerating = false;
+        let taskState = {
+            stageKey: 'taskStageIdle',
+            hintKey: 'progressIdleHint',
+            percent: 0,
+            state: 'idle'
+        };
+
+        window.FULUTOOL_MESSAGES = window.FULUTOOL_MESSAGES || {};
+        window.FULUTOOL_MESSAGES.zh = Object.assign({
+            fileNotSelected: '📎 尚未选择文件',
+            selectedFile: '📎 已选择文件：',
+            invalidImage: '请选择有效的图片文件',
+            selectPhotoFirst: '请先选择一张照片',
+            dropPhotoHint: '支持将图片拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件',
+            taskStageIdle: '等待文件上传',
+            taskStageReady: '照片已就绪，等待开始生成',
+            taskStageGenerating: '正在生成老挂历海报',
+            taskStageDone: '海报已生成，可预览并保存',
+            taskStageFailed: '生成失败，请更换照片重试',
+            progressIdleHint: '文件上传后即可开始生成挂历海报',
+            progressReadyHint: '已选择照片并设置年月，点击开始生成按钮继续',
+            progressGeneratingHint: '正在合成画面与日历信息，请稍候',
+            progressDoneHint: '图片已生成。可点击下方保存图片按钮下载到本地',
+            progressFailedHint: '任务执行失败，请重新上传或稍后再试',
+            saveFirst: '请先生成挂历海报',
+            saveDoneShare: '图片已保存。欢迎分享至微信、微博、小红书等社交平台',
+            yearLabel: '年份',
+            monthLabel: '月份',
+            monthSuffix: '月',
+            selectPhotoBtn: '📂 选择照片',
+            generateBtn: '⚡ 开始生成',
+            saveBtn: '💾 保存图片'
+        }, window.FULUTOOL_MESSAGES.zh || {});
+        window.FULUTOOL_MESSAGES.en = Object.assign({
+            fileNotSelected: '📎 No file selected yet',
+            selectedFile: '📎 Selected file:',
+            invalidImage: 'Please choose a valid image file',
+            selectPhotoFirst: 'Please choose a photo first',
+            dropPhotoHint: 'Drag an image here on desktop, or tap the button to choose a file on mobile.',
+            taskStageIdle: 'Waiting for image upload',
+            taskStageReady: 'Photo ready, waiting to start',
+            taskStageGenerating: 'Generating the vintage calendar poster',
+            taskStageDone: 'Poster generated. Preview and save now',
+            taskStageFailed: 'Generation failed. Please try another photo',
+            progressIdleHint: 'Upload a file to start generating the calendar poster',
+            progressReadyHint: 'Photo and date are ready. Click Start generation to continue',
+            progressGeneratingHint: 'Composing the image and real calendar data now',
+            progressDoneHint: 'Image generated. Click Save image below to download',
+            progressFailedHint: 'Task failed. Please upload again or try later',
+            saveFirst: 'Please generate the poster first',
+            saveDoneShare: 'Image saved successfully. Feel free to share it on your social platforms',
+            yearLabel: 'Year',
+            monthLabel: 'Month',
+            monthSuffix: '',
+            selectPhotoBtn: '📂 Choose photo',
+            generateBtn: '⚡ Start generation',
+            saveBtn: '💾 Save image'
+        }, window.FULUTOOL_MESSAGES.en || {});
+
+        const T = (key, fallback) => (window.Fulutool ? Fulutool.t(key, fallback) : fallback);
+
+        function addPressedEffect(btn) {
+            if (!btn) return;
+            btn.classList.add('pressed');
+            setTimeout(() => btn.classList.remove('pressed'), 150);
+        }
+
+        function populateYearMonth() {
+            const now = new Date();
+            for (let year = 1970; year <= 2035; year += 1) {
+                const opt = document.createElement('option');
+                opt.value = String(year);
+                opt.textContent = String(year);
+                yearSelect.appendChild(opt);
+            }
+            for (let month = 1; month <= 12; month += 1) {
+                const opt = document.createElement('option');
+                opt.value = String(month);
+                monthSelect.appendChild(opt);
+            }
+            yearSelect.value = String(now.getFullYear());
+            monthSelect.value = String(now.getMonth() + 1);
+            updateMonthOptionLabels();
+        }
+
+        function updateMonthOptionLabels() {
+            const lang = window.Fulutool ? Fulutool.lang : 'zh';
+            const monthNamesEn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            Array.from(monthSelect.options).forEach((opt, index) => {
+                const monthNum = index + 1;
+                if (lang === 'en') {
+                    opt.textContent = `${monthNum} - ${monthNamesEn[index]}`;
+                } else {
+                    opt.textContent = `${monthNum}${T('monthSuffix', '月')}`;
+                }
+            });
+        }
+
+        function setProgress(percent, state) {
+            const safePercent = Math.max(0, Math.min(100, percent));
+            progressPercent.textContent = `${safePercent}%`;
+            progressFill.style.width = `${safePercent}%`;
+            progressFill.classList.remove('is-idle', 'is-complete');
+            if (state === 'idle') progressFill.classList.add('is-idle');
+            if (state === 'complete') progressFill.classList.add('is-complete');
+        }
+
+        function renderTaskState() {
+            taskStageText.textContent = T(taskState.stageKey, '');
+            progressHint.textContent = T(taskState.hintKey, '');
+            setProgress(taskState.percent, taskState.state);
+        }
+
+        function setTaskState(stageKey, hintKey, percent, state) {
+            taskState = { stageKey, hintKey, percent, state };
+            renderTaskState();
+        }
+
+        function syncStaticText() {
+            fileStatus.textContent = currentFile
+                ? `${T('selectedFile', '📎 已选择文件：')} ${currentFile.name}`
+                : T('fileNotSelected', '📎 尚未选择文件');
+            if (dropzoneCopy) {
+                dropzoneCopy.textContent = T('dropPhotoHint', '支持将图片拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件');
+            }
+            const yearLabel = document.querySelector('label[for="yearSelect"]');
+            const monthLabel = document.querySelector('label[for="monthSelect"]');
+            if (yearLabel) yearLabel.textContent = T('yearLabel', '年份');
+            if (monthLabel) monthLabel.textContent = T('monthLabel', '月份');
+            if (selectPhotoBtn) selectPhotoBtn.textContent = T('selectPhotoBtn', '📂 选择照片');
+            if (generateBtn) generateBtn.textContent = T('generateBtn', '⚡ 开始生成');
+            if (saveBtn) saveBtn.textContent = T('saveBtn', '💾 保存图片');
+            updateMonthOptionLabels();
+
+            if (isGenerating) {
+                renderTaskState();
+                return;
+            }
+            if (taskState.stageKey === 'taskStageDone' && generatedBlob) {
+                renderTaskState();
+                return;
+            }
+            if (!currentFile) {
+                setTaskState('taskStageIdle', 'progressIdleHint', 0, 'idle');
+            } else if (!generatedBlob) {
+                setTaskState('taskStageReady', 'progressReadyHint', 18, 'idle');
+            }
+        }
+
+        function getMonthShort(month) {
+            const names = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+            return names[Math.max(0, Math.min(11, month - 1))];
+        }
+
+        function getMonthDays(year, month) {
+            return new Date(year, month, 0).getDate();
+        }
+
+        function clearPreview() {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+                previewUrl = '';
+            }
+            resultPreview.removeAttribute('src');
+            resultPreviewWrap.classList.remove('show');
+        }
+
+        function loadImageFromFile(file) {
+            return new Promise((resolve, reject) => {
+                const url = URL.createObjectURL(file);
+                const img = new Image();
+                img.onload = () => {
+                    URL.revokeObjectURL(url);
+                    resolve(img);
+                };
+                img.onerror = () => {
+                    URL.revokeObjectURL(url);
+                    reject(new Error('Image load failed'));
+                };
+                img.src = url;
+            });
+        }
+
+        function drawImageCover(ctx, img, dx, dy, dw, dh) {
+            const ratio = Math.max(dw / img.width, dh / img.height);
+            const sw = dw / ratio;
+            const sh = dh / ratio;
+            const sx = (img.width - sw) / 2;
+            const sy = (img.height - sh) / 2;
+            ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+        }
+
+        function drawVintageCalendar(ctx, width, height, year, month) {
+            const panelY = Math.floor(height * 0.68);
+            const panelH = height - panelY;
+            ctx.fillStyle = '#edf3f7';
+            ctx.fillRect(0, panelY, width, panelH);
+            ctx.strokeStyle = 'rgba(20, 42, 63, 0.18)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, panelY + 1);
+            ctx.lineTo(width, panelY + 1);
+            ctx.stroke();
+
+            const leftX = Math.floor(width * 0.07);
+            const leftW = Math.floor(width * 0.2);
+            const gridX = Math.floor(width * 0.24);
+            const gridW = Math.floor(width * 0.7);
+
+            ctx.fillStyle = '#a74155';
+            ctx.font = `${Math.floor(width * 0.04)}px Georgia, "Times New Roman", serif`;
+            ctx.fillText(String(year), leftX, panelY + 62);
+
+            ctx.fillStyle = '#0f76a8';
+            ctx.font = `700 ${Math.floor(width * 0.12)}px "Segoe UI", Arial, sans-serif`;
+            ctx.fillText(String(month), leftX, panelY + 155);
+
+            ctx.fillStyle = '#0f76a8';
+            ctx.font = `700 ${Math.floor(width * 0.045)}px "Segoe UI", Arial, sans-serif`;
+            ctx.fillText(getMonthShort(month), leftX + 4, panelY + 195);
+
+            const weekEn = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+            const weekZh = ['日', '一', '二', '三', '四', '五', '六'];
+            const colW = gridW / 7;
+            const headerY = panelY + 42;
+
+            for (let i = 0; i < 7; i += 1) {
+                const x = gridX + i * colW + colW / 2;
+                ctx.textAlign = 'center';
+                ctx.fillStyle = i === 0 ? '#a74155' : '#2b3a4d';
+                ctx.font = `700 ${Math.floor(width * 0.023)}px "Segoe UI", Arial, sans-serif`;
+                ctx.fillText(weekEn[i], x, headerY);
+                ctx.fillStyle = '#7a8798';
+                ctx.font = `${Math.floor(width * 0.018)}px "Noto Sans SC", sans-serif`;
+                ctx.fillText(weekZh[i], x, headerY + 20);
+            }
+
+            const firstWeekday = new Date(year, month - 1, 1).getDay();
+            const days = getMonthDays(year, month);
+            const rowTop = panelY + 70;
+            const rowH = Math.floor((panelH - 90) / 6);
+
+            ctx.strokeStyle = 'rgba(36, 53, 74, 0.18)';
+            ctx.lineWidth = 1;
+            for (let r = 0; r <= 6; r += 1) {
+                const y = rowTop + r * rowH;
+                ctx.beginPath();
+                ctx.moveTo(gridX, y);
+                ctx.lineTo(gridX + gridW, y);
+                ctx.stroke();
+            }
+
+            let day = 1;
+            for (let idx = 0; idx < 42; idx += 1) {
+                const row = Math.floor(idx / 7);
+                const col = idx % 7;
+                const x = gridX + col * colW + colW / 2;
+                const y = rowTop + row * rowH + Math.floor(rowH * 0.68);
+
+                if (idx >= firstWeekday && day <= days) {
+                    ctx.fillStyle = col === 0 ? '#b5475a' : '#1c2d45';
+                    ctx.font = `${Math.floor(width * 0.048)}px "Trebuchet MS", Arial, sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.fillText(String(day), x, y);
+                    day += 1;
+                } else if (idx > firstWeekday + days - 1) {
+                    ctx.fillStyle = col === 0 ? '#b5475a' : '#24354a';
+                    ctx.font = `${Math.floor(width * 0.05)}px Georgia, serif`;
+                    ctx.textAlign = 'center';
+                    ctx.fillText('*', x, y - 3);
+                }
+            }
+        }
+
+        function addAgingEffects(ctx, width, height) {
+            ctx.save();
+            ctx.fillStyle = 'rgba(202, 170, 120, 0.08)';
+            ctx.fillRect(0, 0, width, height);
+
+            for (let i = 0; i < 5500; i += 1) {
+                const x = Math.random() * width;
+                const y = Math.random() * height;
+                const alpha = Math.random() * 0.06;
+                const size = Math.random() * 1.4 + 0.3;
+                ctx.fillStyle = `rgba(33, 28, 24, ${alpha})`;
+                ctx.fillRect(x, y, size, size);
+            }
+
+            for (let i = 0; i < 14; i += 1) {
+                const x = Math.random() * width;
+                const y = Math.random() * height;
+                const len = Math.random() * 160 + 40;
+                const angle = (Math.random() - 0.5) * 0.45;
+                ctx.strokeStyle = `rgba(120, 103, 86, ${Math.random() * 0.18})`;
+                ctx.lineWidth = Math.random() * 1.5 + 0.3;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len);
+                ctx.stroke();
+            }
+
+            const vignette = ctx.createRadialGradient(width / 2, height / 2, width * 0.28, width / 2, height / 2, width * 0.78);
+            vignette.addColorStop(0, 'rgba(0,0,0,0)');
+            vignette.addColorStop(1, 'rgba(44,33,25,0.16)');
+            ctx.fillStyle = vignette;
+            ctx.fillRect(0, 0, width, height);
+            ctx.restore();
+        }
+
+        function drawWatermark(ctx, width, height) {
+            ctx.save();
+            ctx.font = `700 ${Math.floor(width * 0.026)}px "Segoe UI", Arial, sans-serif`;
+            ctx.textAlign = 'right';
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.26)';
+            ctx.fillText('fulutool.com', width - 26, height - 24);
+            ctx.restore();
+        }
+
+        async function generatePoster() {
+            if (!currentFile) {
+                alert(T('selectPhotoFirst', '请先选择一张照片'));
+                return;
+            }
+
+            isGenerating = true;
+            generateBtn.disabled = true;
+            saveBtn.disabled = true;
+            clearPreview();
+            generatedBlob = null;
+            setTaskState('taskStageGenerating', 'progressGeneratingHint', 28, 'busy');
+
+            try {
+                const year = Number(yearSelect.value);
+                const month = Number(monthSelect.value);
+                const image = await loadImageFromFile(currentFile);
+                setTaskState('taskStageGenerating', 'progressGeneratingHint', 56, 'busy');
+
+                const canvas = document.createElement('canvas');
+                canvas.width = 1080;
+                canvas.height = 1620;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) throw new Error('Canvas not supported');
+
+                ctx.fillStyle = '#f8f2e7';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const photoX = 40;
+                const photoY = 40;
+                const photoW = canvas.width - 80;
+                const photoH = Math.floor(canvas.height * 0.62);
+
+                ctx.save();
+                ctx.filter = 'sepia(0.22) saturate(0.9) contrast(1.04) brightness(1.03)';
+                drawImageCover(ctx, image, photoX, photoY, photoW, photoH);
+                ctx.restore();
+
+                drawVintageCalendar(ctx, canvas.width, canvas.height, year, month);
+                drawWatermark(ctx, canvas.width, canvas.height);
+                addAgingEffects(ctx, canvas.width, canvas.height);
+
+                setTaskState('taskStageGenerating', 'progressGeneratingHint', 85, 'busy');
+
+                const blob = await new Promise((resolve, reject) => {
+                    canvas.toBlob((b) => {
+                        if (!b) reject(new Error('Poster export failed'));
+                        else resolve(b);
+                    }, 'image/png', 0.95);
+                });
+
+                generatedBlob = blob;
+                generatedName = `fulutool-calendar-${year}-${String(month).padStart(2, '0')}.png`;
+                clearPreview();
+                previewUrl = URL.createObjectURL(blob);
+                resultPreview.src = previewUrl;
+                resultPreviewWrap.classList.add('show');
+                saveBtn.disabled = false;
+                setTaskState('taskStageDone', 'progressDoneHint', 100, 'complete');
+            } catch (error) {
+                console.error(error);
+                generatedBlob = null;
+                saveBtn.disabled = true;
+                clearPreview();
+                setTaskState('taskStageFailed', 'progressFailedHint', 100, 'complete');
+            } finally {
+                isGenerating = false;
+                generateBtn.disabled = !currentFile;
+            }
+        }
+
+        function savePoster() {
+            if (!generatedBlob) {
+                alert(T('saveFirst', '请先生成挂历海报'));
+                return;
+            }
+            const url = URL.createObjectURL(generatedBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = generatedName || 'fulutool-calendar.png';
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            setTimeout(() => {
+                alert(T('saveDoneShare', '图片已保存。欢迎分享至微信、微博、小红书等社交平台'));
+            }, 120);
+        }
+
+        function applySelectedFile(file) {
+            if (!file) {
+                currentFile = null;
+                generatedBlob = null;
+                saveBtn.disabled = true;
+                generateBtn.disabled = true;
+                clearPreview();
+                syncStaticText();
+                return;
+            }
+            if (!file.type.startsWith('image/')) {
+                alert(T('invalidImage', '请选择有效的图片文件'));
+                return;
+            }
+            currentFile = file;
+            generatedBlob = null;
+            saveBtn.disabled = true;
+            generateBtn.disabled = false;
+            clearPreview();
+            syncStaticText();
+        }
+
+        selectPhotoBtn.addEventListener('click', () => {
+            addPressedEffect(selectPhotoBtn);
+            photoInput.click();
+        });
+
+        photoInput.addEventListener('change', () => {
+            applySelectedFile(photoInput.files && photoInput.files[0] ? photoInput.files[0] : null);
+        });
+
+        ['dragenter', 'dragover'].forEach((eventName) => {
+            dropzone.addEventListener(eventName, (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                dropzone.classList.add('is-dragover');
+            });
+        });
+
+        ['dragleave', 'dragend', 'drop'].forEach((eventName) => {
+            dropzone.addEventListener(eventName, (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                if (eventName !== 'drop') dropzone.classList.remove('is-dragover');
+            });
+        });
+
+        dropzone.addEventListener('drop', (event) => {
+            dropzone.classList.remove('is-dragover');
+            const files = event.dataTransfer && event.dataTransfer.files;
+            if (!files || !files.length) return;
+            const [file] = files;
+            try {
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                photoInput.files = dt.files;
+            } catch (err) {}
+            applySelectedFile(file);
+        });
+
+        generateBtn.addEventListener('click', () => {
+            addPressedEffect(generateBtn);
+            generatePoster();
+        });
+
+        saveBtn.addEventListener('click', () => {
+            addPressedEffect(saveBtn);
+            savePoster();
+        });
+
+        populateYearMonth();
+
+        window.FULUTOOL_HOOKS = window.FULUTOOL_HOOKS || {};
+        const previousReady = window.FULUTOOL_HOOKS.onReady;
+        const previousLanguageChange = window.FULUTOOL_HOOKS.onLanguageChange;
+        window.FULUTOOL_HOOKS.onReady = function (lang) {
+            if (typeof previousReady === 'function') previousReady(lang);
+            syncStaticText(lang);
+        };
+        window.FULUTOOL_HOOKS.onLanguageChange = function (lang) {
+            if (typeof previousLanguageChange === 'function') previousLanguageChange(lang);
+            syncStaticText(lang);
+        };
+
+        window.addEventListener('beforeunload', () => {
+            clearPreview();
+        });
+    })();
+</script>
+</body>
+</html>
