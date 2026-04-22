@@ -638,8 +638,8 @@
             const leftCenterX = leftAreaX + leftAreaW / 2;
             const monthText = String(month);
             const yearY = panelY + 112;
-            const monthY = panelY + 346;
-            const monthShortY = panelY + 438;
+            const monthY = panelY + 330;
+            const monthShortY = panelY + 560;
 
             ctx.fillStyle = '#a74155';
             ctx.textAlign = 'center';
@@ -648,11 +648,11 @@
             ctx.fillText(String(year), leftCenterX, yearY);
 
             ctx.fillStyle = '#0f76a8';
-            ctx.font = `800 ${Math.floor(width * 0.162)}px "Arial Black", "Helvetica Neue", Arial, sans-serif`;
+            ctx.font = `800 ${Math.floor(width * 0.145)}px "Arial Black", "Helvetica Neue", Arial, sans-serif`;
             ctx.fillText(monthText, leftCenterX, monthY);
 
             ctx.fillStyle = '#0f76a8';
-            ctx.font = `800 ${Math.floor(width * 0.065)}px "Arial Black", "Helvetica Neue", Arial, sans-serif`;
+            ctx.font = `800 ${Math.floor(width * 0.05)}px "Arial Black", "Helvetica Neue", Arial, sans-serif`;
             ctx.fillText(getMonthShort(month), leftCenterX, monthShortY);
 
             const weekEn = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -721,11 +721,7 @@
                     }
                     day += 1;
                 } else if (idx > firstWeekday + days - 1) {
-                    ctx.fillStyle = col === 0 ? '#b5475a' : '#24354a';
-                    ctx.font = `${Math.floor(width * 0.05)}px Georgia, serif`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('*', x, dayY - 3);
+                    // Keep tail cells empty to match requested style (no asterisk placeholders).
                 }
             }
         }
