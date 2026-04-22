@@ -566,34 +566,39 @@
             ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
         }
 
-        function drawVintageCalendar(ctx, width, height, year, month) {
-            const panelY = Math.floor(height * 0.68);
+        function drawVintageCalendar(ctx, width, height, year, month, splitY) {
+            const panelY = Number.isFinite(splitY) ? Math.floor(splitY) : Math.floor(height * 0.68);
             const panelH = height - panelY;
-            ctx.fillStyle = '#edf3f7';
+            ctx.fillStyle = '#eef4f8';
             ctx.fillRect(0, panelY, width, panelH);
-            ctx.strokeStyle = 'rgba(20, 42, 63, 0.18)';
-            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(20, 42, 63, 0.12)';
+            ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(0, panelY + 1);
             ctx.lineTo(width, panelY + 1);
             ctx.stroke();
 
             const leftX = Math.floor(width * 0.07);
-            const leftW = Math.floor(width * 0.2);
             const gridX = Math.floor(width * 0.24);
             const gridW = Math.floor(width * 0.7);
+            const monthText = String(month);
+            const yearY = panelY + 78;
+            const monthY = panelY + 252;
+            const monthShortY = panelY + 312;
 
             ctx.fillStyle = '#a74155';
-            ctx.font = `${Math.floor(width * 0.04)}px Georgia, "Times New Roman", serif`;
-            ctx.fillText(String(year), leftX, panelY + 62);
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'alphabetic';
+            ctx.font = `700 ${Math.floor(width * 0.058)}px Georgia, "Times New Roman", serif`;
+            ctx.fillText(String(year), leftX, yearY);
 
             ctx.fillStyle = '#0f76a8';
-            ctx.font = `700 ${Math.floor(width * 0.12)}px "Segoe UI", Arial, sans-serif`;
-            ctx.fillText(String(month), leftX, panelY + 155);
+            ctx.font = `800 ${Math.floor(width * 0.178)}px "Arial Black", "Segoe UI", Arial, sans-serif`;
+            ctx.fillText(monthText, leftX, monthY);
 
             ctx.fillStyle = '#0f76a8';
-            ctx.font = `700 ${Math.floor(width * 0.045)}px "Segoe UI", Arial, sans-serif`;
-            ctx.fillText(getMonthShort(month), leftX + 4, panelY + 195);
+            ctx.font = `800 ${Math.floor(width * 0.068)}px "Arial Black", "Segoe UI", Arial, sans-serif`;
+            ctx.fillText(getMonthShort(month), leftX + 2, monthShortY);
 
             const weekEn = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
             const weekZh = ['日', '一', '二', '三', '四', '五', '六'];
@@ -648,38 +653,85 @@
             }
         }
 
-        function addAgingEffects(ctx, width, height) {
+        function addOldPhotoStyle(ctx, width, photoHeight) {
             ctx.save();
-            ctx.fillStyle = 'rgba(202, 170, 120, 0.08)';
-            ctx.fillRect(0, 0, width, height);
 
-            for (let i = 0; i < 5500; i += 1) {
+            ctx.fillStyle = 'rgba(188, 138, 82, 0.14)';
+            ctx.fillRect(0, 0, width, photoHeight);
+
+            const sunFade = ctx.createLinearGradient(0, 0, 0, photoHeight);
+            sunFade.addColorStop(0, 'rgba(255, 228, 172, 0.20)');
+            sunFade.addColorStop(0.46, 'rgba(171, 120, 76, 0.08)');
+            sunFade.addColorStop(1, 'rgba(112, 84, 56, 0.14)');
+            ctx.fillStyle = sunFade;
+            ctx.fillRect(0, 0, width, photoHeight);
+
+            const sideBurn = ctx.createLinearGradient(0, 0, width, 0);
+            sideBurn.addColorStop(0, 'rgba(84, 57, 33, 0.20)');
+            sideBurn.addColorStop(0.14, 'rgba(84, 57, 33, 0.02)');
+            sideBurn.addColorStop(0.86, 'rgba(84, 57, 33, 0.02)');
+            sideBurn.addColorStop(1, 'rgba(84, 57, 33, 0.22)');
+            ctx.fillStyle = sideBurn;
+            ctx.fillRect(0, 0, width, photoHeight);
+
+            for (let i = 0; i < 6800; i += 1) {
                 const x = Math.random() * width;
-                const y = Math.random() * height;
-                const alpha = Math.random() * 0.06;
-                const size = Math.random() * 1.4 + 0.3;
-                ctx.fillStyle = `rgba(33, 28, 24, ${alpha})`;
+                const y = Math.random() * photoHeight;
+                const alpha = Math.random() * 0.055;
+                const size = Math.random() * 1.35 + 0.25;
+                ctx.fillStyle = `rgba(28, 24, 20, ${alpha})`;
                 ctx.fillRect(x, y, size, size);
             }
 
-            for (let i = 0; i < 14; i += 1) {
+            for (let i = 0; i < 22; i += 1) {
                 const x = Math.random() * width;
-                const y = Math.random() * height;
-                const len = Math.random() * 160 + 40;
-                const angle = (Math.random() - 0.5) * 0.45;
-                ctx.strokeStyle = `rgba(120, 103, 86, ${Math.random() * 0.18})`;
-                ctx.lineWidth = Math.random() * 1.5 + 0.3;
+                const y = Math.random() * photoHeight;
+                const len = Math.random() * 170 + 60;
+                const angle = (Math.random() - 0.5) * 0.6;
+                ctx.strokeStyle = `rgba(98, 76, 55, ${Math.random() * 0.14})`;
+                ctx.lineWidth = Math.random() * 1.4 + 0.35;
                 ctx.beginPath();
                 ctx.moveTo(x, y);
                 ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len);
                 ctx.stroke();
             }
 
-            const vignette = ctx.createRadialGradient(width / 2, height / 2, width * 0.28, width / 2, height / 2, width * 0.78);
+            const vignette = ctx.createRadialGradient(width / 2, photoHeight / 2, width * 0.25, width / 2, photoHeight / 2, width * 0.82);
             vignette.addColorStop(0, 'rgba(0,0,0,0)');
-            vignette.addColorStop(1, 'rgba(44,33,25,0.16)');
+            vignette.addColorStop(1, 'rgba(34, 24, 16, 0.22)');
             ctx.fillStyle = vignette;
+            ctx.fillRect(0, 0, width, photoHeight);
+
+            ctx.restore();
+        }
+
+        function addAgingEffects(ctx, width, height, splitY) {
+            ctx.save();
+            const panelY = Number.isFinite(splitY) ? splitY : Math.floor(height * 0.68);
+            ctx.fillStyle = 'rgba(202, 170, 120, 0.045)';
             ctx.fillRect(0, 0, width, height);
+
+            for (let i = 0; i < 2600; i += 1) {
+                const x = Math.random() * width;
+                const y = Math.random() * height;
+                const alpha = Math.random() * 0.03;
+                const size = Math.random() * 1.1 + 0.25;
+                ctx.fillStyle = `rgba(33, 28, 24, ${alpha})`;
+                ctx.fillRect(x, y, size, size);
+            }
+
+            for (let i = 0; i < 10; i += 1) {
+                const x = Math.random() * width;
+                const y = panelY + Math.random() * (height - panelY);
+                const len = Math.random() * 130 + 40;
+                const angle = (Math.random() - 0.5) * 0.45;
+                ctx.strokeStyle = `rgba(120, 103, 86, ${Math.random() * 0.14})`;
+                ctx.lineWidth = Math.random() * 1.2 + 0.25;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len);
+                ctx.stroke();
+            }
             ctx.restore();
         }
 
@@ -720,19 +772,21 @@
                 ctx.fillStyle = '#f8f2e7';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                const photoX = 40;
-                const photoY = 40;
-                const photoW = canvas.width - 80;
-                const photoH = Math.floor(canvas.height * 0.62);
+                const calendarSplitY = Math.floor(canvas.height * 0.68);
+                const photoX = 0;
+                const photoY = 0;
+                const photoW = canvas.width;
+                const photoH = calendarSplitY;
 
                 ctx.save();
-                ctx.filter = 'sepia(0.22) saturate(0.9) contrast(1.04) brightness(1.03)';
+                ctx.filter = 'sepia(0.5) saturate(0.78) contrast(0.9) brightness(1.01)';
                 drawImageCover(ctx, image, photoX, photoY, photoW, photoH);
                 ctx.restore();
+                addOldPhotoStyle(ctx, canvas.width, photoH);
 
-                drawVintageCalendar(ctx, canvas.width, canvas.height, year, month);
+                drawVintageCalendar(ctx, canvas.width, canvas.height, year, month, calendarSplitY);
                 drawWatermark(ctx, canvas.width, canvas.height);
-                addAgingEffects(ctx, canvas.width, canvas.height);
+                addAgingEffects(ctx, canvas.width, canvas.height, calendarSplitY);
 
                 setTaskState('taskStageGenerating', 'progressGeneratingHint', 85, 'busy');
 
