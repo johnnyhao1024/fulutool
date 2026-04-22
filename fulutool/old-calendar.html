@@ -918,10 +918,10 @@
         }
 
         async function drawToolLinkQr(ctx, width, height) {
-            const qrBoxSize = Math.max(78, Math.floor(width * 0.078));
-            const padding = Math.max(8, Math.floor(width * 0.006));
-            const boxX = width - qrBoxSize - padding - 20;
-            const boxY = height - qrBoxSize - padding - 20;
+            const qrBoxSize = Math.max(44, Math.floor(width * 0.039));
+            const padding = Math.max(5, Math.floor(width * 0.0035));
+            const boxX = width - qrBoxSize - padding * 2 - 16;
+            const boxY = height - qrBoxSize - padding * 2 - 16;
 
             const qrDataUrl = await getToolQrDataUrl();
             const qrImage = await loadImageFromSrc(qrDataUrl);
