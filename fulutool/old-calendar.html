@@ -615,9 +615,9 @@
             const leftAreaW = Math.max(220, gridX - leftAreaX - Math.floor(width * 0.02));
             const leftCenterX = leftAreaX + leftAreaW / 2;
             const monthText = String(month);
-            const yearY = panelY + 92;
-            const monthY = panelY + 274;
-            const monthShortY = panelY + 352;
+            const yearY = panelY + 112;
+            const monthY = panelY + 346;
+            const monthShortY = panelY + 438;
 
             ctx.fillStyle = '#a74155';
             ctx.textAlign = 'center';
@@ -816,7 +816,7 @@
                 ctx.imageSmoothingEnabled = true;
                 ctx.imageSmoothingQuality = 'high';
 
-                ctx.fillStyle = '#f8f2e7';
+                ctx.fillStyle = '#eef4f8';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                 const baseSplitY = Math.floor(canvas.height * 0.68);
