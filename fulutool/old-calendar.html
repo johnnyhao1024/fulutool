@@ -663,11 +663,16 @@
             const monthText = String(month);
             const cols = 14;
             const rows = 3;
-            const colW = gridW / cols;
+            const groupGap = Math.floor(width * 0.012);
+            const colW = (gridW - groupGap) / cols;
             const headerEnY = panelY + 26;
             const headerZhY = panelY + 62;
             const rowTop = panelY + 96;
             const rowH = Math.floor((panelH - 118) / rows);
+            const colCenterX = (col) => {
+                const gapOffset = col >= 7 ? groupGap : 0;
+                return gridX + gapOffset + col * colW + colW / 2;
+            };
 
             ctx.fillStyle = '#a74155';
             ctx.textAlign = 'center';
@@ -695,15 +700,15 @@
             const weekZh = ['日', '一', '二', '三', '四', '五', '六'];
 
             for (let i = 0; i < cols; i += 1) {
-                const x = gridX + i * colW + colW / 2;
+                const x = colCenterX(i);
                 const widx = i % 7;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = widx === 0 ? '#a74155' : '#2b3a4d';
-                ctx.font = `700 ${Math.floor(width * 0.026)}px "Segoe UI", Arial, sans-serif`;
+                ctx.font = `700 ${Math.floor(width * 0.019)}px "Segoe UI", Arial, sans-serif`;
                 ctx.fillText(weekEn[widx], x, headerEnY);
                 ctx.fillStyle = '#7a8798';
-                ctx.font = `${Math.floor(width * 0.017)}px "Noto Sans SC", sans-serif`;
+                ctx.font = `${Math.floor(width * 0.015)}px "Noto Sans SC", sans-serif`;
                 ctx.fillText(weekZh[widx], x, headerZhY);
             }
 
@@ -724,16 +729,16 @@
             for (let idx = 0; idx < cols * rows; idx += 1) {
                 const row = Math.floor(idx / cols);
                 const col = idx % cols;
-                const x = gridX + col * colW + colW / 2;
+                const x = colCenterX(col);
                 const dayY = rowTop + row * rowH + Math.floor(rowH * 0.40);
-                const subY = rowTop + row * rowH + Math.floor(rowH * 0.86);
+                const subY = rowTop + row * rowH + Math.floor(rowH * 0.78);
                 const weekIndex = col % 7;
 
                 if (idx >= firstWeekday && day <= days) {
                     const currentDay = day;
                     const isBirthday = currentDay === Number(birthdayDay);
                     ctx.fillStyle = (weekIndex === 0 || isBirthday) ? '#b5475a' : '#1c2d45';
-                    ctx.font = `${Math.floor(width * 0.044)}px "Times New Roman", Georgia, "Songti SC", serif`;
+                    ctx.font = `${Math.floor(width * 0.041)}px "Times New Roman", Georgia, "Songti SC", serif`;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.fillText(String(currentDay), x, dayY);
@@ -755,7 +760,7 @@
                     day += 1;
                 } else if (idx > firstWeekday + days - 1) {
                     ctx.fillStyle = weekIndex === 0 ? '#b5475a' : '#24354a';
-                    ctx.font = `${Math.floor(width * 0.04)}px "Times New Roman", Georgia, serif`;
+                    ctx.font = `${Math.floor(width * 0.037)}px "Times New Roman", Georgia, serif`;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.fillText('*', x, dayY);
