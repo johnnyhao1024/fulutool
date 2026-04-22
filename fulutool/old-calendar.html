@@ -578,13 +578,14 @@
             ctx.lineTo(width, panelY + 1);
             ctx.stroke();
 
-            const leftX = Math.floor(width * 0.07);
-            const gridX = Math.floor(width * 0.24);
-            const gridW = Math.floor(width * 0.7);
+            const leftX = Math.floor(width * 0.065);
+            const gridX = Math.floor(width * 0.34);
+            const gridRightPadding = Math.floor(width * 0.045);
+            const gridW = Math.max(420, width - gridX - gridRightPadding);
             const monthText = String(month);
             const yearY = panelY + 78;
-            const monthY = panelY + 252;
-            const monthShortY = panelY + 312;
+            const monthY = panelY + 246;
+            const monthShortY = panelY + 310;
 
             ctx.fillStyle = '#a74155';
             ctx.textAlign = 'left';
@@ -593,11 +594,11 @@
             ctx.fillText(String(year), leftX, yearY);
 
             ctx.fillStyle = '#0f76a8';
-            ctx.font = `800 ${Math.floor(width * 0.178)}px "Arial Black", "Segoe UI", Arial, sans-serif`;
+            ctx.font = `800 ${Math.floor(width * 0.162)}px "Arial Black", "Segoe UI", Arial, sans-serif`;
             ctx.fillText(monthText, leftX, monthY);
 
             ctx.fillStyle = '#0f76a8';
-            ctx.font = `800 ${Math.floor(width * 0.068)}px "Arial Black", "Segoe UI", Arial, sans-serif`;
+            ctx.font = `800 ${Math.floor(width * 0.065)}px "Arial Black", "Segoe UI", Arial, sans-serif`;
             ctx.fillText(getMonthShort(month), leftX + 2, monthShortY);
 
             const weekEn = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -656,30 +657,30 @@
         function addOldPhotoStyle(ctx, width, photoHeight) {
             ctx.save();
 
-            ctx.fillStyle = 'rgba(188, 138, 82, 0.14)';
+            ctx.fillStyle = 'rgba(188, 138, 82, 0.07)';
             ctx.fillRect(0, 0, width, photoHeight);
 
             const sunFade = ctx.createLinearGradient(0, 0, 0, photoHeight);
-            sunFade.addColorStop(0, 'rgba(255, 228, 172, 0.20)');
-            sunFade.addColorStop(0.46, 'rgba(171, 120, 76, 0.08)');
-            sunFade.addColorStop(1, 'rgba(112, 84, 56, 0.14)');
+            sunFade.addColorStop(0, 'rgba(255, 228, 172, 0.11)');
+            sunFade.addColorStop(0.46, 'rgba(171, 120, 76, 0.03)');
+            sunFade.addColorStop(1, 'rgba(112, 84, 56, 0.08)');
             ctx.fillStyle = sunFade;
             ctx.fillRect(0, 0, width, photoHeight);
 
             const sideBurn = ctx.createLinearGradient(0, 0, width, 0);
-            sideBurn.addColorStop(0, 'rgba(84, 57, 33, 0.20)');
-            sideBurn.addColorStop(0.14, 'rgba(84, 57, 33, 0.02)');
-            sideBurn.addColorStop(0.86, 'rgba(84, 57, 33, 0.02)');
-            sideBurn.addColorStop(1, 'rgba(84, 57, 33, 0.22)');
+            sideBurn.addColorStop(0, 'rgba(84, 57, 33, 0.15)');
+            sideBurn.addColorStop(0.14, 'rgba(84, 57, 33, 0.015)');
+            sideBurn.addColorStop(0.86, 'rgba(84, 57, 33, 0.015)');
+            sideBurn.addColorStop(1, 'rgba(84, 57, 33, 0.16)');
             ctx.fillStyle = sideBurn;
             ctx.fillRect(0, 0, width, photoHeight);
 
-            for (let i = 0; i < 6800; i += 1) {
+            for (let i = 0; i < 12500; i += 1) {
                 const x = Math.random() * width;
                 const y = Math.random() * photoHeight;
-                const alpha = Math.random() * 0.055;
-                const size = Math.random() * 1.35 + 0.25;
-                ctx.fillStyle = `rgba(28, 24, 20, ${alpha})`;
+                const alpha = Math.random() * 0.05;
+                const size = Math.random() * 0.95 + 0.18;
+                ctx.fillStyle = `rgba(30, 26, 22, ${alpha})`;
                 ctx.fillRect(x, y, size, size);
             }
 
@@ -688,8 +689,8 @@
                 const y = Math.random() * photoHeight;
                 const len = Math.random() * 170 + 60;
                 const angle = (Math.random() - 0.5) * 0.6;
-                ctx.strokeStyle = `rgba(98, 76, 55, ${Math.random() * 0.14})`;
-                ctx.lineWidth = Math.random() * 1.4 + 0.35;
+                ctx.strokeStyle = `rgba(98, 76, 55, ${Math.random() * 0.1})`;
+                ctx.lineWidth = Math.random() * 1.2 + 0.25;
                 ctx.beginPath();
                 ctx.moveTo(x, y);
                 ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len);
@@ -698,7 +699,7 @@
 
             const vignette = ctx.createRadialGradient(width / 2, photoHeight / 2, width * 0.25, width / 2, photoHeight / 2, width * 0.82);
             vignette.addColorStop(0, 'rgba(0,0,0,0)');
-            vignette.addColorStop(1, 'rgba(34, 24, 16, 0.22)');
+            vignette.addColorStop(1, 'rgba(34, 24, 16, 0.16)');
             ctx.fillStyle = vignette;
             ctx.fillRect(0, 0, width, photoHeight);
 
@@ -764,10 +765,12 @@
                 setTaskState('taskStageGenerating', 'progressGeneratingHint', 56, 'busy');
 
                 const canvas = document.createElement('canvas');
-                canvas.width = 1080;
-                canvas.height = 1620;
+                canvas.width = 1440;
+                canvas.height = 2160;
                 const ctx = canvas.getContext('2d');
                 if (!ctx) throw new Error('Canvas not supported');
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
 
                 ctx.fillStyle = '#f8f2e7';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -779,7 +782,7 @@
                 const photoH = calendarSplitY;
 
                 ctx.save();
-                ctx.filter = 'sepia(0.5) saturate(0.78) contrast(0.9) brightness(1.01)';
+                ctx.filter = 'sepia(0.28) saturate(0.95) contrast(1.02) brightness(1.01)';
                 drawImageCover(ctx, image, photoX, photoY, photoW, photoH);
                 ctx.restore();
                 addOldPhotoStyle(ctx, canvas.width, photoH);
@@ -794,7 +797,7 @@
                     canvas.toBlob((b) => {
                         if (!b) reject(new Error('Poster export failed'));
                         else resolve(b);
-                    }, 'image/png', 0.95);
+                    }, 'image/png');
                 });
 
                 generatedBlob = blob;
