@@ -637,9 +637,7 @@
             const leftAreaW = Math.max(220, gridX - leftAreaX - Math.floor(width * 0.02));
             const leftCenterX = leftAreaX + leftAreaW / 2;
             const monthText = String(month);
-            const yearY = panelY + 112;
-            const monthY = panelY + 330;
-            const monthShortY = panelY + 560;
+            const yearY = panelY + 26;
 
             ctx.fillStyle = '#a74155';
             ctx.textAlign = 'center';
@@ -647,12 +645,21 @@
             ctx.font = `800 ${Math.floor(width * 0.058)}px "Arial Black", "Helvetica Neue", Arial, sans-serif`;
             ctx.fillText(String(year), leftCenterX, yearY);
 
+            const rowTop = panelY + 92;
+            const rowH = Math.floor((panelH - 112) / 6);
+            const gridCenterY = rowTop + rowH * 2.5;
+            const monthDigitSize = Math.floor(width * 0.135);
+            const monthTextSize = Math.floor(width * 0.05);
+            const monthGap = Math.floor(width * 0.028);
+            const monthY = Math.round(gridCenterY - (monthDigitSize + monthGap + monthTextSize) / 2);
+            const monthShortY = monthY + monthDigitSize + monthGap;
+
             ctx.fillStyle = '#0f76a8';
-            ctx.font = `800 ${Math.floor(width * 0.145)}px "Arial Black", "Helvetica Neue", Arial, sans-serif`;
+            ctx.font = `800 ${monthDigitSize}px "Arial Black", "Helvetica Neue", Arial, sans-serif`;
             ctx.fillText(monthText, leftCenterX, monthY);
 
             ctx.fillStyle = '#0f76a8';
-            ctx.font = `800 ${Math.floor(width * 0.05)}px "Arial Black", "Helvetica Neue", Arial, sans-serif`;
+            ctx.font = `800 ${monthTextSize}px "Arial Black", "Helvetica Neue", Arial, sans-serif`;
             ctx.fillText(getMonthShort(month), leftCenterX, monthShortY);
 
             const weekEn = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -675,8 +682,6 @@
 
             const firstWeekday = new Date(year, month - 1, 1).getDay();
             const days = getMonthDays(year, month);
-            const rowTop = panelY + 92;
-            const rowH = Math.floor((panelH - 112) / 6);
 
             ctx.strokeStyle = 'rgba(36, 53, 74, 0.18)';
             ctx.lineWidth = 1;
@@ -700,7 +705,7 @@
                     const currentDay = day;
                     const isBirthday = currentDay === Number(birthdayDay);
                     ctx.fillStyle = (col === 0 || isBirthday) ? '#b5475a' : '#1c2d45';
-                    ctx.font = `${Math.floor(width * 0.048)}px "Trebuchet MS", Arial, sans-serif`;
+                    ctx.font = `${Math.floor(width * 0.044)}px "Times New Roman", Georgia, "Songti SC", serif`;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.fillText(String(currentDay), x, dayY);
