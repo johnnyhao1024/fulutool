@@ -654,7 +654,7 @@
             ctx.fillStyle = '#eef4f8';
             ctx.fillRect(0, panelY, width, panelH);
 
-            const leftAreaX = Math.floor(width * 0.05);
+            const leftAreaX = Math.floor(width * 0.02);
             const gridX = Math.floor(width * 0.22);
             const gridRightPadding = Math.floor(width * 0.03);
             const gridW = Math.max(420, width - gridX - gridRightPadding);
@@ -676,7 +676,7 @@
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.font = `700 ${Math.floor(width * 0.048)}px "Times New Roman", Georgia, "Songti SC", serif`;
-            ctx.fillText(String(year), leftCenterX, headerEnY);
+            ctx.fillText(String(year), leftCenterX, headerZhY);
 
             const gridCenterY = rowTop + (rows * rowH) / 2;
             const monthDigitSize = Math.floor(width * 0.12);
@@ -724,6 +724,8 @@
             }
 
             let day = 1;
+            const dayNumberSize = Math.floor(width * 0.038);
+            const starSize = Math.floor(width * 0.034);
             for (let idx = 0; idx < cols * rows; idx += 1) {
                 const row = Math.floor(idx / cols);
                 const col = idx % cols;
@@ -736,29 +738,32 @@
                     const currentDay = day;
                     const isBirthday = currentDay === Number(birthdayDay);
                     ctx.fillStyle = (weekIndex === 0 || isBirthday) ? '#b5475a' : '#1c2d45';
-                    ctx.font = `${Math.floor(width * 0.041)}px "Times New Roman", Georgia, "Songti SC", serif`;
+                    ctx.font = `${dayNumberSize}px "Times New Roman", Georgia, "Songti SC", serif`;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.fillText(String(currentDay), x, dayY);
 
                     if (isBirthday) {
-                        ctx.fillStyle = '#b5475a';
+                        ctx.save();
+                        ctx.strokeStyle = '#b5475a';
+                        ctx.lineWidth = Math.max(2, Math.floor(width * 0.0018));
+                        ctx.beginPath();
+                        ctx.arc(x, dayY, Math.max(14, Math.floor(dayNumberSize * 0.62)), 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+
+                    const lunarLabel = getLunarLabel(new Date(year, month - 1, currentDay));
+                    if (lunarLabel) {
+                        ctx.fillStyle = '#6c7b8b';
                         ctx.textBaseline = 'alphabetic';
-                        ctx.font = `600 ${Math.floor(width * 0.012)}px "Segoe UI", Arial, sans-serif`;
-                        ctx.fillText('birthday', x, subY);
-                    } else {
-                        const lunarLabel = getLunarLabel(new Date(year, month - 1, currentDay));
-                        if (lunarLabel) {
-                            ctx.fillStyle = '#6c7b8b';
-                            ctx.textBaseline = 'alphabetic';
-                            ctx.font = `${Math.floor(width * 0.011)}px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif`;
-                            ctx.fillText(lunarLabel, x, subY);
-                        }
+                        ctx.font = `${Math.floor(width * 0.011)}px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif`;
+                        ctx.fillText(lunarLabel, x, subY);
                     }
                     day += 1;
                 } else if (idx > firstWeekday + days - 1) {
                     ctx.fillStyle = weekIndex === 0 ? '#b5475a' : '#24354a';
-                    ctx.font = `${Math.floor(width * 0.037)}px "Times New Roman", Georgia, serif`;
+                    ctx.font = `${starSize}px "Times New Roman", Georgia, serif`;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.fillText('*', x, dayY);
