@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>老挂历海报生成器 · 福禄工具箱</title>
     <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -378,6 +379,7 @@
         let generatedBlob = null;
         let generatedName = '';
         let previewUrl = '';
+        let qrDataUrlCache = '';
         let isGenerating = false;
         let taskState = {
             stageKey: 'taskStageIdle',
@@ -641,6 +643,62 @@
             });
         }
 
+        function loadImageFromSrc(src) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => reject(new Error('Image source load failed'));
+                img.src = src;
+            });
+        }
+
+        function getToolQrDataUrl() {
+            if (qrDataUrlCache) return Promise.resolve(qrDataUrlCache);
+            return new Promise((resolve, reject) => {
+                if (typeof QRCode === 'undefined') {
+                    reject(new Error('QRCode library unavailable'));
+                    return;
+                }
+
+                const holder = document.createElement('div');
+                holder.style.position = 'fixed';
+                holder.style.left = '-9999px';
+                holder.style.top = '-9999px';
+                holder.style.width = '220px';
+                holder.style.height = '220px';
+                document.body.appendChild(holder);
+
+                const toolUrl = `${location.origin}/old-calendar.html`;
+                // eslint-disable-next-line no-new
+                new QRCode(holder, {
+                    text: toolUrl,
+                    width: 220,
+                    height: 220,
+                    colorDark: '#1f2937',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+
+                setTimeout(() => {
+                    try {
+                        const canvas = holder.querySelector('canvas');
+                        const img = holder.querySelector('img');
+                        if (canvas) {
+                            qrDataUrlCache = canvas.toDataURL('image/png');
+                        } else if (img && img.src) {
+                            qrDataUrlCache = img.src;
+                        }
+                        holder.remove();
+                        if (qrDataUrlCache) resolve(qrDataUrlCache);
+                        else reject(new Error('QR render failed'));
+                    } catch (error) {
+                        holder.remove();
+                        reject(error);
+                    }
+                }, 120);
+            });
+        }
+
         function drawImageCover(ctx, img, dx, dy, dw, dh) {
             const ratio = Math.max(dw / img.width, dh / img.height);
             const sw = dw / ratio;
@@ -743,20 +801,18 @@
                     const dayFont = `${dayNumberSize}px "Times New Roman", Georgia, "Songti SC", serif`;
                     ctx.font = dayFont;
                     ctx.textAlign = 'center';
-                    ctx.textBaseline = 'alphabetic';
+                    ctx.textBaseline = 'middle';
                     const dayText = String(currentDay);
-                    const metrics = ctx.measureText(dayText);
-                    const ascent = metrics.actualBoundingBoxAscent || dayNumberSize * 0.72;
-                    const descent = metrics.actualBoundingBoxDescent || dayNumberSize * 0.28;
-                    const dayDrawY = dayY + (ascent - descent) / 2;
-                    ctx.fillText(dayText, x, dayDrawY);
+                    ctx.fillText(dayText, x, dayY);
 
                     if (isBirthday) {
                         ctx.save();
                         ctx.strokeStyle = '#b5475a';
                         ctx.lineWidth = Math.max(2, Math.floor(width * 0.0018));
+                        const dayTextWidth = ctx.measureText(dayText).width || (dayNumberSize * 0.9);
+                        const radius = Math.max(dayNumberSize * 0.66, dayTextWidth * 0.62);
                         ctx.beginPath();
-                        ctx.arc(x, dayY, Math.max(14, Math.floor(dayNumberSize * 0.66)), 0, Math.PI * 2);
+                        ctx.arc(x, dayY, radius, 0, Math.PI * 2);
                         ctx.stroke();
                         ctx.restore();
                     }
@@ -861,12 +917,22 @@
             ctx.restore();
         }
 
-        function drawWatermark(ctx, width, height) {
+        async function drawToolLinkQr(ctx, width, height) {
+            const qrBoxSize = Math.max(78, Math.floor(width * 0.078));
+            const padding = Math.max(8, Math.floor(width * 0.006));
+            const boxX = width - qrBoxSize - padding - 20;
+            const boxY = height - qrBoxSize - padding - 20;
+
+            const qrDataUrl = await getToolQrDataUrl();
+            const qrImage = await loadImageFromSrc(qrDataUrl);
+
             ctx.save();
-            ctx.font = `700 ${Math.floor(width * 0.026)}px "Segoe UI", Arial, sans-serif`;
-            ctx.textAlign = 'right';
-            ctx.fillStyle = 'rgba(15, 23, 42, 0.26)';
-            ctx.fillText('fulutool.com', width - 26, height - 24);
+            ctx.fillStyle = 'rgba(255,255,255,0.88)';
+            ctx.fillRect(boxX, boxY, qrBoxSize + padding * 2, qrBoxSize + padding * 2);
+            ctx.strokeStyle = 'rgba(15, 23, 42, 0.22)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(boxX, boxY, qrBoxSize + padding * 2, qrBoxSize + padding * 2);
+            ctx.drawImage(qrImage, boxX + padding, boxY + padding, qrBoxSize, qrBoxSize);
             ctx.restore();
         }
 
@@ -916,8 +982,12 @@
                 addOldPhotoStyle(ctx, canvas.width, photoH);
 
                 drawVintageCalendar(ctx, canvas.width, canvas.height, year, month, day, calendarSplitY);
-                drawWatermark(ctx, canvas.width, canvas.height);
                 addAgingEffects(ctx, canvas.width, canvas.height, calendarSplitY);
+                try {
+                    await drawToolLinkQr(ctx, canvas.width, canvas.height);
+                } catch (qrError) {
+                    console.warn('QR watermark render failed', qrError);
+                }
 
                 setTaskState('taskStageGenerating', 'progressGeneratingHint', 85, 'busy');
 
