@@ -405,6 +405,7 @@
             progressFailedHint: '任务执行失败，请重新上传或稍后再试',
             saveFirst: '请先生成挂历海报',
             saveDoneShare: '图片已保存。欢迎分享至微信、微博、小红书等社交平台',
+            saveWechatTip: '微信内置浏览器不支持直接下载。请长按下方预览图并选择“保存图片”',
             yearLabel: '年份',
             monthLabel: '月份',
             dayLabel: '日期',
@@ -432,6 +433,7 @@
             progressFailedHint: 'Task failed. Please upload again or try later',
             saveFirst: 'Please generate the poster first',
             saveDoneShare: 'Image saved successfully. Feel free to share it on your social platforms',
+            saveWechatTip: 'WeChat in-app browser does not support direct download. Please long-press the preview image below and save it.',
             yearLabel: 'Year',
             monthLabel: 'Month',
             dayLabel: 'Day',
@@ -724,7 +726,7 @@
             }
 
             let day = 1;
-            const dayNumberSize = Math.floor(width * 0.038);
+            const dayNumberSize = Math.floor(width * 0.036);
             const starSize = Math.floor(width * 0.034);
             for (let idx = 0; idx < cols * rows; idx += 1) {
                 const row = Math.floor(idx / cols);
@@ -738,17 +740,23 @@
                     const currentDay = day;
                     const isBirthday = currentDay === Number(birthdayDay);
                     ctx.fillStyle = (weekIndex === 0 || isBirthday) ? '#b5475a' : '#1c2d45';
-                    ctx.font = `${dayNumberSize}px "Times New Roman", Georgia, "Songti SC", serif`;
+                    const dayFont = `${dayNumberSize}px "Times New Roman", Georgia, "Songti SC", serif`;
+                    ctx.font = dayFont;
                     ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(String(currentDay), x, dayY);
+                    ctx.textBaseline = 'alphabetic';
+                    const dayText = String(currentDay);
+                    const metrics = ctx.measureText(dayText);
+                    const ascent = metrics.actualBoundingBoxAscent || dayNumberSize * 0.72;
+                    const descent = metrics.actualBoundingBoxDescent || dayNumberSize * 0.28;
+                    const dayDrawY = dayY + (ascent - descent) / 2;
+                    ctx.fillText(dayText, x, dayDrawY);
 
                     if (isBirthday) {
                         ctx.save();
                         ctx.strokeStyle = '#b5475a';
                         ctx.lineWidth = Math.max(2, Math.floor(width * 0.0018));
                         ctx.beginPath();
-                        ctx.arc(x, dayY, Math.max(14, Math.floor(dayNumberSize * 0.62)), 0, Math.PI * 2);
+                        ctx.arc(x, dayY, Math.max(14, Math.floor(dayNumberSize * 0.66)), 0, Math.PI * 2);
                         ctx.stroke();
                         ctx.restore();
                     }
@@ -945,11 +953,27 @@
                 alert(T('saveFirst', '请先生成挂历海报'));
                 return;
             }
+            const ua = navigator.userAgent || '';
+            const isWeChat = /MicroMessenger/i.test(ua);
+            if (isWeChat) {
+                if (resultPreviewWrap && !resultPreviewWrap.classList.contains('show')) {
+                    resultPreviewWrap.classList.add('show');
+                }
+                if (resultPreviewWrap) {
+                    resultPreviewWrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                alert(T('saveWechatTip', '微信内置浏览器不支持直接下载。请长按下方预览图并选择“保存图片”'));
+                return;
+            }
+
             const url = URL.createObjectURL(generatedBlob);
             const link = document.createElement('a');
             link.href = url;
             link.download = generatedName || 'fulutool-calendar.png';
+            link.style.display = 'none';
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
             setTimeout(() => URL.revokeObjectURL(url), 1000);
             setTimeout(() => {
                 alert(T('saveDoneShare', '图片已保存。欢迎分享至微信、微博、小红书等社交平台'));
