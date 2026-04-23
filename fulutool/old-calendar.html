@@ -315,6 +315,9 @@
             .tool-card-name { font-size: 0.85rem; }
             .preview-frame { min-height: 220px; }
             .progress-meta { flex-direction: column; align-items: flex-start; }
+            .crop-preview-frame { padding: 0.6rem; }
+            .crop-preview-canvas { border-radius: 12px; }
+            .crop-help { font-size: 0.8rem; }
         }
     </style>
     <link rel="stylesheet" href="/assets/fulutool.css">
@@ -341,7 +344,7 @@
                 <div class="crop-preview-frame">
                     <canvas id="cropPreviewCanvas" class="crop-preview-canvas" width="960" height="720"></canvas>
                 </div>
-                <div class="crop-help" id="cropHelp">拖动选框调整照片区域，拖动右下角圆点可缩放选区。</div>
+                <div class="crop-help" id="cropHelp">拖动选框调整照片区域，双指捏合可放大或缩小选区，也可拖动右下角圆点微调。</div>
             </div>
         </div>
 
@@ -445,6 +448,16 @@
             startBoxY: 0,
             startScale: 1
         };
+        let pinchInteraction = {
+            active: false,
+            startDistance: 0,
+            startScale: 1,
+            startMidX: 0,
+            startMidY: 0,
+            startBoxX: 0,
+            startBoxY: 0
+        };
+        const activePointers = new Map();
         let isGenerating = false;
         let taskState = {
             stageKey: 'taskStageIdle',
@@ -474,7 +487,7 @@
             saveDoneShare: '图片已保存。欢迎分享至微信、微博、小红书等社交平台',
             saveWechatTip: '微信内置浏览器不支持直接下载。请长按下方预览图并选择“保存图片”',
             cropTitle: '✂️ 照片裁剪',
-            cropHelp: '拖动选框调整照片区域，拖动右下角圆点可缩放选区。',
+            cropHelp: '拖动选框调整照片区域，双指捏合可放大或缩小选区，也可拖动右下角圆点微调。',
             yearLabel: '年份',
             monthLabel: '月份',
             dayLabel: '日期',
@@ -504,7 +517,7 @@
             saveDoneShare: 'Image saved successfully. Feel free to share it on your social platforms',
             saveWechatTip: 'WeChat in-app browser does not support direct download. Please long-press the preview image below and save it.',
             cropTitle: '✂️ Photo crop',
-            cropHelp: 'Drag the selection box to reposition the photo. Drag the bottom-right handle to resize the crop.',
+            cropHelp: 'Drag the crop box to reposition the photo. Use two fingers to zoom the selection, or drag the bottom-right handle for fine tuning.',
             yearLabel: 'Year',
             monthLabel: 'Month',
             dayLabel: 'Day',
@@ -608,7 +621,7 @@
             if (monthLabel) monthLabel.textContent = T('monthLabel', '月份');
             if (dayLabel) dayLabel.textContent = T('dayLabel', '日期');
             if (cropTitle) cropTitle.textContent = T('cropTitle', '✂️ 照片裁剪');
-            if (cropHelp) cropHelp.textContent = T('cropHelp', '拖动选框调整照片区域，拖动右下角圆点可缩放选区。');
+            if (cropHelp) cropHelp.textContent = T('cropHelp', '拖动选框调整照片区域，双指捏合可放大或缩小选区，也可拖动右下角圆点微调。');
             if (selectPhotoBtn) selectPhotoBtn.textContent = T('selectPhotoBtn', '📂 选择照片');
             if (generateBtn) generateBtn.textContent = T('generateBtn', '⚡ 开始生成');
             if (saveBtn) saveBtn.textContent = T('saveBtn', '💾 保存图片');
@@ -701,8 +714,81 @@
             resultPreviewWrap.classList.remove('show');
         }
 
+        function isCompactScreen() {
+            return window.matchMedia('(max-width: 700px)').matches;
+        }
+
+        function getPosterCropAspect() {
+            return 1440 / Math.floor(2160 * 0.68);
+        }
+
+        function updateCropCanvasSize() {
+            if (!cropPreviewCanvas) return;
+
+            let previewRatio = 4 / 3;
+            if (currentImage) {
+                const imageRatio = currentImage.width / currentImage.height || (4 / 3);
+                const minRatio = isCompactScreen() ? 0.56 : 0.56;
+                const maxRatio = isCompactScreen() ? 1.12 : 1.3;
+                previewRatio = clamp(imageRatio, minRatio, maxRatio);
+            }
+
+            const renderWidth = isCompactScreen() ? 1120 : 1280;
+            const renderHeight = Math.round(renderWidth / previewRatio);
+            cropPreviewCanvas.width = renderWidth;
+            cropPreviewCanvas.height = renderHeight;
+            cropPreviewCanvas.style.aspectRatio = `${renderWidth} / ${renderHeight}`;
+        }
+
+        function getCropLayout() {
+            if (!currentImage || !cropPreviewCanvas) return null;
+
+            const canvasW = cropPreviewCanvas.width;
+            const canvasH = cropPreviewCanvas.height;
+            const imgRatio = currentImage.width / currentImage.height;
+            const canvasRatio = canvasW / canvasH;
+            let drawW;
+            let drawH;
+            let drawX;
+            let drawY;
+
+            if (imgRatio > canvasRatio) {
+                drawW = canvasW;
+                drawH = drawW / imgRatio;
+                drawX = 0;
+                drawY = (canvasH - drawH) / 2;
+            } else {
+                drawH = canvasH;
+                drawW = drawH * imgRatio;
+                drawY = 0;
+                drawX = (canvasW - drawW) / 2;
+            }
+
+            const targetAspect = getPosterCropAspect();
+            let maxCropW;
+            let maxCropH;
+            if (drawW / drawH > targetAspect) {
+                maxCropH = drawH;
+                maxCropW = maxCropH * targetAspect;
+            } else {
+                maxCropW = drawW;
+                maxCropH = maxCropW / targetAspect;
+            }
+
+            return {
+                canvasW,
+                canvasH,
+                drawW,
+                drawH,
+                drawX,
+                drawY,
+                maxCropW,
+                maxCropH
+            };
+        }
+
         function getCropRect(img) {
-            const targetAspect = 1440 / Math.floor(2160 * 0.68);
+            const targetAspect = getPosterCropAspect();
             let baseW;
             let baseH;
             if (img.width / img.height > targetAspect) {
@@ -749,39 +835,11 @@
             ctx.fillRect(0, 0, cropPreviewCanvas.width, cropPreviewCanvas.height);
 
             if (!currentImage) return;
-            const canvasW = cropPreviewCanvas.width;
-            const canvasH = cropPreviewCanvas.height;
-            const imgRatio = currentImage.width / currentImage.height;
-            const canvasRatio = canvasW / canvasH;
-            let drawW;
-            let drawH;
-            let drawX;
-            let drawY;
-
-            if (imgRatio > canvasRatio) {
-                drawW = canvasW;
-                drawH = drawW / imgRatio;
-                drawX = 0;
-                drawY = (canvasH - drawH) / 2;
-            } else {
-                drawH = canvasH;
-                drawW = drawH * imgRatio;
-                drawY = 0;
-                drawX = (canvasW - drawW) / 2;
-            }
+            const layout = getCropLayout();
+            if (!layout) return;
+            const { canvasW, canvasH, drawW, drawH, drawX, drawY, maxCropW, maxCropH } = layout;
 
             ctx.drawImage(currentImage, drawX, drawY, drawW, drawH);
-
-            const targetAspect = 1440 / Math.floor(2160 * 0.68);
-            let maxCropW;
-            let maxCropH;
-            if (drawW / drawH > targetAspect) {
-                maxCropH = drawH;
-                maxCropW = maxCropH * targetAspect;
-            } else {
-                maxCropW = drawW;
-                maxCropH = maxCropW / targetAspect;
-            }
 
             const cropW = maxCropW * cropState.scale;
             const cropH = maxCropH * cropState.scale;
@@ -800,7 +858,7 @@
             ctx.lineWidth = 2;
             ctx.strokeRect(cropX, cropY, cropW, cropH);
 
-            const handleRadius = 10;
+            const handleRadius = isCompactScreen() ? 18 : 12;
             const handleX = cropX + cropW;
             const handleY = cropY + cropH;
             ctx.fillStyle = '#ffffff';
@@ -818,9 +876,11 @@
             cropPreviewCanvas.dataset.cropH = String(cropH);
             cropPreviewCanvas.dataset.handleX = String(handleX);
             cropPreviewCanvas.dataset.handleY = String(handleY);
+            cropPreviewCanvas.dataset.handleRadius = String(handleRadius);
         }
 
         function updateCropUi() {
+            updateCropCanvasSize();
             drawCropPreview();
         }
 
@@ -837,9 +897,68 @@
             return { x, y };
         }
 
+        function beginPinchInteraction() {
+            if (!cropPreviewCanvas || activePointers.size < 2) return;
+            const points = Array.from(activePointers.values()).slice(0, 2);
+            const [first, second] = points;
+            pinchInteraction.active = true;
+            pinchInteraction.startDistance = Math.max(1, Math.hypot(second.x - first.x, second.y - first.y));
+            pinchInteraction.startScale = cropState.scale;
+            pinchInteraction.startMidX = (first.x + second.x) / 2;
+            pinchInteraction.startMidY = (first.y + second.y) / 2;
+            pinchInteraction.startBoxX = cropState.x;
+            pinchInteraction.startBoxY = cropState.y;
+            cropInteraction.mode = '';
+            cropInteraction.pointerId = null;
+            cropPreviewCanvas.classList.remove('is-dragging');
+            cropPreviewCanvas.classList.add('is-resizing');
+        }
+
+        function movePinchInteraction() {
+            if (!pinchInteraction.active || activePointers.size < 2) return;
+            const layout = getCropLayout();
+            if (!layout) return;
+
+            const [first, second] = Array.from(activePointers.values()).slice(0, 2);
+            const distance = Math.max(1, Math.hypot(second.x - first.x, second.y - first.y));
+            const midX = (first.x + second.x) / 2;
+            const midY = (first.y + second.y) / 2;
+            const nextScale = clamp(
+                pinchInteraction.startScale * (distance / pinchInteraction.startDistance),
+                0.45,
+                1
+            );
+            const cropW = layout.maxCropW * nextScale;
+            const cropH = layout.maxCropH * nextScale;
+            const maxCropX = Math.max(1, layout.drawW - cropW);
+            const maxCropY = Math.max(1, layout.drawH - cropH);
+
+            cropState.scale = nextScale;
+            cropState.x = clamp(
+                pinchInteraction.startBoxX + (midX - pinchInteraction.startMidX) / maxCropX,
+                0,
+                1
+            );
+            cropState.y = clamp(
+                pinchInteraction.startBoxY + (midY - pinchInteraction.startMidY) / maxCropY,
+                0,
+                1
+            );
+            drawCropPreview();
+        }
+
         function beginCropInteraction(event) {
             if (!currentImage || !cropPreviewCanvas) return;
             event.preventDefault();
+            if (event.pointerId != null) {
+                activePointers.set(event.pointerId, getCanvasPoint(event));
+            }
+
+            if (activePointers.size >= 2) {
+                beginPinchInteraction();
+                return;
+            }
+
             const { x, y } = getCanvasPoint(event);
             const cropX = Number(cropPreviewCanvas.dataset.cropX || 0);
             const cropY = Number(cropPreviewCanvas.dataset.cropY || 0);
@@ -847,7 +966,8 @@
             const cropH = Number(cropPreviewCanvas.dataset.cropH || 0);
             const handleX = Number(cropPreviewCanvas.dataset.handleX || 0);
             const handleY = Number(cropPreviewCanvas.dataset.handleY || 0);
-            const handleHit = Math.hypot(x - handleX, y - handleY) <= 22;
+            const handleRadius = Number(cropPreviewCanvas.dataset.handleRadius || (isCompactScreen() ? 18 : 12));
+            const handleHit = Math.hypot(x - handleX, y - handleY) <= handleRadius + (isCompactScreen() ? 12 : 8);
             const insideCrop = x >= cropX && x <= cropX + cropW && y >= cropY && y <= cropY + cropH;
             if (!handleHit && !insideCrop) return;
 
@@ -866,31 +986,23 @@
         }
 
         function moveCropInteraction(event) {
-            if (!cropInteraction.mode || !currentImage || !cropPreviewCanvas) return;
+            if (!currentImage || !cropPreviewCanvas) return;
+            if (event.pointerId != null && activePointers.has(event.pointerId)) {
+                activePointers.set(event.pointerId, getCanvasPoint(event));
+            }
+
+            if (pinchInteraction.active && activePointers.size >= 2) {
+                event.preventDefault();
+                movePinchInteraction();
+                return;
+            }
+
+            if (!cropInteraction.mode || cropInteraction.pointerId !== event.pointerId) return;
             event.preventDefault();
             const { x, y } = getCanvasPoint(event);
-            const targetAspect = 1440 / Math.floor(2160 * 0.68);
-            const canvasW = cropPreviewCanvas.width;
-            const canvasH = cropPreviewCanvas.height;
-            const imgRatio = currentImage.width / currentImage.height;
-            let drawW;
-            let drawH;
-            if (imgRatio > canvasW / canvasH) {
-                drawW = canvasW;
-                drawH = drawW / imgRatio;
-            } else {
-                drawH = canvasH;
-                drawW = drawH * imgRatio;
-            }
-            let maxCropW;
-            let maxCropH;
-            if (drawW / drawH > targetAspect) {
-                maxCropH = drawH;
-                maxCropW = maxCropH * targetAspect;
-            } else {
-                maxCropW = drawW;
-                maxCropH = maxCropW / targetAspect;
-            }
+            const layout = getCropLayout();
+            if (!layout) return;
+            const { drawW, drawH, maxCropW, maxCropH } = layout;
 
             if (cropInteraction.mode === 'move') {
                 const cropW = maxCropW * cropState.scale;
@@ -911,12 +1023,24 @@
         }
 
         function endCropInteraction(event) {
-            if (!cropInteraction.mode || !cropPreviewCanvas) return;
+            if (!cropPreviewCanvas) return;
             if (cropPreviewCanvas.releasePointerCapture && event.pointerId != null) {
                 try { cropPreviewCanvas.releasePointerCapture(event.pointerId); } catch (err) {}
             }
-            cropInteraction.mode = '';
-            cropPreviewCanvas.classList.remove('is-dragging', 'is-resizing');
+            if (event.pointerId != null) {
+                activePointers.delete(event.pointerId);
+            }
+
+            if (pinchInteraction.active && activePointers.size < 2) {
+                pinchInteraction.active = false;
+                cropPreviewCanvas.classList.remove('is-resizing');
+            }
+
+            if (cropInteraction.pointerId == null || cropInteraction.pointerId === event.pointerId || activePointers.size === 0) {
+                cropInteraction.mode = '';
+                cropInteraction.pointerId = null;
+                cropPreviewCanvas.classList.remove('is-dragging', 'is-resizing');
+            }
         }
 
         function drawImageCover(ctx, img, dx, dy, dw, dh, cropRect) {
@@ -1255,6 +1379,25 @@
                 currentFile = file;
                 currentImage = image;
                 cropState = { scale: 1, x: 0.5, y: 0.5 };
+                cropInteraction = {
+                    mode: '',
+                    pointerId: null,
+                    startX: 0,
+                    startY: 0,
+                    startBoxX: 0,
+                    startBoxY: 0,
+                    startScale: 1
+                };
+                pinchInteraction = {
+                    active: false,
+                    startDistance: 0,
+                    startScale: 1,
+                    startMidX: 0,
+                    startMidY: 0,
+                    startBoxX: 0,
+                    startBoxY: 0
+                };
+                activePointers.clear();
                 generatedBlob = null;
                 saveBtn.disabled = true;
                 generateBtn.disabled = false;
@@ -1327,6 +1470,12 @@
                 }
             });
         }
+
+        window.addEventListener('resize', () => {
+            if (currentImage) {
+                updateCropUi();
+            }
+        });
 
         populateYearMonth();
         updateDayOptions(new Date().getDate());
