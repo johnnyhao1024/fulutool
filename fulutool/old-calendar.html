@@ -116,7 +116,7 @@
         }
         .crop-stage {
             display: grid;
-            gap: 1rem;
+            gap: 0.8rem;
         }
         .crop-preview-frame {
             background: #ffffff;
@@ -126,34 +126,21 @@
         }
         .crop-preview-canvas {
             width: 100%;
-            aspect-ratio: 1440 / 1469;
+            aspect-ratio: 4 / 3;
             border-radius: 14px;
             display: block;
             background: linear-gradient(180deg, #f8fafc, #eef4f8);
+            touch-action: none;
+            cursor: grab;
         }
-        .crop-controls {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 0.85rem 1rem;
+        .crop-preview-canvas.is-dragging,
+        .crop-preview-canvas.is-resizing {
+            cursor: grabbing;
         }
-        .slider-field {
-            display: grid;
-            gap: 0.35rem;
-        }
-        .slider-field label {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0;
-        }
-        .slider-value {
+        .crop-help {
             color: #64748b;
-            font-size: 0.78rem;
-            font-weight: 700;
-        }
-        .slider-field input[type="range"] {
-            width: 100%;
+            font-size: 0.82rem;
+            line-height: 1.65;
         }
         .preview-title {
             font-size: 0.82rem;
@@ -352,22 +339,9 @@
             <div class="preview-title" id="cropTitle">✂️ 照片裁剪</div>
             <div class="crop-stage">
                 <div class="crop-preview-frame">
-                    <canvas id="cropPreviewCanvas" class="crop-preview-canvas" width="720" height="734"></canvas>
+                    <canvas id="cropPreviewCanvas" class="crop-preview-canvas" width="960" height="720"></canvas>
                 </div>
-                <div class="crop-controls">
-                    <div class="slider-field">
-                        <label for="cropZoomRange"><span id="cropZoomLabel">缩放</span><span class="slider-value" id="cropZoomValue">100%</span></label>
-                        <input type="range" id="cropZoomRange" min="100" max="220" step="1" value="100">
-                    </div>
-                    <div class="slider-field">
-                        <label for="cropXRange"><span id="cropXLabel">左右位置</span><span class="slider-value" id="cropXValue">50%</span></label>
-                        <input type="range" id="cropXRange" min="0" max="100" step="1" value="50">
-                    </div>
-                    <div class="slider-field">
-                        <label for="cropYRange"><span id="cropYLabel">上下位置</span><span class="slider-value" id="cropYValue">50%</span></label>
-                        <input type="range" id="cropYRange" min="0" max="100" step="1" value="50">
-                    </div>
-                </div>
+                <div class="crop-help" id="cropHelp">拖动选框调整照片区域，拖动右下角圆点可缩放选区。</div>
             </div>
         </div>
 
@@ -444,12 +418,6 @@
         const daySelect = document.getElementById('daySelect');
         const cropShell = document.getElementById('cropShell');
         const cropPreviewCanvas = document.getElementById('cropPreviewCanvas');
-        const cropZoomRange = document.getElementById('cropZoomRange');
-        const cropXRange = document.getElementById('cropXRange');
-        const cropYRange = document.getElementById('cropYRange');
-        const cropZoomValue = document.getElementById('cropZoomValue');
-        const cropXValue = document.getElementById('cropXValue');
-        const cropYValue = document.getElementById('cropYValue');
         const taskStageText = document.getElementById('taskStageText');
         const progressHint = document.getElementById('progressHint');
         const progressPercent = document.getElementById('progressPercent');
@@ -461,11 +429,21 @@
         let generatedBlob = null;
         let generatedName = '';
         let previewUrl = '';
+        let previewDataUrl = '';
         let currentImage = null;
         let cropState = {
-            zoom: 1,
+            scale: 1,
             x: 0.5,
             y: 0.5
+        };
+        let cropInteraction = {
+            mode: '',
+            pointerId: null,
+            startX: 0,
+            startY: 0,
+            startBoxX: 0,
+            startBoxY: 0,
+            startScale: 1
         };
         let isGenerating = false;
         let taskState = {
@@ -496,9 +474,7 @@
             saveDoneShare: '图片已保存。欢迎分享至微信、微博、小红书等社交平台',
             saveWechatTip: '微信内置浏览器不支持直接下载。请长按下方预览图并选择“保存图片”',
             cropTitle: '✂️ 照片裁剪',
-            cropZoomLabel: '缩放',
-            cropXLabel: '左右位置',
-            cropYLabel: '上下位置',
+            cropHelp: '拖动选框调整照片区域，拖动右下角圆点可缩放选区。',
             yearLabel: '年份',
             monthLabel: '月份',
             dayLabel: '日期',
@@ -528,9 +504,7 @@
             saveDoneShare: 'Image saved successfully. Feel free to share it on your social platforms',
             saveWechatTip: 'WeChat in-app browser does not support direct download. Please long-press the preview image below and save it.',
             cropTitle: '✂️ Photo crop',
-            cropZoomLabel: 'Zoom',
-            cropXLabel: 'Horizontal',
-            cropYLabel: 'Vertical',
+            cropHelp: 'Drag the selection box to reposition the photo. Drag the bottom-right handle to resize the crop.',
             yearLabel: 'Year',
             monthLabel: 'Month',
             dayLabel: 'Day',
@@ -629,16 +603,12 @@
             const monthLabel = document.querySelector('label[for="monthSelect"]');
             const dayLabel = document.querySelector('label[for="daySelect"]');
             const cropTitle = document.getElementById('cropTitle');
-            const cropZoomLabel = document.getElementById('cropZoomLabel');
-            const cropXLabel = document.getElementById('cropXLabel');
-            const cropYLabel = document.getElementById('cropYLabel');
+            const cropHelp = document.getElementById('cropHelp');
             if (yearLabel) yearLabel.textContent = T('yearLabel', '年份');
             if (monthLabel) monthLabel.textContent = T('monthLabel', '月份');
             if (dayLabel) dayLabel.textContent = T('dayLabel', '日期');
             if (cropTitle) cropTitle.textContent = T('cropTitle', '✂️ 照片裁剪');
-            if (cropZoomLabel) cropZoomLabel.textContent = T('cropZoomLabel', '缩放');
-            if (cropXLabel) cropXLabel.textContent = T('cropXLabel', '左右位置');
-            if (cropYLabel) cropYLabel.textContent = T('cropYLabel', '上下位置');
+            if (cropHelp) cropHelp.textContent = T('cropHelp', '拖动选框调整照片区域，拖动右下角圆点可缩放选区。');
             if (selectPhotoBtn) selectPhotoBtn.textContent = T('selectPhotoBtn', '📂 选择照片');
             if (generateBtn) generateBtn.textContent = T('generateBtn', '⚡ 开始生成');
             if (saveBtn) saveBtn.textContent = T('saveBtn', '💾 保存图片');
@@ -722,10 +692,11 @@
         }
 
         function clearPreview() {
-            if (previewUrl) {
+            if (previewUrl && /^blob:/.test(previewUrl)) {
                 URL.revokeObjectURL(previewUrl);
-                previewUrl = '';
             }
+            previewUrl = '';
+            previewDataUrl = '';
             resultPreview.removeAttribute('src');
             resultPreviewWrap.classList.remove('show');
         }
@@ -742,9 +713,9 @@
                 baseH = baseW / targetAspect;
             }
 
-            const zoom = Math.max(1, cropState.zoom || 1);
-            const cropW = baseW / zoom;
-            const cropH = baseH / zoom;
+            const scale = Math.min(1, Math.max(0.45, cropState.scale || 1));
+            const cropW = baseW * scale;
+            const cropH = baseH * scale;
             const maxX = Math.max(0, img.width - cropW);
             const maxY = Math.max(0, img.height - cropH);
             const sx = maxX * Math.min(1, Math.max(0, cropState.x));
@@ -768,15 +739,6 @@
             });
         }
 
-        function loadImageFromSrc(src) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.onload = () => resolve(img);
-                img.onerror = () => reject(new Error('Image source load failed'));
-                img.src = src;
-            });
-        }
-
         function drawCropPreview() {
             if (!cropPreviewCanvas) return;
             const ctx = cropPreviewCanvas.getContext('2d');
@@ -787,15 +749,174 @@
             ctx.fillRect(0, 0, cropPreviewCanvas.width, cropPreviewCanvas.height);
 
             if (!currentImage) return;
-            const { sx, sy, sw, sh } = getCropRect(currentImage);
-            ctx.drawImage(currentImage, sx, sy, sw, sh, 0, 0, cropPreviewCanvas.width, cropPreviewCanvas.height);
+            const canvasW = cropPreviewCanvas.width;
+            const canvasH = cropPreviewCanvas.height;
+            const imgRatio = currentImage.width / currentImage.height;
+            const canvasRatio = canvasW / canvasH;
+            let drawW;
+            let drawH;
+            let drawX;
+            let drawY;
+
+            if (imgRatio > canvasRatio) {
+                drawW = canvasW;
+                drawH = drawW / imgRatio;
+                drawX = 0;
+                drawY = (canvasH - drawH) / 2;
+            } else {
+                drawH = canvasH;
+                drawW = drawH * imgRatio;
+                drawY = 0;
+                drawX = (canvasW - drawW) / 2;
+            }
+
+            ctx.drawImage(currentImage, drawX, drawY, drawW, drawH);
+
+            const targetAspect = 1440 / Math.floor(2160 * 0.68);
+            let maxCropW;
+            let maxCropH;
+            if (drawW / drawH > targetAspect) {
+                maxCropH = drawH;
+                maxCropW = maxCropH * targetAspect;
+            } else {
+                maxCropW = drawW;
+                maxCropH = maxCropW / targetAspect;
+            }
+
+            const cropW = maxCropW * cropState.scale;
+            const cropH = maxCropH * cropState.scale;
+            const maxCropX = Math.max(0, drawW - cropW);
+            const maxCropY = Math.max(0, drawH - cropH);
+            const cropX = drawX + maxCropX * cropState.x;
+            const cropY = drawY + maxCropY * cropState.y;
+
+            ctx.save();
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.38)';
+            ctx.fillRect(0, 0, canvasW, cropY);
+            ctx.fillRect(0, cropY, cropX, cropH);
+            ctx.fillRect(cropX + cropW, cropY, canvasW - (cropX + cropW), cropH);
+            ctx.fillRect(0, cropY + cropH, canvasW, canvasH - (cropY + cropH));
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(cropX, cropY, cropW, cropH);
+
+            const handleRadius = 10;
+            const handleX = cropX + cropW;
+            const handleY = cropY + cropH;
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(handleX, handleY, handleRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#0f172a';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            ctx.restore();
+
+            cropPreviewCanvas.dataset.cropX = String(cropX);
+            cropPreviewCanvas.dataset.cropY = String(cropY);
+            cropPreviewCanvas.dataset.cropW = String(cropW);
+            cropPreviewCanvas.dataset.cropH = String(cropH);
+            cropPreviewCanvas.dataset.handleX = String(handleX);
+            cropPreviewCanvas.dataset.handleY = String(handleY);
         }
 
         function updateCropUi() {
-            if (cropZoomValue) cropZoomValue.textContent = `${Math.round(cropState.zoom * 100)}%`;
-            if (cropXValue) cropXValue.textContent = `${Math.round(cropState.x * 100)}%`;
-            if (cropYValue) cropYValue.textContent = `${Math.round(cropState.y * 100)}%`;
             drawCropPreview();
+        }
+
+        function clamp(value, min, max) {
+            return Math.min(max, Math.max(min, value));
+        }
+
+        function getCanvasPoint(event) {
+            const rect = cropPreviewCanvas.getBoundingClientRect();
+            const clientX = event.clientX != null ? event.clientX : (event.touches && event.touches[0] ? event.touches[0].clientX : 0);
+            const clientY = event.clientY != null ? event.clientY : (event.touches && event.touches[0] ? event.touches[0].clientY : 0);
+            const x = (clientX - rect.left) * (cropPreviewCanvas.width / rect.width);
+            const y = (clientY - rect.top) * (cropPreviewCanvas.height / rect.height);
+            return { x, y };
+        }
+
+        function beginCropInteraction(event) {
+            if (!currentImage || !cropPreviewCanvas) return;
+            event.preventDefault();
+            const { x, y } = getCanvasPoint(event);
+            const cropX = Number(cropPreviewCanvas.dataset.cropX || 0);
+            const cropY = Number(cropPreviewCanvas.dataset.cropY || 0);
+            const cropW = Number(cropPreviewCanvas.dataset.cropW || 0);
+            const cropH = Number(cropPreviewCanvas.dataset.cropH || 0);
+            const handleX = Number(cropPreviewCanvas.dataset.handleX || 0);
+            const handleY = Number(cropPreviewCanvas.dataset.handleY || 0);
+            const handleHit = Math.hypot(x - handleX, y - handleY) <= 22;
+            const insideCrop = x >= cropX && x <= cropX + cropW && y >= cropY && y <= cropY + cropH;
+            if (!handleHit && !insideCrop) return;
+
+            cropInteraction.mode = handleHit ? 'resize' : 'move';
+            cropInteraction.pointerId = event.pointerId != null ? event.pointerId : 1;
+            cropInteraction.startX = x;
+            cropInteraction.startY = y;
+            cropInteraction.startBoxX = cropState.x;
+            cropInteraction.startBoxY = cropState.y;
+            cropInteraction.startScale = cropState.scale;
+            cropPreviewCanvas.classList.toggle('is-dragging', cropInteraction.mode === 'move');
+            cropPreviewCanvas.classList.toggle('is-resizing', cropInteraction.mode === 'resize');
+            if (cropPreviewCanvas.setPointerCapture && event.pointerId != null) {
+                cropPreviewCanvas.setPointerCapture(event.pointerId);
+            }
+        }
+
+        function moveCropInteraction(event) {
+            if (!cropInteraction.mode || !currentImage || !cropPreviewCanvas) return;
+            event.preventDefault();
+            const { x, y } = getCanvasPoint(event);
+            const targetAspect = 1440 / Math.floor(2160 * 0.68);
+            const canvasW = cropPreviewCanvas.width;
+            const canvasH = cropPreviewCanvas.height;
+            const imgRatio = currentImage.width / currentImage.height;
+            let drawW;
+            let drawH;
+            if (imgRatio > canvasW / canvasH) {
+                drawW = canvasW;
+                drawH = drawW / imgRatio;
+            } else {
+                drawH = canvasH;
+                drawW = drawH * imgRatio;
+            }
+            let maxCropW;
+            let maxCropH;
+            if (drawW / drawH > targetAspect) {
+                maxCropH = drawH;
+                maxCropW = maxCropH * targetAspect;
+            } else {
+                maxCropW = drawW;
+                maxCropH = maxCropW / targetAspect;
+            }
+
+            if (cropInteraction.mode === 'move') {
+                const cropW = maxCropW * cropState.scale;
+                const cropH = maxCropH * cropState.scale;
+                const maxCropX = Math.max(1, drawW - cropW);
+                const maxCropY = Math.max(1, drawH - cropH);
+                cropState.x = clamp(cropInteraction.startBoxX + (x - cropInteraction.startX) / maxCropX, 0, 1);
+                cropState.y = clamp(cropInteraction.startBoxY + (y - cropInteraction.startY) / maxCropY, 0, 1);
+            } else if (cropInteraction.mode === 'resize') {
+                const delta = Math.max(x - cropInteraction.startX, y - cropInteraction.startY);
+                const scaleDelta = delta / Math.max(maxCropW, maxCropH);
+                cropState.scale = clamp(cropInteraction.startScale + scaleDelta, 0.45, 1);
+                cropState.x = clamp(cropState.x, 0, 1);
+                cropState.y = clamp(cropState.y, 0, 1);
+            }
+
+            drawCropPreview();
+        }
+
+        function endCropInteraction(event) {
+            if (!cropInteraction.mode || !cropPreviewCanvas) return;
+            if (cropPreviewCanvas.releasePointerCapture && event.pointerId != null) {
+                try { cropPreviewCanvas.releasePointerCapture(event.pointerId); } catch (err) {}
+            }
+            cropInteraction.mode = '';
+            cropPreviewCanvas.classList.remove('is-dragging', 'is-resizing');
         }
 
         function drawImageCover(ctx, img, dx, dy, dw, dh, cropRect) {
@@ -964,19 +1085,6 @@
                 ctx.fillRect(x, y, size, size);
             }
 
-            for (let i = 0; i < 22; i += 1) {
-                const x = Math.random() * width;
-                const y = Math.random() * photoHeight;
-                const len = Math.random() * 170 + 60;
-                const angle = (Math.random() - 0.5) * 0.6;
-                ctx.strokeStyle = `rgba(98, 76, 55, ${Math.random() * 0.1})`;
-                ctx.lineWidth = Math.random() * 1.2 + 0.25;
-                ctx.beginPath();
-                ctx.moveTo(x, y);
-                ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len);
-                ctx.stroke();
-            }
-
             const vignette = ctx.createRadialGradient(width / 2, photoHeight / 2, width * 0.25, width / 2, photoHeight / 2, width * 0.82);
             vignette.addColorStop(0, 'rgba(0,0,0,0)');
             vignette.addColorStop(1, 'rgba(34, 24, 16, 0.16)');
@@ -1001,18 +1109,6 @@
                 ctx.fillRect(x, y, size, size);
             }
 
-            for (let i = 0; i < 10; i += 1) {
-                const x = Math.random() * width;
-                const y = panelY + Math.random() * (height - panelY);
-                const len = Math.random() * 130 + 40;
-                const angle = (Math.random() - 0.5) * 0.45;
-                ctx.strokeStyle = `rgba(120, 103, 86, ${Math.random() * 0.14})`;
-                ctx.lineWidth = Math.random() * 1.2 + 0.25;
-                ctx.beginPath();
-                ctx.moveTo(x, y);
-                ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len);
-                ctx.stroke();
-            }
             ctx.restore();
         }
 
@@ -1087,8 +1183,9 @@
                 generatedBlob = blob;
                 generatedName = `fulutool-calendar-${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}.png`;
                 clearPreview();
-                previewUrl = URL.createObjectURL(blob);
-                resultPreview.src = previewUrl;
+                previewDataUrl = canvas.toDataURL('image/png');
+                previewUrl = previewDataUrl;
+                resultPreview.src = previewDataUrl;
                 resultPreviewWrap.classList.add('show');
                 saveBtn.disabled = false;
                 setTaskState('taskStageDone', 'progressDoneHint', 100, 'complete');
@@ -1157,10 +1254,7 @@
                 const image = await loadImageFromFile(file);
                 currentFile = file;
                 currentImage = image;
-                cropState = { zoom: 1, x: 0.5, y: 0.5 };
-                if (cropZoomRange) cropZoomRange.value = '100';
-                if (cropXRange) cropXRange.value = '50';
-                if (cropYRange) cropYRange.value = '50';
+                cropState = { scale: 1, x: 0.5, y: 0.5 };
                 generatedBlob = null;
                 saveBtn.disabled = true;
                 generateBtn.disabled = false;
@@ -1222,22 +1316,15 @@
             savePoster();
         });
 
-        if (cropZoomRange) {
-            cropZoomRange.addEventListener('input', () => {
-                cropState.zoom = Number(cropZoomRange.value) / 100;
-                updateCropUi();
-            });
-        }
-        if (cropXRange) {
-            cropXRange.addEventListener('input', () => {
-                cropState.x = Number(cropXRange.value) / 100;
-                updateCropUi();
-            });
-        }
-        if (cropYRange) {
-            cropYRange.addEventListener('input', () => {
-                cropState.y = Number(cropYRange.value) / 100;
-                updateCropUi();
+        if (cropPreviewCanvas) {
+            cropPreviewCanvas.addEventListener('pointerdown', beginCropInteraction);
+            cropPreviewCanvas.addEventListener('pointermove', moveCropInteraction);
+            cropPreviewCanvas.addEventListener('pointerup', endCropInteraction);
+            cropPreviewCanvas.addEventListener('pointercancel', endCropInteraction);
+            cropPreviewCanvas.addEventListener('pointerleave', (event) => {
+                if (cropInteraction.mode && !cropPreviewCanvas.hasPointerCapture?.(event.pointerId)) {
+                    endCropInteraction(event);
+                }
             });
         }
 
