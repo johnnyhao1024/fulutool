@@ -1347,8 +1347,8 @@
             Object.assign(toast.style, {
                 position: 'fixed',
                 left: '50%',
-                bottom: '24px',
-                transform: 'translateX(-50%)',
+                top: '50%',
+                transform: 'translate(-50%, -50%)',
                 maxWidth: 'calc(100vw - 32px)',
                 padding: '12px 16px',
                 borderRadius: '14px',
@@ -1371,7 +1371,7 @@
             setTimeout(() => {
                 toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 220);
-            }, 2400);
+            }, 3000);
         }
 
         async function savePoster() {
