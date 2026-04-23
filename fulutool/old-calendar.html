@@ -1193,13 +1193,13 @@
         function addOldPhotoStyle(ctx, width, photoHeight) {
             ctx.save();
 
-            ctx.fillStyle = 'rgba(188, 138, 82, 0.07)';
+            ctx.fillStyle = 'rgba(188, 138, 82, 0.045)';
             ctx.fillRect(0, 0, width, photoHeight);
 
             const sunFade = ctx.createLinearGradient(0, 0, 0, photoHeight);
-            sunFade.addColorStop(0, 'rgba(255, 228, 172, 0.11)');
-            sunFade.addColorStop(0.46, 'rgba(171, 120, 76, 0.03)');
-            sunFade.addColorStop(1, 'rgba(112, 84, 56, 0.08)');
+            sunFade.addColorStop(0, 'rgba(255, 228, 172, 0.075)');
+            sunFade.addColorStop(0.46, 'rgba(171, 120, 76, 0.02)');
+            sunFade.addColorStop(1, 'rgba(112, 84, 56, 0.055)');
             ctx.fillStyle = sunFade;
             ctx.fillRect(0, 0, width, photoHeight);
 
@@ -1232,7 +1232,7 @@
         function addAgingEffects(ctx, width, height, splitY) {
             ctx.save();
             const panelY = Number.isFinite(splitY) ? splitY : Math.floor(height * 0.68);
-            ctx.fillStyle = 'rgba(202, 170, 120, 0.045)';
+            ctx.fillStyle = 'rgba(202, 170, 120, 0.028)';
             ctx.fillRect(0, 0, width, height);
 
             for (let i = 0; i < 2860; i += 1) {
@@ -1297,7 +1297,7 @@
                 const photoH = baseSplitY;
 
                 ctx.save();
-                ctx.filter = 'sepia(0.28) saturate(0.95) contrast(1.02) brightness(1.01)';
+                ctx.filter = 'sepia(0.18) saturate(0.97) contrast(1.02) brightness(1.01)';
                 drawImageCover(ctx, image, photoX, photoY, photoW, photoH, getCropRect(image));
                 ctx.restore();
                 addOldPhotoStyle(ctx, canvas.width, photoH);
