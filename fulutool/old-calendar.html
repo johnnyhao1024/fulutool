@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>老挂历海报生成器 · 福禄工具箱</title>
     <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -103,6 +102,58 @@
             border-radius: 24px;
             border: 1px solid #e2e8f0;
             padding: 1rem;
+        }
+        .crop-shell {
+            display: none;
+            margin-bottom: 1rem;
+            background: #f8fafc;
+            border-radius: 24px;
+            border: 1px solid #e2e8f0;
+            padding: 1rem;
+        }
+        .crop-shell.show {
+            display: block;
+        }
+        .crop-stage {
+            display: grid;
+            gap: 1rem;
+        }
+        .crop-preview-frame {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 18px;
+            padding: 0.9rem;
+        }
+        .crop-preview-canvas {
+            width: 100%;
+            aspect-ratio: 1440 / 1469;
+            border-radius: 14px;
+            display: block;
+            background: linear-gradient(180deg, #f8fafc, #eef4f8);
+        }
+        .crop-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 0.85rem 1rem;
+        }
+        .slider-field {
+            display: grid;
+            gap: 0.35rem;
+        }
+        .slider-field label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0;
+        }
+        .slider-value {
+            color: #64748b;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+        .slider-field input[type="range"] {
+            width: 100%;
         }
         .preview-title {
             font-size: 0.82rem;
@@ -297,6 +348,29 @@
             <div class="dropzone-copy" id="dropzoneCopy">支持将图片拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件</div>
         </div>
 
+        <div class="crop-shell" id="cropShell">
+            <div class="preview-title" id="cropTitle">✂️ 照片裁剪</div>
+            <div class="crop-stage">
+                <div class="crop-preview-frame">
+                    <canvas id="cropPreviewCanvas" class="crop-preview-canvas" width="720" height="734"></canvas>
+                </div>
+                <div class="crop-controls">
+                    <div class="slider-field">
+                        <label for="cropZoomRange"><span id="cropZoomLabel">缩放</span><span class="slider-value" id="cropZoomValue">100%</span></label>
+                        <input type="range" id="cropZoomRange" min="100" max="220" step="1" value="100">
+                    </div>
+                    <div class="slider-field">
+                        <label for="cropXRange"><span id="cropXLabel">左右位置</span><span class="slider-value" id="cropXValue">50%</span></label>
+                        <input type="range" id="cropXRange" min="0" max="100" step="1" value="50">
+                    </div>
+                    <div class="slider-field">
+                        <label for="cropYRange"><span id="cropYLabel">上下位置</span><span class="slider-value" id="cropYValue">50%</span></label>
+                        <input type="range" id="cropYRange" min="0" max="100" step="1" value="50">
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="control-row">
             <div class="field">
                 <label for="yearSelect">年份</label>
@@ -368,6 +442,14 @@
         const yearSelect = document.getElementById('yearSelect');
         const monthSelect = document.getElementById('monthSelect');
         const daySelect = document.getElementById('daySelect');
+        const cropShell = document.getElementById('cropShell');
+        const cropPreviewCanvas = document.getElementById('cropPreviewCanvas');
+        const cropZoomRange = document.getElementById('cropZoomRange');
+        const cropXRange = document.getElementById('cropXRange');
+        const cropYRange = document.getElementById('cropYRange');
+        const cropZoomValue = document.getElementById('cropZoomValue');
+        const cropXValue = document.getElementById('cropXValue');
+        const cropYValue = document.getElementById('cropYValue');
         const taskStageText = document.getElementById('taskStageText');
         const progressHint = document.getElementById('progressHint');
         const progressPercent = document.getElementById('progressPercent');
@@ -379,7 +461,12 @@
         let generatedBlob = null;
         let generatedName = '';
         let previewUrl = '';
-        let qrDataUrlCache = '';
+        let currentImage = null;
+        let cropState = {
+            zoom: 1,
+            x: 0.5,
+            y: 0.5
+        };
         let isGenerating = false;
         let taskState = {
             stageKey: 'taskStageIdle',
@@ -408,6 +495,10 @@
             saveFirst: '请先生成挂历海报',
             saveDoneShare: '图片已保存。欢迎分享至微信、微博、小红书等社交平台',
             saveWechatTip: '微信内置浏览器不支持直接下载。请长按下方预览图并选择“保存图片”',
+            cropTitle: '✂️ 照片裁剪',
+            cropZoomLabel: '缩放',
+            cropXLabel: '左右位置',
+            cropYLabel: '上下位置',
             yearLabel: '年份',
             monthLabel: '月份',
             dayLabel: '日期',
@@ -436,6 +527,10 @@
             saveFirst: 'Please generate the poster first',
             saveDoneShare: 'Image saved successfully. Feel free to share it on your social platforms',
             saveWechatTip: 'WeChat in-app browser does not support direct download. Please long-press the preview image below and save it.',
+            cropTitle: '✂️ Photo crop',
+            cropZoomLabel: 'Zoom',
+            cropXLabel: 'Horizontal',
+            cropYLabel: 'Vertical',
             yearLabel: 'Year',
             monthLabel: 'Month',
             dayLabel: 'Day',
@@ -533,9 +628,17 @@
             const yearLabel = document.querySelector('label[for="yearSelect"]');
             const monthLabel = document.querySelector('label[for="monthSelect"]');
             const dayLabel = document.querySelector('label[for="daySelect"]');
+            const cropTitle = document.getElementById('cropTitle');
+            const cropZoomLabel = document.getElementById('cropZoomLabel');
+            const cropXLabel = document.getElementById('cropXLabel');
+            const cropYLabel = document.getElementById('cropYLabel');
             if (yearLabel) yearLabel.textContent = T('yearLabel', '年份');
             if (monthLabel) monthLabel.textContent = T('monthLabel', '月份');
             if (dayLabel) dayLabel.textContent = T('dayLabel', '日期');
+            if (cropTitle) cropTitle.textContent = T('cropTitle', '✂️ 照片裁剪');
+            if (cropZoomLabel) cropZoomLabel.textContent = T('cropZoomLabel', '缩放');
+            if (cropXLabel) cropXLabel.textContent = T('cropXLabel', '左右位置');
+            if (cropYLabel) cropYLabel.textContent = T('cropYLabel', '上下位置');
             if (selectPhotoBtn) selectPhotoBtn.textContent = T('selectPhotoBtn', '📂 选择照片');
             if (generateBtn) generateBtn.textContent = T('generateBtn', '⚡ 开始生成');
             if (saveBtn) saveBtn.textContent = T('saveBtn', '💾 保存图片');
@@ -627,6 +730,28 @@
             resultPreviewWrap.classList.remove('show');
         }
 
+        function getCropRect(img) {
+            const targetAspect = 1440 / Math.floor(2160 * 0.68);
+            let baseW;
+            let baseH;
+            if (img.width / img.height > targetAspect) {
+                baseH = img.height;
+                baseW = baseH * targetAspect;
+            } else {
+                baseW = img.width;
+                baseH = baseW / targetAspect;
+            }
+
+            const zoom = Math.max(1, cropState.zoom || 1);
+            const cropW = baseW / zoom;
+            const cropH = baseH / zoom;
+            const maxX = Math.max(0, img.width - cropW);
+            const maxY = Math.max(0, img.height - cropH);
+            const sx = maxX * Math.min(1, Math.max(0, cropState.x));
+            const sy = maxY * Math.min(1, Math.max(0, cropState.y));
+            return { sx, sy, sw: cropW, sh: cropH };
+        }
+
         function loadImageFromFile(file) {
             return new Promise((resolve, reject) => {
                 const url = URL.createObjectURL(file);
@@ -652,59 +777,33 @@
             });
         }
 
-        function getToolQrDataUrl() {
-            if (qrDataUrlCache) return Promise.resolve(qrDataUrlCache);
-            return new Promise((resolve, reject) => {
-                if (typeof QRCode === 'undefined') {
-                    reject(new Error('QRCode library unavailable'));
-                    return;
-                }
+        function drawCropPreview() {
+            if (!cropPreviewCanvas) return;
+            const ctx = cropPreviewCanvas.getContext('2d');
+            if (!ctx) return;
 
-                const holder = document.createElement('div');
-                holder.style.position = 'fixed';
-                holder.style.left = '-9999px';
-                holder.style.top = '-9999px';
-                holder.style.width = '220px';
-                holder.style.height = '220px';
-                document.body.appendChild(holder);
+            ctx.clearRect(0, 0, cropPreviewCanvas.width, cropPreviewCanvas.height);
+            ctx.fillStyle = '#eef4f8';
+            ctx.fillRect(0, 0, cropPreviewCanvas.width, cropPreviewCanvas.height);
 
-                const toolUrl = `${location.origin}/old-calendar.html`;
-                // eslint-disable-next-line no-new
-                new QRCode(holder, {
-                    text: toolUrl,
-                    width: 220,
-                    height: 220,
-                    colorDark: '#1f2937',
-                    colorLight: '#ffffff',
-                    correctLevel: QRCode.CorrectLevel.M
-                });
-
-                setTimeout(() => {
-                    try {
-                        const canvas = holder.querySelector('canvas');
-                        const img = holder.querySelector('img');
-                        if (canvas) {
-                            qrDataUrlCache = canvas.toDataURL('image/png');
-                        } else if (img && img.src) {
-                            qrDataUrlCache = img.src;
-                        }
-                        holder.remove();
-                        if (qrDataUrlCache) resolve(qrDataUrlCache);
-                        else reject(new Error('QR render failed'));
-                    } catch (error) {
-                        holder.remove();
-                        reject(error);
-                    }
-                }, 120);
-            });
+            if (!currentImage) return;
+            const { sx, sy, sw, sh } = getCropRect(currentImage);
+            ctx.drawImage(currentImage, sx, sy, sw, sh, 0, 0, cropPreviewCanvas.width, cropPreviewCanvas.height);
         }
 
-        function drawImageCover(ctx, img, dx, dy, dw, dh) {
-            const ratio = Math.max(dw / img.width, dh / img.height);
-            const sw = dw / ratio;
-            const sh = dh / ratio;
-            const sx = (img.width - sw) / 2;
-            const sy = (img.height - sh) / 2;
+        function updateCropUi() {
+            if (cropZoomValue) cropZoomValue.textContent = `${Math.round(cropState.zoom * 100)}%`;
+            if (cropXValue) cropXValue.textContent = `${Math.round(cropState.x * 100)}%`;
+            if (cropYValue) cropYValue.textContent = `${Math.round(cropState.y * 100)}%`;
+            drawCropPreview();
+        }
+
+        function drawImageCover(ctx, img, dx, dy, dw, dh, cropRect) {
+            const rect = cropRect || getCropRect(img);
+            const sx = rect.sx;
+            const sy = rect.sy;
+            const sw = rect.sw;
+            const sh = rect.sh;
             ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
         }
 
@@ -856,7 +955,7 @@
             ctx.fillStyle = sideBurn;
             ctx.fillRect(0, 0, width, photoHeight);
 
-            for (let i = 0; i < 12500; i += 1) {
+            for (let i = 0; i < 13750; i += 1) {
                 const x = Math.random() * width;
                 const y = Math.random() * photoHeight;
                 const alpha = Math.random() * 0.05;
@@ -893,7 +992,7 @@
             ctx.fillStyle = 'rgba(202, 170, 120, 0.045)';
             ctx.fillRect(0, 0, width, height);
 
-            for (let i = 0; i < 2600; i += 1) {
+            for (let i = 0; i < 2860; i += 1) {
                 const x = Math.random() * width;
                 const y = Math.random() * height;
                 const alpha = Math.random() * 0.03;
@@ -917,22 +1016,13 @@
             ctx.restore();
         }
 
-        async function drawToolLinkQr(ctx, width, height) {
-            const qrBoxSize = Math.max(44, Math.floor(width * 0.039));
-            const padding = Math.max(5, Math.floor(width * 0.0035));
-            const boxX = width - qrBoxSize - padding * 2 - 16;
-            const boxY = height - qrBoxSize - padding * 2 - 16;
-
-            const qrDataUrl = await getToolQrDataUrl();
-            const qrImage = await loadImageFromSrc(qrDataUrl);
-
+        function drawWatermark(ctx, width, height) {
             ctx.save();
-            ctx.fillStyle = 'rgba(255,255,255,0.88)';
-            ctx.fillRect(boxX, boxY, qrBoxSize + padding * 2, qrBoxSize + padding * 2);
-            ctx.strokeStyle = 'rgba(15, 23, 42, 0.22)';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(boxX, boxY, qrBoxSize + padding * 2, qrBoxSize + padding * 2);
-            ctx.drawImage(qrImage, boxX + padding, boxY + padding, qrBoxSize, qrBoxSize);
+            ctx.font = `700 ${Math.floor(width * 0.026)}px "Segoe UI", Arial, sans-serif`;
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'alphabetic';
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.26)';
+            ctx.fillText('fulutool.com', width - 26, height - 24);
             ctx.restore();
         }
 
@@ -953,7 +1043,7 @@
                 const year = Number(yearSelect.value);
                 const month = Number(monthSelect.value);
                 const day = Number(daySelect.value);
-                const image = await loadImageFromFile(currentFile);
+                const image = currentImage || await loadImageFromFile(currentFile);
                 setTaskState('taskStageGenerating', 'progressGeneratingHint', 56, 'busy');
 
                 const canvas = document.createElement('canvas');
@@ -977,17 +1067,13 @@
 
                 ctx.save();
                 ctx.filter = 'sepia(0.28) saturate(0.95) contrast(1.02) brightness(1.01)';
-                drawImageCover(ctx, image, photoX, photoY, photoW, photoH);
+                drawImageCover(ctx, image, photoX, photoY, photoW, photoH, getCropRect(image));
                 ctx.restore();
                 addOldPhotoStyle(ctx, canvas.width, photoH);
 
                 drawVintageCalendar(ctx, canvas.width, canvas.height, year, month, day, calendarSplitY);
                 addAgingEffects(ctx, canvas.width, canvas.height, calendarSplitY);
-                try {
-                    await drawToolLinkQr(ctx, canvas.width, canvas.height);
-                } catch (qrError) {
-                    console.warn('QR watermark render failed', qrError);
-                }
+                drawWatermark(ctx, canvas.width, canvas.height);
 
                 setTaskState('taskStageGenerating', 'progressGeneratingHint', 85, 'busy');
 
@@ -1050,13 +1136,16 @@
             }, 120);
         }
 
-        function applySelectedFile(file) {
+        async function applySelectedFile(file) {
             if (!file) {
                 currentFile = null;
+                currentImage = null;
                 generatedBlob = null;
                 saveBtn.disabled = true;
                 generateBtn.disabled = true;
+                if (cropShell) cropShell.classList.remove('show');
                 clearPreview();
+                updateCropUi();
                 syncStaticText();
                 return;
             }
@@ -1064,12 +1153,25 @@
                 alert(T('invalidImage', '请选择有效的图片文件'));
                 return;
             }
-            currentFile = file;
-            generatedBlob = null;
-            saveBtn.disabled = true;
-            generateBtn.disabled = false;
-            clearPreview();
-            syncStaticText();
+            try {
+                const image = await loadImageFromFile(file);
+                currentFile = file;
+                currentImage = image;
+                cropState = { zoom: 1, x: 0.5, y: 0.5 };
+                if (cropZoomRange) cropZoomRange.value = '100';
+                if (cropXRange) cropXRange.value = '50';
+                if (cropYRange) cropYRange.value = '50';
+                generatedBlob = null;
+                saveBtn.disabled = true;
+                generateBtn.disabled = false;
+                if (cropShell) cropShell.classList.add('show');
+                clearPreview();
+                updateCropUi();
+                syncStaticText();
+            } catch (error) {
+                console.error(error);
+                alert(T('invalidImage', '请选择有效的图片文件'));
+            }
         }
 
         selectPhotoBtn.addEventListener('click', () => {
@@ -1120,6 +1222,25 @@
             savePoster();
         });
 
+        if (cropZoomRange) {
+            cropZoomRange.addEventListener('input', () => {
+                cropState.zoom = Number(cropZoomRange.value) / 100;
+                updateCropUi();
+            });
+        }
+        if (cropXRange) {
+            cropXRange.addEventListener('input', () => {
+                cropState.x = Number(cropXRange.value) / 100;
+                updateCropUi();
+            });
+        }
+        if (cropYRange) {
+            cropYRange.addEventListener('input', () => {
+                cropState.y = Number(cropYRange.value) / 100;
+                updateCropUi();
+            });
+        }
+
         populateYearMonth();
         updateDayOptions(new Date().getDate());
 
@@ -1136,10 +1257,12 @@
         window.FULUTOOL_HOOKS.onReady = function (lang) {
             if (typeof previousReady === 'function') previousReady(lang);
             syncStaticText(lang);
+            updateCropUi();
         };
         window.FULUTOOL_HOOKS.onLanguageChange = function (lang) {
             if (typeof previousLanguageChange === 'function') previousLanguageChange(lang);
             syncStaticText(lang);
+            updateCropUi();
         };
 
         window.addEventListener('beforeunload', () => {
