@@ -486,6 +486,8 @@
             saveFirst: '请先生成挂历海报',
             saveDoneShare: '图片已保存。欢迎分享至微信、微博、小红书等社交平台',
             saveWechatTip: '微信内置浏览器不支持直接下载。请长按下方预览图并选择“保存图片”',
+            saveMobileDoneShare: '图片已保存。欢迎继续分享至微博、小红书、朋友圈',
+            saveMobileFallbackTip: '当前浏览器将打开图片预览页，请长按图片保存。保存后欢迎分享至微博、小红书、朋友圈',
             cropTitle: '✂️ 照片裁剪',
             cropHelp: '拖动选框调整照片区域，双指捏合可放大或缩小选区，也可拖动右下角圆点微调。',
             yearLabel: '年份',
@@ -516,6 +518,8 @@
             saveFirst: 'Please generate the poster first',
             saveDoneShare: 'Image saved successfully. Feel free to share it on your social platforms',
             saveWechatTip: 'WeChat in-app browser does not support direct download. Please long-press the preview image below and save it.',
+            saveMobileDoneShare: 'Image saved successfully. Feel free to share it on Weibo, Xiaohongshu, or Moments.',
+            saveMobileFallbackTip: 'Your browser will open the image preview page. Please long-press the image to save it, then share it on your social platforms if you like.',
             cropTitle: '✂️ Photo crop',
             cropHelp: 'Drag the crop box to reposition the photo. Use two fingers to zoom the selection, or drag the bottom-right handle for fine tuning.',
             yearLabel: 'Year',
@@ -1325,13 +1329,19 @@
             }
         }
 
-        function savePoster() {
+        function isMobileBrowser() {
+            const ua = navigator.userAgent || '';
+            return /Android|iPhone|iPad|iPod|Mobile|HarmonyOS/i.test(ua) || navigator.maxTouchPoints > 1;
+        }
+
+        async function savePoster() {
             if (!generatedBlob) {
                 alert(T('saveFirst', '请先生成挂历海报'));
                 return;
             }
             const ua = navigator.userAgent || '';
             const isWeChat = /MicroMessenger/i.test(ua);
+            const isMobile = isMobileBrowser();
             if (isWeChat) {
                 if (resultPreviewWrap && !resultPreviewWrap.classList.contains('show')) {
                     resultPreviewWrap.classList.add('show');
@@ -1340,6 +1350,40 @@
                     resultPreviewWrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
                 alert(T('saveWechatTip', '微信内置浏览器不支持直接下载。请长按下方预览图并选择“保存图片”'));
+                return;
+            }
+
+            if (isMobile) {
+                const fileName = generatedName || 'fulutool-calendar.png';
+                const shareFile = new File([generatedBlob], fileName, { type: generatedBlob.type || 'image/png' });
+                const sharePayload = {
+                    files: [shareFile],
+                    title: fileName
+                };
+
+                try {
+                    if (navigator.share && (!navigator.canShare || navigator.canShare(sharePayload))) {
+                        await navigator.share(sharePayload);
+                        alert(T('saveMobileDoneShare', '图片已保存。欢迎继续分享至微博、小红书、朋友圈'));
+                        return;
+                    }
+                } catch (error) {
+                    if (error && error.name === 'AbortError') {
+                        return;
+                    }
+                }
+
+                const previewSource = previewDataUrl || previewUrl;
+                if (previewSource) {
+                    const previewWindow = window.open('', '_blank');
+                    if (previewWindow) {
+                        previewWindow.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${fileName}</title><style>html,body{margin:0;padding:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100%;}img{max-width:100vw;max-height:100vh;display:block;}</style></head><body><img src="${previewSource}" alt="${fileName}"></body></html>`);
+                        previewWindow.document.close();
+                    } else {
+                        window.location.href = previewSource;
+                    }
+                }
+                alert(T('saveMobileFallbackTip', '当前浏览器将打开图片预览页，请长按图片保存。保存后欢迎分享至微博、小红书、朋友圈'));
                 return;
             }
 
