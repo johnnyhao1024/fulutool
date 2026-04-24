@@ -1172,10 +1172,14 @@
                         ctx.save();
                         ctx.strokeStyle = '#b5475a';
                         ctx.lineWidth = Math.max(2, Math.floor(width * 0.0018));
-                        const dayTextWidth = ctx.measureText(dayText).width || (dayNumberSize * 0.9);
-                        const radius = Math.max(dayNumberSize * 0.5, dayTextWidth * 0.54);
+                        const dayTextMetrics = ctx.measureText(dayText);
+                        const dayTextWidth = dayTextMetrics.width || (dayNumberSize * 0.9);
+                        const lunarGap = Math.max(4, Math.floor(width * 0.004));
+                        const maxRingY = Math.max(dayNumberSize * 0.42, (subY - dayY - lunarGap) * 0.72);
+                        const ringY = Math.min(dayNumberSize * 0.52, maxRingY);
+                        const ringX = Math.max(dayTextWidth * 0.58, ringY * 1.08);
                         ctx.beginPath();
-                        ctx.arc(x, dayY, radius, 0, Math.PI * 2);
+                        ctx.ellipse(x, dayY, ringX, ringY, 0, 0, Math.PI * 2);
                         ctx.stroke();
                         ctx.restore();
                     }
