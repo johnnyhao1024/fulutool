@@ -1149,12 +1149,13 @@
             let day = 1;
             const dayNumberSize = Math.floor(width * 0.036);
             const starSize = Math.floor(width * 0.034);
+            const lunarTextSize = Math.floor(width * 0.011);
             for (let idx = 0; idx < cols * rows; idx += 1) {
                 const row = Math.floor(idx / cols);
                 const col = idx % cols;
                 const x = colCenterX(col);
                 const dayY = rowTop + row * rowH + Math.floor(rowH * 0.36);
-                const subY = rowTop + row * rowH + Math.floor(rowH * 0.66);
+                const subY = rowTop + row * rowH + Math.floor(rowH * 0.75);
                 const weekIndex = col % 7;
 
                 if (idx >= firstWeekday && day <= days) {
@@ -1172,14 +1173,13 @@
                         ctx.save();
                         ctx.strokeStyle = '#b5475a';
                         ctx.lineWidth = Math.max(2, Math.floor(width * 0.0018));
-                        const dayTextMetrics = ctx.measureText(dayText);
-                        const dayTextWidth = dayTextMetrics.width || (dayNumberSize * 0.9);
-                        const lunarGap = Math.max(4, Math.floor(width * 0.004));
-                        const maxRingY = Math.max(dayNumberSize * 0.42, (subY - dayY - lunarGap) * 0.72);
-                        const ringY = Math.min(dayNumberSize * 0.52, maxRingY);
-                        const ringX = Math.max(dayTextWidth * 0.58, ringY * 1.08);
+                        const dayTextWidth = ctx.measureText(dayText).width || (dayNumberSize * 0.9);
+                        const lunarGap = Math.max(6, Math.floor(width * 0.005));
+                        const radiusForText = Math.max(dayNumberSize * 0.56, dayTextWidth * 0.64);
+                        const maxRadius = Math.max(dayNumberSize * 0.5, subY - dayY - lunarTextSize - lunarGap);
+                        const radius = Math.min(radiusForText, maxRadius);
                         ctx.beginPath();
-                        ctx.ellipse(x, dayY, ringX, ringY, 0, 0, Math.PI * 2);
+                        ctx.arc(x, dayY, radius, 0, Math.PI * 2);
                         ctx.stroke();
                         ctx.restore();
                     }
@@ -1188,7 +1188,7 @@
                     if (lunarLabel) {
                         ctx.fillStyle = '#6c7b8b';
                         ctx.textBaseline = 'alphabetic';
-                        ctx.font = `${Math.floor(width * 0.011)}px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif`;
+                        ctx.font = `${lunarTextSize}px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif`;
                         ctx.fillText(lunarLabel, x, subY);
                     }
                     day += 1;
