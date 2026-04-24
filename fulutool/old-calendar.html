@@ -1173,7 +1173,7 @@
                         ctx.strokeStyle = '#b5475a';
                         ctx.lineWidth = Math.max(2, Math.floor(width * 0.0018));
                         const dayTextWidth = ctx.measureText(dayText).width || (dayNumberSize * 0.9);
-                        const radius = Math.max(dayNumberSize * 0.66, dayTextWidth * 0.62);
+                        const radius = Math.max(dayNumberSize * 0.5, dayTextWidth * 0.54);
                         ctx.beginPath();
                         ctx.arc(x, dayY, radius, 0, Math.PI * 2);
                         ctx.stroke();
