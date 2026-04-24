@@ -730,7 +730,11 @@
         }
 
         function getPosterPhotoRatio() {
-            return 0.705;
+            return 0.75;
+        }
+
+        function getPosterPanelGapRatio() {
+            return 0.01;
         }
 
         function getPosterCropAspect() {
@@ -1068,7 +1072,7 @@
         }
 
         function drawVintageCalendar(ctx, width, height, year, month, birthdayDay, splitY) {
-            const panelY = Number.isFinite(splitY) ? Math.floor(splitY) : Math.floor(height * (getPosterPhotoRatio() + 0.014));
+            const panelY = Number.isFinite(splitY) ? Math.floor(splitY) : Math.floor(height * (getPosterPhotoRatio() + getPosterPanelGapRatio()));
             const panelH = height - panelY;
             ctx.fillStyle = '#eef4f8';
             ctx.fillRect(0, panelY, width, panelH);
@@ -1083,10 +1087,10 @@
             const cols = 14;
             const rows = 3;
             const colW = gridW / cols;
-            const headerEnY = panelY + 20;
-            const headerZhY = panelY + 50;
-            const rowTop = panelY + 82;
-            const rowH = Math.floor((panelH - 98) / rows);
+            const headerEnY = panelY + 16;
+            const headerZhY = panelY + 40;
+            const rowTop = panelY + 66;
+            const rowH = Math.floor((panelH - 80) / rows);
             const colCenterX = (col) => {
                 return gridX + col * colW + colW / 2;
             };
@@ -1149,8 +1153,8 @@
                 const row = Math.floor(idx / cols);
                 const col = idx % cols;
                 const x = colCenterX(col);
-                const dayY = rowTop + row * rowH + Math.floor(rowH * 0.38);
-                const subY = rowTop + row * rowH + Math.floor(rowH * 0.72);
+                const dayY = rowTop + row * rowH + Math.floor(rowH * 0.36);
+                const subY = rowTop + row * rowH + Math.floor(rowH * 0.66);
                 const weekIndex = col % 7;
 
                 if (idx >= firstWeekday && day <= days) {
@@ -1235,7 +1239,7 @@
 
         function addAgingEffects(ctx, width, height, splitY) {
             ctx.save();
-            const panelY = Number.isFinite(splitY) ? splitY : Math.floor(height * (getPosterPhotoRatio() + 0.014));
+            const panelY = Number.isFinite(splitY) ? splitY : Math.floor(height * (getPosterPhotoRatio() + getPosterPanelGapRatio()));
             ctx.fillStyle = 'rgba(202, 170, 120, 0.028)';
             ctx.fillRect(0, 0, width, height);
 
@@ -1293,7 +1297,7 @@
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                 const baseSplitY = Math.floor(canvas.height * getPosterPhotoRatio());
-                const panelGap = Math.floor(canvas.height * 0.014);
+                const panelGap = Math.floor(canvas.height * getPosterPanelGapRatio());
                 const calendarSplitY = baseSplitY + panelGap;
                 const photoX = 0;
                 const photoY = 0;
