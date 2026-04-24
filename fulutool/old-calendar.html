@@ -729,8 +729,12 @@
             return window.matchMedia('(max-width: 700px)').matches;
         }
 
+        function getPosterPhotoRatio() {
+            return 0.705;
+        }
+
         function getPosterCropAspect() {
-            return 1440 / Math.floor(2160 * 0.68);
+            return 1440 / Math.floor(2160 * getPosterPhotoRatio());
         }
 
         function updateCropCanvasSize() {
@@ -1064,7 +1068,7 @@
         }
 
         function drawVintageCalendar(ctx, width, height, year, month, birthdayDay, splitY) {
-            const panelY = Number.isFinite(splitY) ? Math.floor(splitY) : Math.floor(height * 0.68);
+            const panelY = Number.isFinite(splitY) ? Math.floor(splitY) : Math.floor(height * (getPosterPhotoRatio() + 0.014));
             const panelH = height - panelY;
             ctx.fillStyle = '#eef4f8';
             ctx.fillRect(0, panelY, width, panelH);
@@ -1079,10 +1083,10 @@
             const cols = 14;
             const rows = 3;
             const colW = gridW / cols;
-            const headerEnY = panelY + 26;
-            const headerZhY = panelY + 62;
-            const rowTop = panelY + 96;
-            const rowH = Math.floor((panelH - 118) / rows);
+            const headerEnY = panelY + 20;
+            const headerZhY = panelY + 50;
+            const rowTop = panelY + 82;
+            const rowH = Math.floor((panelH - 98) / rows);
             const colCenterX = (col) => {
                 return gridX + col * colW + colW / 2;
             };
@@ -1145,8 +1149,8 @@
                 const row = Math.floor(idx / cols);
                 const col = idx % cols;
                 const x = colCenterX(col);
-                const dayY = rowTop + row * rowH + Math.floor(rowH * 0.40);
-                const subY = rowTop + row * rowH + Math.floor(rowH * 0.78);
+                const dayY = rowTop + row * rowH + Math.floor(rowH * 0.38);
+                const subY = rowTop + row * rowH + Math.floor(rowH * 0.72);
                 const weekIndex = col % 7;
 
                 if (idx >= firstWeekday && day <= days) {
@@ -1231,7 +1235,7 @@
 
         function addAgingEffects(ctx, width, height, splitY) {
             ctx.save();
-            const panelY = Number.isFinite(splitY) ? splitY : Math.floor(height * 0.68);
+            const panelY = Number.isFinite(splitY) ? splitY : Math.floor(height * (getPosterPhotoRatio() + 0.014));
             ctx.fillStyle = 'rgba(202, 170, 120, 0.028)';
             ctx.fillRect(0, 0, width, height);
 
@@ -1288,8 +1292,8 @@
                 ctx.fillStyle = '#eef4f8';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                const baseSplitY = Math.floor(canvas.height * 0.68);
-                const panelGap = Math.floor(canvas.height * 0.018);
+                const baseSplitY = Math.floor(canvas.height * getPosterPhotoRatio());
+                const panelGap = Math.floor(canvas.height * 0.014);
                 const calendarSplitY = baseSplitY + panelGap;
                 const photoX = 0;
                 const photoY = 0;
