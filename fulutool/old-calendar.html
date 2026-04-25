@@ -1214,21 +1214,30 @@
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
 
+            const yearY = Math.floor(height * 0.07);
+            const monthDigitY = Math.floor(height * 0.145);
+            const monthShortY = Math.floor(height * 0.202);
+            const ganzhiY = Math.floor(height * 0.245);
+
             ctx.fillStyle = '#a74155';
             ctx.font = `700 ${Math.floor(width * 0.045)}px "Times New Roman", Georgia, "Songti SC", serif`;
-            ctx.fillText(String(year), centerX, Math.floor(height * 0.065));
+            ctx.fillText(String(year), centerX, yearY);
 
             ctx.fillStyle = '#c026d3';
-            ctx.font = `800 ${Math.floor(width * 0.105)}px "Arial Black", "Helvetica Neue", Arial, sans-serif`;
-            ctx.fillText(String(month), centerX, Math.floor(height * 0.16));
+            ctx.font = `800 ${Math.floor(width * 0.098)}px "Arial Black", "Helvetica Neue", Arial, sans-serif`;
+            ctx.fillText(String(month), centerX, monthDigitY);
+
+            ctx.fillStyle = '#0f76a8';
+            ctx.font = `800 ${Math.floor(width * 0.025)}px "Arial Black", "Helvetica Neue", Arial, sans-serif`;
+            ctx.fillText(getMonthShort(month), centerX, monthShortY);
 
             ctx.fillStyle = '#596a7c';
             ctx.font = `600 ${Math.floor(width * 0.012)}px "Noto Sans SC", "PingFang SC", sans-serif`;
-            ctx.fillText(`${getGanzhiYear(year)} · ${getMonthShort(month)}`, centerX, Math.floor(height * 0.225));
+            ctx.fillText(getGanzhiYear(year), centerX, ganzhiY);
 
             const days = getMonthDays(year, month);
             const weekZh = ['日', '一', '二', '三', '四', '五', '六'];
-            const listTop = Math.floor(height * 0.265);
+            const listTop = Math.floor(height * 0.292);
             const listBottom = Math.floor(height * 0.91);
             const rowH = (listBottom - listTop) / days;
             const weekX = panelX + panelW * 0.22;
