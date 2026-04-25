@@ -381,7 +381,7 @@
 <div class="container">
     <div class="tool-panel">
         <div class="tool-title">🗓️ 老挂历海报生成器</div>
-        <div class="tool-desc">上传照片并选择年月，一键生成90年代风格老挂历海报，自动写入真实日历信息</div>
+        <div class="tool-desc" id="toolDesc">上传照片并选择模版和日期，一键生成老挂历风格海报。</div>
 
         <div class="dropzone" id="dropzone">
             <div class="upload-row">
@@ -556,6 +556,7 @@
         window.FULUTOOL_MESSAGES = window.FULUTOOL_MESSAGES || {};
         window.FULUTOOL_MESSAGES.zh = Object.assign({
             fileNotSelected: '📎 尚未选择文件',
+            toolDesc: '上传照片并选择模版和日期，一键生成老挂历风格海报。',
             selectedFile: '📎 已选择文件：',
             invalidImage: '请选择有效的图片文件',
             selectPhotoFirst: '请先选择一张照片',
@@ -591,6 +592,7 @@
         }, window.FULUTOOL_MESSAGES.zh || {});
         window.FULUTOOL_MESSAGES.en = Object.assign({
             fileNotSelected: '📎 No file selected yet',
+            toolDesc: 'Upload a photo, choose a template and date, then generate a vintage calendar-style poster in one click.',
             selectedFile: '📎 Selected file:',
             invalidImage: 'Please choose a valid image file',
             selectPhotoFirst: 'Please choose a photo first',
@@ -731,6 +733,8 @@
             const cropTitle = document.getElementById('cropTitle');
             const cropHelp = document.getElementById('cropHelp');
             const templateTitle = document.getElementById('templateTitle');
+            const toolDesc = document.getElementById('toolDesc');
+            if (toolDesc) toolDesc.textContent = T('toolDesc', '上传照片并选择模版和日期，一键生成老挂历风格海报。');
             if (yearLabel) yearLabel.textContent = T('yearLabel', '年份');
             if (monthLabel) monthLabel.textContent = T('monthLabel', '月份');
             if (dayLabel) dayLabel.textContent = T('dayLabel', '日期');
