@@ -842,7 +842,7 @@
         }
 
         function getPosterPanelGapRatio() {
-            return 0.01;
+            return 0.014;
         }
 
         function getPosterCropAspect() {
@@ -1214,10 +1214,10 @@
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
 
-            const yearY = Math.floor(height * 0.07);
-            const monthDigitY = Math.floor(height * 0.145);
-            const monthShortY = Math.floor(height * 0.194);
-            const ganzhiY = Math.floor(height * 0.245);
+            const yearY = Math.floor(height * 0.055);
+            const monthDigitY = Math.floor(height * 0.127);
+            const monthShortY = Math.floor(height * 0.176);
+            const ganzhiY = Math.floor(height * 0.222);
 
             ctx.fillStyle = '#a74155';
             ctx.font = `700 ${Math.floor(width * 0.045)}px "Times New Roman", Georgia, "Songti SC", serif`;
@@ -1237,8 +1237,8 @@
 
             const days = getMonthDays(year, month);
             const weekZh = ['日', '一', '二', '三', '四', '五', '六'];
-            const listTop = Math.floor(height * 0.292);
-            const listBottom = Math.floor(height * 0.91);
+            const listTop = Math.floor(height * 0.262);
+            const listBottom = Math.floor(height * 0.935);
             const rowH = (listBottom - listTop) / days;
             const weekX = panelX + panelW * 0.22;
             const dayX = panelX + panelW * 0.5;
@@ -1314,8 +1314,8 @@
             const colW = gridW / cols;
             const headerEnY = panelY + 16;
             const headerZhY = panelY + 40;
-            const rowTop = panelY + 66;
-            const rowH = Math.floor((panelH - 80) / rows);
+            const rowTop = panelY + 64;
+            const rowH = Math.floor((panelH - 86) / rows);
             const colCenterX = (col) => {
                 return gridX + col * colW + colW / 2;
             };
