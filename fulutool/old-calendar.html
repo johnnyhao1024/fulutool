@@ -409,7 +409,7 @@
             <div class="dropzone-copy" id="dropzoneCopy">支持将图片拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件</div>
         </div>
 
-        <div class="template-section">
+        <div class="template-section" id="templateSection">
             <div class="preview-title" id="templateTitle">选择模版</div>
             <div class="template-grid">
                 <button type="button" class="template-option is-active" data-template="classic" aria-pressed="true">
@@ -469,7 +469,7 @@
             <button id="generateBtn" class="primary" disabled>⚡ 开始生成</button>
         </div>
 
-        <div class="preview-shell">
+        <div class="preview-shell" id="taskStatusSection">
             <div class="preview-title">📈 任务状态</div>
             <div class="preview-frame">
                 <div class="task-stage">
@@ -524,6 +524,8 @@
         const cropShell = document.getElementById('cropShell');
         const cropPreviewCanvas = document.getElementById('cropPreviewCanvas');
         const templateOptions = Array.from(document.querySelectorAll('.template-option'));
+        const templateSection = document.getElementById('templateSection');
+        const taskStatusSection = document.getElementById('taskStatusSection');
         const taskStageText = document.getElementById('taskStageText');
         const progressHint = document.getElementById('progressHint');
         const progressPercent = document.getElementById('progressPercent');
@@ -856,6 +858,16 @@
 
         function isCompactScreen() {
             return window.matchMedia('(max-width: 700px)').matches;
+        }
+
+        function scrollToSectionOnMobile(element) {
+            if (!element || !isCompactScreen()) return;
+            window.setTimeout(() => {
+                element.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 80);
         }
 
         function getPosterPhotoRatio() {
@@ -1727,6 +1739,7 @@
                 clearPreview();
                 updateCropUi();
                 syncStaticText();
+                scrollToSectionOnMobile(templateSection || cropShell);
             } catch (error) {
                 console.error(error);
                 alert(T('invalidImage', '请选择有效的图片文件'));
@@ -1773,6 +1786,7 @@
 
         generateBtn.addEventListener('click', () => {
             addPressedEffect(generateBtn);
+            scrollToSectionOnMobile(taskStatusSection);
             generatePoster();
         });
 
