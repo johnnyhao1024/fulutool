@@ -85,7 +85,62 @@
         button.primary:hover { background: #1e293b; transform: translateY(-1px); }
         button:hover { background: #e6edf4; border-color: #cbd5e1; }
         button.pressed { background: #cbd5e1 !important; transform: scale(0.96); transition: 0.05s; }
-        .qrcode-box { display: flex; justify-content: center; margin-top: 1rem; padding: 0.8rem; background: #fff; border-radius: 20px; }
+        .qr-style-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .qr-style-card {
+            display: block;
+            width: 100%;
+            margin: 0;
+            background: #ffffff;
+            border: 2px solid #edf2f7;
+            border-radius: 24px;
+            padding: 1rem;
+            cursor: pointer;
+            text-align: center;
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+        .qr-style-card:hover {
+            transform: translateY(-2px);
+            border-color: #cbd5e1;
+        }
+        .qr-style-card.is-active {
+            border-color: #0f766e;
+            box-shadow: 0 14px 30px rgba(15, 118, 110, 0.12), 0 0 0 4px rgba(15, 118, 110, 0.08);
+        }
+        .qr-style-preview {
+            min-height: 188px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.8rem;
+            overflow: hidden;
+        }
+        .qr-style-preview canvas,
+        .qr-style-preview img {
+            width: 150px;
+            height: 150px;
+            display: block;
+        }
+        .qr-style-classic .qr-style-preview { background: #f8fafc; }
+        .qr-style-fulu .qr-style-preview { background: linear-gradient(135deg, #ecfdf5, #f0fdfa); }
+        .qr-style-ocean .qr-style-preview { background: linear-gradient(135deg, #eff6ff, #eef2ff); }
+        .qr-style-name {
+            display: block;
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .qr-style-desc {
+            display: block;
+            color: #64748b;
+            font-size: 0.72rem;
+            margin-top: 0.25rem;
+        }
         .save-qr-area {
             margin-top: 1rem;
             text-align: center;
@@ -156,6 +211,8 @@
         @media (max-width: 700px) {
             body { padding: 1rem; }
             .tool-panel { padding: 1.2rem; }
+            .qr-style-grid { grid-template-columns: 1fr; }
+            .qr-style-preview { min-height: 176px; }
         }
     </style>
 <link rel="stylesheet" href="/assets/fulutool.css">
@@ -171,7 +228,23 @@
             <input type="url" id="qrText" placeholder="https://fulutool.com" value="">
         </div>
         <button class="primary" id="genQrBtn">🎯 生成二维码</button>
-        <div id="qrCanvas" class="qrcode-box"><div id="qrcodeContainer"></div></div>
+        <div class="qr-style-grid" id="qrStyleGrid" aria-label="二维码样式选择">
+            <button type="button" class="qr-style-card qr-style-classic is-active" data-style="classic">
+                <span class="qr-style-preview"><span id="qrcodeClassic"></span></span>
+                <span class="qr-style-name">标准黑白</span>
+                <span class="qr-style-desc">兼容性最好，适合打印和通用扫码</span>
+            </button>
+            <button type="button" class="qr-style-card qr-style-fulu" data-style="fulu">
+                <span class="qr-style-preview"><span id="qrcodeFulu"></span></span>
+                <span class="qr-style-name">福禄绿</span>
+                <span class="qr-style-desc">品牌绿色风格，清爽醒目</span>
+            </button>
+            <button type="button" class="qr-style-card qr-style-ocean" data-style="ocean">
+                <span class="qr-style-preview"><span id="qrcodeOcean"></span></span>
+                <span class="qr-style-name">海蓝款</span>
+                <span class="qr-style-desc">深蓝高对比，适合网页分享</span>
+            </button>
+        </div>
         <div class="save-qr-area">
             <button id="saveQrBtn" class="primary">💾 保存二维码图片</button>
             <div class="save-tip">💡 点击按钮可直接下载图片；移动端若无法下载，可长按二维码图片保存</div>
@@ -201,6 +274,7 @@
         invalidUrl: '请输入有效的网址',
         generateFirst: '请先生成二维码',
         noQrImage: '未找到二维码图片，请先生成二维码',
+        selectStyle: '已选择该二维码样式',
         downloadHint: '如果未自动下载，请长按二维码图片保存'
     }, window.FULUTOOL_MESSAGES.zh || {});
     window.FULUTOOL_MESSAGES.en = Object.assign({
@@ -208,21 +282,59 @@
         invalidUrl: 'Please enter a valid URL',
         generateFirst: 'Please generate a QR code first',
         noQrImage: 'Could not find QR image. Please generate one first',
+        selectStyle: 'QR style selected',
         downloadHint: 'If it does not download automatically, long-press the QR image to save it'
     }, window.FULUTOOL_MESSAGES.en || {});
     const T = (key, fallback) => (window.Fulutool ? Fulutool.t(key, fallback) : fallback);
+    const QR_STYLES = [
+        {
+            id: 'classic',
+            target: 'qrcodeClassic',
+            fileName: 'qrcode-classic.png',
+            colorDark: '#0f172a',
+            colorLight: '#ffffff'
+        },
+        {
+            id: 'fulu',
+            target: 'qrcodeFulu',
+            fileName: 'qrcode-fulu-green.png',
+            colorDark: '#0f766e',
+            colorLight: '#f0fdfa'
+        },
+        {
+            id: 'ocean',
+            target: 'qrcodeOcean',
+            fileName: 'qrcode-ocean-blue.png',
+            colorDark: '#1d4ed8',
+            colorLight: '#eff6ff'
+        }
+    ];
+    let selectedQrStyle = 'classic';
     
-    function generateQrCode(url) {
-        const container = document.getElementById('qrcodeContainer');
+    function generateQrCodeForStyle(url, style) {
+        const container = document.getElementById(style.target);
         if (!container) return;
         container.innerHTML = '';
         new QRCode(container, {
             text: url,
             width: 150,
             height: 150,
-            colorDark: "#0f172a",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.M
+            colorDark: style.colorDark,
+            colorLight: style.colorLight,
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    }
+
+    function generateQrCode(url) {
+        QR_STYLES.forEach((style) => generateQrCodeForStyle(url, style));
+    }
+
+    function setSelectedQrStyle(styleId) {
+        selectedQrStyle = styleId;
+        document.querySelectorAll('.qr-style-card').forEach((card) => {
+            const active = card.dataset.style === styleId;
+            card.classList.toggle('is-active', active);
+            card.setAttribute('aria-pressed', String(active));
         });
     }
     
@@ -240,7 +352,8 @@
     
     // 保存二维码图片
     function saveQrCode() {
-        const container = document.getElementById('qrcodeContainer');
+        const style = QR_STYLES.find((item) => item.id === selectedQrStyle) || QR_STYLES[0];
+        const container = document.getElementById(style.target);
         if (!container) {
             alert(T('generateFirst', '请先生成二维码'));
             return;
@@ -259,7 +372,7 @@
         }
         
         const link = document.createElement('a');
-        link.download = 'qrcode.png';
+        link.download = style.fileName;
         link.href = dataURL;
         link.click();
         
@@ -279,6 +392,14 @@
     if (saveBtn) {
         saveBtn.addEventListener('click', () => { addPressedEffect(saveBtn); saveQrCode(); });
     }
+
+    document.querySelectorAll('.qr-style-card').forEach((card) => {
+        card.setAttribute('aria-pressed', card.classList.contains('is-active') ? 'true' : 'false');
+        card.addEventListener('click', () => {
+            addPressedEffect(card);
+            setSelectedQrStyle(card.dataset.style || 'classic');
+        });
+    });
     
     // 页面加载时默认生成一个二维码（使用默认网址，但不填充输入框）
     window.addEventListener('load', () => {
