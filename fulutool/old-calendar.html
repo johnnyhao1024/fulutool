@@ -145,22 +145,24 @@
             font-size: 0.92rem;
         }
         .file-pill {
-            display: inline-flex;
-            align-items: flex-start;
-            gap: 0.45rem;
+            display: block;
             min-height: 46px;
+            height: 46px;
+            line-height: 44px;
             min-width: 0;
             max-width: 100%;
-            padding: 0.8rem 1rem;
+            padding: 0 1rem;
             border-radius: 18px;
             border: 1px solid #e2e8f0;
             background: #f8fafc;
             color: #475569;
             font-size: 0.86rem;
             flex: 1 1 240px;
-            white-space: normal;
-            overflow-wrap: anywhere;
-            word-break: break-word;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            overflow-wrap: normal;
+            word-break: normal;
         }
         .preview-shell {
             margin-top: 1rem;
@@ -385,13 +387,7 @@
             .upload-row > * { min-width: 0; }
             #selectPhotoBtn { margin-right: 0; }
             .file-pill {
-                display: block;
                 width: 100%;
-                min-height: 46px;
-                height: 46px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
                 text-align: center;
             }
             .template-grid { grid-template-columns: 1fr; }
