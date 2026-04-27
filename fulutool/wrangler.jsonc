@@ -4,6 +4,13 @@
   "pages_build_output_dir": ".",
   "compatibility_date": "2026-04-20",
 
+  "kv_namespaces": [
+    {
+      "binding": "FULUTOOL_LINKS",
+      "id": "afc9652b09a7436e944572f09e5765a3"
+    }
+  ],
+
   "r2_buckets": [
     {
       "binding": "PDF_INPUTS",
