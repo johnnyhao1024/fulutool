@@ -73,12 +73,19 @@
         { selector: '.tool-desc', zh: '输入网址，生成二维码，扫码访问', en: 'Enter a URL and generate a scannable QR code' },
         { selector: '.input-group label', zh: '🔗 网址链接', en: '🔗 Website URL' },
         { selector: '#genQrBtn', zh: '🎯 生成二维码', en: '🎯 Generate QR Code' },
+        { selector: '.qr-style-card:nth-child(1) .qr-style-name', zh: '标准黑白', en: 'Classic black' },
+        { selector: '.qr-style-card:nth-child(1) .qr-style-desc', zh: '兼容性最好，适合打印和通用扫码', en: 'Best compatibility for printing and everyday scanning' },
+        { selector: '.qr-style-card:nth-child(2) .qr-style-name', zh: '福禄绿', en: 'Fulu green' },
+        { selector: '.qr-style-card:nth-child(2) .qr-style-desc', zh: '品牌绿色风格，清爽醒目', en: 'Fresh brand-green style with clear contrast' },
+        { selector: '.qr-style-card:nth-child(3) .qr-style-name', zh: '海蓝款', en: 'Ocean blue' },
+        { selector: '.qr-style-card:nth-child(3) .qr-style-desc', zh: '深蓝高对比，适合网页分享', en: 'High-contrast deep blue for web sharing' },
         { selector: '#saveQrBtn', zh: '💾 保存二维码图片', en: '💾 Save QR Image' },
         { selector: '.save-tip', zh: '💡 点击按钮可直接下载图片；移动端若无法下载，可长按二维码图片保存', en: '💡 Tap to download; on mobile, long-press the QR image to save it' },
         { selector: '.section-label', zh: '🧩 其他工具 · 点击切换', en: '🧩 More tools · Jump around' },
         { selector: '.footer', zh: '🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪', en: '🧰 Fulutool Toolbox · Free tools | Standalone pages | No tracking' }
       ],
       attr: [
+        { selector: '#qrStyleGrid', attr: 'aria-label', zh: '二维码样式选择', en: 'QR code style selection' },
         { selector: '#qrText', attr: 'placeholder', zh: 'https://fulutool.com', en: 'https://fulutool.com' }
       ]
     },
