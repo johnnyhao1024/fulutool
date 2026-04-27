@@ -517,7 +517,7 @@ button.pressed {
   .ft-lang-switch {
     width: fit-content;
     max-width: 100%;
-    align-self: flex-end;
+    align-self: center;
     justify-content: flex-start;
   }
 }
