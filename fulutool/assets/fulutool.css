@@ -515,8 +515,10 @@ button.pressed {
   }
 
   .ft-lang-switch {
-    width: 100%;
-    justify-content: center;
+    width: fit-content;
+    max-width: 100%;
+    align-self: flex-end;
+    justify-content: flex-start;
   }
 }
 
