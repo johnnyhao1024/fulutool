@@ -384,7 +384,16 @@
             .upload-row { flex-direction: column; align-items: center; justify-content: center; }
             .upload-row > * { min-width: 0; }
             #selectPhotoBtn { margin-right: 0; }
-            .file-pill { width: 100%; justify-content: center; text-align: center; }
+            .file-pill {
+                display: block;
+                width: 100%;
+                min-height: 46px;
+                height: 46px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                text-align: center;
+            }
             .template-grid { grid-template-columns: 1fr; }
             .template-option { grid-template-columns: auto 1fr; justify-items: start; text-align: left; }
             .template-icon { width: 54px; height: 74px; }
