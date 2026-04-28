@@ -881,6 +881,80 @@
             return canvas;
         }
 
+        function keepForegroundConnectedToInner(canvas, inner) {
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const data = imageData.data;
+            const visited = new Uint8Array(width * height);
+            const queue = new Int32Array(width * height);
+            let head = 0;
+            let tail = 0;
+            const left = clamp(Math.floor(inner.x), 0, width - 1);
+            const right = clamp(Math.ceil(inner.x + inner.w), 0, width - 1);
+            const top = clamp(Math.floor(inner.y), 0, height - 1);
+            const bottom = clamp(Math.ceil(inner.y + inner.h), 0, height - 1);
+
+            function push(index) {
+                if (visited[index] || data[index * 4 + 3] === 0) return;
+                visited[index] = 1;
+                queue[tail] = index;
+                tail += 1;
+            }
+
+            for (let y = top; y <= bottom; y += 1) {
+                const row = y * width;
+                for (let x = left; x <= right; x += 1) {
+                    push(row + x);
+                }
+            }
+
+            while (head < tail) {
+                const index = queue[head];
+                head += 1;
+                const x = index % width;
+                if (x > 0) push(index - 1);
+                if (x < width - 1) push(index + 1);
+                if (index >= width) push(index - width);
+                if (index < width * (height - 1)) push(index + width);
+            }
+
+            for (let i = 0; i < visited.length; i += 1) {
+                if (!visited[i]) data[i * 4 + 3] = 0;
+            }
+            ctx.putImageData(imageData, 0, 0);
+            return canvas;
+        }
+
+        function drawInnerDepthShadow(ctx, inner) {
+            ctx.save();
+            let gradient = ctx.createLinearGradient(0, inner.y, 0, inner.y + 92);
+            gradient.addColorStop(0, 'rgba(2, 6, 23, 0.58)');
+            gradient.addColorStop(1, 'rgba(2, 6, 23, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(inner.x, inner.y, inner.w, 92);
+
+            gradient = ctx.createLinearGradient(inner.x, 0, inner.x + 82, 0);
+            gradient.addColorStop(0, 'rgba(2, 6, 23, 0.48)');
+            gradient.addColorStop(1, 'rgba(2, 6, 23, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(inner.x, inner.y, 82, inner.h);
+
+            gradient = ctx.createLinearGradient(inner.x + inner.w, 0, inner.x + inner.w - 64, 0);
+            gradient.addColorStop(0, 'rgba(2, 6, 23, 0.28)');
+            gradient.addColorStop(1, 'rgba(2, 6, 23, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(inner.x + inner.w - 64, inner.y, 64, inner.h);
+
+            gradient = ctx.createLinearGradient(0, inner.y + inner.h, 0, inner.y + inner.h - 54);
+            gradient.addColorStop(0, 'rgba(2, 6, 23, 0.22)');
+            gradient.addColorStop(1, 'rgba(2, 6, 23, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(inner.x, inner.y + inner.h - 54, inner.w, 54);
+            ctx.restore();
+        }
+
         function applyForegroundRevealMask(layer, width, height, inner, outer) {
             const masked = document.createElement('canvas');
             masked.width = width;
@@ -921,6 +995,7 @@
             const cctx = cutoutCanvas.getContext('2d');
             cctx.drawImage(cutoutImage, 0, 0, width, height);
             hardenAlpha(cutoutCanvas, 128);
+            keepForegroundConnectedToInner(cutoutCanvas, inner);
             return applyForegroundRevealMask(cutoutCanvas, width, height, inner, outer);
         }
 
@@ -989,6 +1064,7 @@
             lctx.globalCompositeOperation = 'destination-in';
             lctx.drawImage(maskCanvas, 0, 0);
             lctx.globalCompositeOperation = 'source-over';
+            keepForegroundConnectedToInner(layer, inner);
             return applyForegroundRevealMask(layer, width, height, inner, outer);
         }
 
@@ -1033,20 +1109,20 @@
             ctx.drawImage(sceneCanvas, 0, 0);
 
             ctx.save();
-            ctx.shadowColor = 'rgba(2, 6, 23, 0.38)';
-            ctx.shadowBlur = 62;
-            ctx.shadowOffsetX = 34;
-            ctx.shadowOffsetY = 46;
+            ctx.shadowColor = 'rgba(2, 6, 23, 0.56)';
+            ctx.shadowBlur = 96;
+            ctx.shadowOffsetX = 54;
+            ctx.shadowOffsetY = 74;
             ctx.fillStyle = template.frame;
             roundedRect(ctx, outer.x, outer.y, outer.w, outer.h, 2);
             ctx.fill();
             ctx.restore();
 
             ctx.save();
-            ctx.shadowColor = 'rgba(2, 6, 23, 0.22)';
-            ctx.shadowBlur = 22;
-            ctx.shadowOffsetX = 10;
-            ctx.shadowOffsetY = 16;
+            ctx.shadowColor = 'rgba(2, 6, 23, 0.36)';
+            ctx.shadowBlur = 38;
+            ctx.shadowOffsetX = 18;
+            ctx.shadowOffsetY = 28;
             ctx.fillStyle = template.frame;
             roundedRect(ctx, outer.x, outer.y, outer.w, outer.h, 2);
             ctx.fill();
@@ -1055,11 +1131,11 @@
             drawWoodTexture(ctx, outer, template);
 
             ctx.save();
-            ctx.shadowColor = 'rgba(2, 6, 23, 0.60)';
-            ctx.shadowBlur = 42;
-            ctx.shadowOffsetX = -18;
-            ctx.shadowOffsetY = 22;
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.34)';
+            ctx.shadowColor = 'rgba(2, 6, 23, 0.74)';
+            ctx.shadowBlur = 62;
+            ctx.shadowOffsetX = -28;
+            ctx.shadowOffsetY = 30;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
             ctx.fillRect(inner.x, inner.y, inner.w, inner.h);
             ctx.restore();
 
@@ -1068,6 +1144,7 @@
             ctx.rect(inner.x, inner.y, inner.w, inner.h);
             ctx.clip();
             ctx.drawImage(sceneCanvas, inner.x, inner.y, inner.w, inner.h, inner.x, inner.y, inner.w, inner.h);
+            drawInnerDepthShadow(ctx, inner);
             ctx.restore();
 
             ctx.save();
