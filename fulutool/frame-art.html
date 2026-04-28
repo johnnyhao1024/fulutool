@@ -938,29 +938,33 @@
 
         function drawInnerDepthShadow(ctx, inner) {
             ctx.save();
-            let gradient = ctx.createLinearGradient(0, inner.y, 0, inner.y + 92);
-            gradient.addColorStop(0, 'rgba(2, 6, 23, 0.58)');
+            let gradient = ctx.createLinearGradient(0, inner.y, 0, inner.y + 128);
+            gradient.addColorStop(0, 'rgba(2, 6, 23, 0.78)');
+            gradient.addColorStop(0.34, 'rgba(2, 6, 23, 0.42)');
             gradient.addColorStop(1, 'rgba(2, 6, 23, 0)');
             ctx.fillStyle = gradient;
-            ctx.fillRect(inner.x, inner.y, inner.w, 92);
+            ctx.fillRect(inner.x, inner.y, inner.w, 128);
 
-            gradient = ctx.createLinearGradient(inner.x, 0, inner.x + 82, 0);
-            gradient.addColorStop(0, 'rgba(2, 6, 23, 0.48)');
+            gradient = ctx.createLinearGradient(inner.x, 0, inner.x + 116, 0);
+            gradient.addColorStop(0, 'rgba(2, 6, 23, 0.68)');
+            gradient.addColorStop(0.38, 'rgba(2, 6, 23, 0.34)');
             gradient.addColorStop(1, 'rgba(2, 6, 23, 0)');
             ctx.fillStyle = gradient;
-            ctx.fillRect(inner.x, inner.y, 82, inner.h);
+            ctx.fillRect(inner.x, inner.y, 116, inner.h);
 
-            gradient = ctx.createLinearGradient(inner.x + inner.w, 0, inner.x + inner.w - 64, 0);
-            gradient.addColorStop(0, 'rgba(2, 6, 23, 0.28)');
+            gradient = ctx.createLinearGradient(inner.x + inner.w, 0, inner.x + inner.w - 96, 0);
+            gradient.addColorStop(0, 'rgba(2, 6, 23, 0.42)');
+            gradient.addColorStop(0.42, 'rgba(2, 6, 23, 0.20)');
             gradient.addColorStop(1, 'rgba(2, 6, 23, 0)');
             ctx.fillStyle = gradient;
-            ctx.fillRect(inner.x + inner.w - 64, inner.y, 64, inner.h);
+            ctx.fillRect(inner.x + inner.w - 96, inner.y, 96, inner.h);
 
-            gradient = ctx.createLinearGradient(0, inner.y + inner.h, 0, inner.y + inner.h - 54);
-            gradient.addColorStop(0, 'rgba(2, 6, 23, 0.22)');
+            gradient = ctx.createLinearGradient(0, inner.y + inner.h, 0, inner.y + inner.h - 88);
+            gradient.addColorStop(0, 'rgba(2, 6, 23, 0.38)');
+            gradient.addColorStop(0.42, 'rgba(2, 6, 23, 0.18)');
             gradient.addColorStop(1, 'rgba(2, 6, 23, 0)');
             ctx.fillStyle = gradient;
-            ctx.fillRect(inner.x, inner.y + inner.h - 54, inner.w, 54);
+            ctx.fillRect(inner.x, inner.y + inner.h - 88, inner.w, 88);
             ctx.restore();
         }
 
@@ -970,23 +974,33 @@
             masked.height = height;
             const ctx = masked.getContext('2d');
             ctx.drawImage(layer, 0, 0);
-            ctx.globalCompositeOperation = 'destination-in';
-            ctx.fillStyle = '#fff';
 
-            // Keep only the foreground that visually crosses the opening edge.
-            // This prevents objects from appearing to pass through frame
-            // material while still allowing edge-connected subjects to sit
-            // above the frame as a solid top layer.
-            const overlap = Math.max(30, Math.round((inner.x - outer.x) * 0.36));
-            ctx.beginPath();
-            roundedRect(ctx, outer.x - outer.w * 0.24, outer.y - outer.h * 0.16, outer.w * 1.48, outer.h * 1.08, 18);
-            ctx.rect(
-                inner.x + overlap,
-                inner.y + overlap,
-                Math.max(1, inner.w - overlap * 2),
-                Math.max(1, inner.h - overlap * 2)
-            );
-            ctx.fill('evenodd');
+            const maskCanvas = document.createElement('canvas');
+            maskCanvas.width = width;
+            maskCanvas.height = height;
+            const mctx = maskCanvas.getContext('2d');
+            mctx.fillStyle = '#fff';
+
+            const frameWidth = Math.max(1, inner.x - outer.x);
+            const outsidePadX = outer.w * 0.24;
+            const outsidePadY = outer.h * 0.16;
+            const revealOut = Math.max(34, Math.round(frameWidth * 0.46));
+            const revealIn = Math.max(26, Math.round(frameWidth * 0.32));
+
+            // Outside pixels can reappear, but the outer half of the frame
+            // stays opaque. Only an inner-edge band is allowed above the
+            // frame, forcing each crossing subject into a woven layer split.
+            mctx.beginPath();
+            roundedRect(mctx, outer.x - outsidePadX, outer.y - outsidePadY, outer.w + outsidePadX * 2, outer.h + outsidePadY * 2, 18);
+            roundedRect(mctx, outer.x, outer.y, outer.w, outer.h, 2);
+            mctx.fill('evenodd');
+            mctx.fillRect(inner.x - revealOut, inner.y - revealOut, inner.w + revealOut * 2, revealOut + revealIn);
+            mctx.fillRect(inner.x - revealOut, inner.y + inner.h - revealIn, inner.w + revealOut * 2, revealOut + revealIn);
+            mctx.fillRect(inner.x - revealOut, inner.y - revealIn, revealOut + revealIn, inner.h + revealIn * 2);
+            mctx.fillRect(inner.x + inner.w - revealIn, inner.y - revealIn, revealOut + revealIn, inner.h + revealIn * 2);
+
+            ctx.globalCompositeOperation = 'destination-in';
+            ctx.drawImage(maskCanvas, 0, 0);
             ctx.globalCompositeOperation = 'source-over';
             hardenAlpha(masked, 254);
             return masked;
