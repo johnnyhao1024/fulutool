@@ -963,8 +963,13 @@
             ctx.drawImage(layer, 0, 0);
             ctx.globalCompositeOperation = 'destination-in';
             ctx.fillStyle = '#fff';
-            roundedRect(ctx, outer.x - outer.w * 0.24, outer.y - outer.h * 0.16, outer.w * 1.48, outer.h * 1.08, 4);
-            ctx.fill();
+
+            // The frame material is a physical blocker: foreground cutouts may
+            // reappear outside the frame, but never on top of the frame strips.
+            ctx.beginPath();
+            ctx.rect(outer.x - outer.w * 0.24, outer.y - outer.h * 0.16, outer.w * 1.48, outer.h * 1.08);
+            roundedRect(ctx, outer.x, outer.y, outer.w, outer.h, 2);
+            ctx.fill('evenodd');
             ctx.globalCompositeOperation = 'source-over';
             return masked;
         }
