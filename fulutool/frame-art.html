@@ -890,6 +890,65 @@
             return canvas;
         }
 
+        function buildSolidAlphaMask(canvas, threshold = 32) {
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const data = imageData.data;
+            const alpha = new Uint8Array(width * height);
+
+            for (let i = 0; i < alpha.length; i += 1) {
+                alpha[i] = data[i * 4 + 3] >= threshold ? 255 : 0;
+            }
+
+            // Fill tiny alpha holes produced by segmentation so leaves/petals
+            // do not break apart when they cross the frame edge.
+            for (let pass = 0; pass < 2; pass += 1) {
+                const next = new Uint8Array(alpha);
+                for (let y = 1; y < height - 1; y += 1) {
+                    const row = y * width;
+                    for (let x = 1; x < width - 1; x += 1) {
+                        const index = row + x;
+                        if (alpha[index]) continue;
+                        let count = 0;
+                        if (alpha[index - 1]) count += 1;
+                        if (alpha[index + 1]) count += 1;
+                        if (alpha[index - width]) count += 1;
+                        if (alpha[index + width]) count += 1;
+                        if (alpha[index - width - 1]) count += 1;
+                        if (alpha[index - width + 1]) count += 1;
+                        if (alpha[index + width - 1]) count += 1;
+                        if (alpha[index + width + 1]) count += 1;
+                        if (count >= 5) next[index] = 255;
+                    }
+                }
+                alpha.set(next);
+            }
+
+            for (let i = 0; i < alpha.length; i += 1) {
+                const offset = i * 4;
+                data[offset] = 255;
+                data[offset + 1] = 255;
+                data[offset + 2] = 255;
+                data[offset + 3] = alpha[i];
+            }
+            ctx.putImageData(imageData, 0, 0);
+            return canvas;
+        }
+
+        function createOpaqueLayerFromMask(sourceCanvas, maskCanvas) {
+            const layer = document.createElement('canvas');
+            layer.width = sourceCanvas.width;
+            layer.height = sourceCanvas.height;
+            const ctx = layer.getContext('2d');
+            ctx.drawImage(sourceCanvas, 0, 0);
+            ctx.globalCompositeOperation = 'destination-in';
+            ctx.drawImage(maskCanvas, 0, 0);
+            ctx.globalCompositeOperation = 'source-over';
+            return layer;
+        }
+
         function keepForegroundConnectedToInner(canvas, inner) {
             const ctx = canvas.getContext('2d');
             const width = canvas.width;
@@ -968,12 +1027,12 @@
             ctx.restore();
         }
 
-        function applyForegroundRevealMask(layer, width, height, inner, outer) {
+        function applyForegroundRevealMask(maskLayer, width, height, inner, outer) {
             const masked = document.createElement('canvas');
             masked.width = width;
             masked.height = height;
             const ctx = masked.getContext('2d');
-            ctx.drawImage(layer, 0, 0);
+            ctx.drawImage(maskLayer, 0, 0);
 
             const maskCanvas = document.createElement('canvas');
             maskCanvas.width = width;
@@ -1002,7 +1061,7 @@
             ctx.globalCompositeOperation = 'destination-in';
             ctx.drawImage(maskCanvas, 0, 0);
             ctx.globalCompositeOperation = 'source-over';
-            hardenAlpha(masked, 254);
+            buildSolidAlphaMask(masked, 1);
             return masked;
         }
 
@@ -1031,9 +1090,10 @@
             cutoutCanvas.height = height;
             const cctx = cutoutCanvas.getContext('2d');
             cctx.drawImage(cutoutImage, 0, 0, width, height);
-            hardenAlpha(cutoutCanvas, 128);
+            buildSolidAlphaMask(cutoutCanvas, 32);
             keepForegroundConnectedToInner(cutoutCanvas, inner);
-            return applyForegroundRevealMask(cutoutCanvas, width, height, inner, outer);
+            const revealMask = applyForegroundRevealMask(cutoutCanvas, width, height, inner, outer);
+            return createOpaqueLayerFromMask(sourceCanvas, revealMask);
         }
 
         function buildFallbackForegroundLayer(img, cropRect, width, height, inner, outer) {
@@ -1101,8 +1161,10 @@
             lctx.globalCompositeOperation = 'destination-in';
             lctx.drawImage(maskCanvas, 0, 0);
             lctx.globalCompositeOperation = 'source-over';
+            buildSolidAlphaMask(layer, 1);
             keepForegroundConnectedToInner(layer, inner);
-            return applyForegroundRevealMask(layer, width, height, inner, outer);
+            const revealMask = applyForegroundRevealMask(layer, width, height, inner, outer);
+            return createOpaqueLayerFromMask(sourceCanvas, revealMask);
         }
 
         function drawWoodTexture(ctx, outer, inner, template) {
