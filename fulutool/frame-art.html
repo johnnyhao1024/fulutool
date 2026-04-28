@@ -1073,19 +1073,79 @@
             return applyForegroundRevealMask(layer, width, height, inner, outer);
         }
 
-        function drawWoodTexture(ctx, outer, template) {
+        function drawWoodTexture(ctx, outer, inner, template) {
             if (!['oak', 'walnut'].includes(selectedTemplate)) return;
             ctx.save();
-            ctx.globalAlpha = 0.22;
-            ctx.strokeStyle = template.line;
-            ctx.lineWidth = 2;
-            for (let i = 0; i < 13; i += 1) {
-                const y = outer.y + 18 + i * (outer.h / 13);
+            ctx.beginPath();
+            ctx.rect(outer.x, outer.y, outer.w, outer.h);
+            ctx.rect(inner.x, inner.y, inner.w, inner.h);
+            ctx.clip('evenodd');
+
+            for (let i = 0; i < 46; i += 1) {
+                const y = outer.y + 8 + i * (outer.h / 45);
+                ctx.globalAlpha = 0.16 + (i % 5) * 0.018;
+                ctx.strokeStyle = i % 2 ? 'rgba(255,255,255,0.22)' : template.line;
+                ctx.lineWidth = i % 3 === 0 ? 2.4 : 1.2;
                 ctx.beginPath();
-                ctx.moveTo(outer.x + 14, y);
-                ctx.bezierCurveTo(outer.x + outer.w * 0.32, y - 22, outer.x + outer.w * 0.58, y + 28, outer.x + outer.w - 14, y + 4);
+                ctx.moveTo(outer.x + 12, y);
+                ctx.bezierCurveTo(
+                    outer.x + outer.w * 0.28,
+                    y - 18 + (i % 7) * 3,
+                    outer.x + outer.w * 0.64,
+                    y + 20 - (i % 6) * 4,
+                    outer.x + outer.w - 12,
+                    y + (i % 9) - 4
+                );
                 ctx.stroke();
             }
+
+            const fw = inner.x - outer.x;
+            ctx.globalAlpha = 0.42;
+            ctx.strokeStyle = 'rgba(25, 16, 10, 0.46)';
+            ctx.lineWidth = 3;
+
+            ctx.beginPath();
+            ctx.moveTo(outer.x, outer.y);
+            ctx.lineTo(inner.x, inner.y);
+            ctx.moveTo(outer.x + outer.w, outer.y);
+            ctx.lineTo(inner.x + inner.w, inner.y);
+            ctx.moveTo(outer.x, outer.y + outer.h);
+            ctx.lineTo(inner.x, inner.y + inner.h);
+            ctx.moveTo(outer.x + outer.w, outer.y + outer.h);
+            ctx.lineTo(inner.x + inner.w, inner.y + inner.h);
+            ctx.stroke();
+
+            ctx.globalAlpha = 0.28;
+            ctx.lineWidth = Math.max(10, fw * 0.12);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+            ctx.strokeRect(outer.x + fw * 0.18, outer.y + fw * 0.18, outer.w - fw * 0.36, outer.h - fw * 0.36);
+            ctx.restore();
+        }
+
+        function drawMiterJoints(ctx, outer, inner, template) {
+            if (!['oak', 'walnut'].includes(selectedTemplate)) return;
+            ctx.save();
+            ctx.strokeStyle = 'rgba(18, 12, 8, 0.55)';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(outer.x, outer.y);
+            ctx.lineTo(inner.x, inner.y);
+            ctx.moveTo(outer.x + outer.w, outer.y);
+            ctx.lineTo(inner.x + inner.w, inner.y);
+            ctx.moveTo(outer.x, outer.y + outer.h);
+            ctx.lineTo(inner.x, inner.y + inner.h);
+            ctx.moveTo(outer.x + outer.w, outer.y + outer.h);
+            ctx.lineTo(inner.x + inner.w, inner.y + inner.h);
+            ctx.stroke();
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(outer.x + 5, outer.y + 2);
+            ctx.lineTo(inner.x + 4, inner.y + 2);
+            ctx.moveTo(outer.x + outer.w - 5, outer.y + 2);
+            ctx.lineTo(inner.x + inner.w - 4, inner.y + 2);
+            ctx.stroke();
             ctx.restore();
         }
 
@@ -1133,7 +1193,7 @@
             ctx.fill();
             ctx.restore();
 
-            drawWoodTexture(ctx, outer, template);
+            drawWoodTexture(ctx, outer, inner, template);
 
             ctx.save();
             ctx.shadowColor = 'rgba(2, 6, 23, 0.74)';
@@ -1156,10 +1216,9 @@
             ctx.strokeStyle = 'rgba(2, 6, 23, 0.30)';
             ctx.lineWidth = 16;
             ctx.strokeRect(inner.x, inner.y, inner.w, inner.h);
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
-            ctx.lineWidth = 5;
-            ctx.strokeRect(inner.x + 4, inner.y + 4, inner.w - 8, inner.h - 8);
             ctx.restore();
+
+            drawMiterJoints(ctx, outer, inner, template);
 
             let fgLayer = null;
             try {
