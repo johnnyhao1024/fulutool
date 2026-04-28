@@ -984,12 +984,12 @@
             const frameWidth = Math.max(1, inner.x - outer.x);
             const outsidePadX = outer.w * 0.24;
             const outsidePadY = outer.h * 0.16;
-            const revealOut = Math.max(34, Math.round(frameWidth * 0.46));
-            const revealIn = Math.max(26, Math.round(frameWidth * 0.32));
+            const revealOut = Math.max(54, Math.round(frameWidth * 0.72));
+            const revealIn = Math.max(32, Math.round(frameWidth * 0.38));
 
-            // Outside pixels can reappear, but the outer half of the frame
-            // stays opaque. Only an inner-edge band is allowed above the
-            // frame, forcing each crossing subject into a woven layer split.
+            // Keep a continuous top layer for subjects crossing the opening:
+            // inner-edge pixels, frame-overlapping pixels, and the extension
+            // onto the background are all drawn last as one solid foreground.
             mctx.beginPath();
             roundedRect(mctx, outer.x - outsidePadX, outer.y - outsidePadY, outer.w + outsidePadX * 2, outer.h + outsidePadY * 2, 18);
             roundedRect(mctx, outer.x, outer.y, outer.w, outer.h, 2);
