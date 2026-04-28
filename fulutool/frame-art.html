@@ -283,6 +283,11 @@
     </style>
     <link rel="stylesheet" href="/assets/fulutool.css">
     <script defer src="/assets/fulutool.js"></script>
+    <script type="module">
+        import { removeBackground } from 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.6.0/+esm';
+        window.FULUTOOL_REMOVE_BACKGROUND = removeBackground;
+        window.dispatchEvent(new Event('fulutool-bg-removal-ready'));
+    </script>
 </head>
 <body>
     <div class="container">
@@ -452,6 +457,7 @@
             progressIdleHint: '上传图片后即可开始制作立体画框美图',
             progressReadyHint: '图片已上传，裁剪并选择模板后点击生成图片',
             progressGeneratingHint: '正在生成画框、投影和前景穿透图层，请稍候',
+            progressSegmentingHint: '正在智能识别前景物体，首次加载模型可能需要稍等',
             progressDoneHint: '图片已生成。可点击下方保存图片按钮下载到本地',
             progressFailedHint: '任务执行失败，请重新上传或稍后再试',
             saveFirst: '请先生成图片',
@@ -484,6 +490,7 @@
             progressIdleHint: 'Upload an image to start creating your 3D frame artwork',
             progressReadyHint: 'Image uploaded. Crop it, choose a template, then generate',
             progressGeneratingHint: 'Building the frame, shadow, and foreground mask layers now',
+            progressSegmentingHint: 'Detecting the foreground subject. The first model load may take a little while.',
             progressDoneHint: 'Image generated. Click Save image below to download',
             progressFailedHint: 'Task failed. Please upload again or try later',
             saveFirst: 'Please generate the image first',
@@ -845,12 +852,89 @@
             ctx.closePath();
         }
 
-        function buildForegroundLayer(img, cropRect, width, height, inner, outer) {
+        function loadImageFromBlob(blob) {
+            return new Promise((resolve, reject) => {
+                const url = URL.createObjectURL(blob);
+                const img = new Image();
+                img.onload = () => {
+                    URL.revokeObjectURL(url);
+                    resolve(img);
+                };
+                img.onerror = () => {
+                    URL.revokeObjectURL(url);
+                    reject(new Error('Image load failed'));
+                };
+                img.src = url;
+            });
+        }
+
+        function createFullPhotoCanvas(img, cropRect, width, height) {
             const sourceCanvas = document.createElement('canvas');
             sourceCanvas.width = width;
             sourceCanvas.height = height;
             const sctx = sourceCanvas.getContext('2d');
             drawCroppedCover(sctx, img, 0, 0, width, height, cropRect);
+            return sourceCanvas;
+        }
+
+        function applyOutOfFrameMask(layer, width, height, inner, outer) {
+            const masked = document.createElement('canvas');
+            masked.width = width;
+            masked.height = height;
+            const ctx = masked.getContext('2d');
+            ctx.drawImage(layer, 0, 0);
+            ctx.globalCompositeOperation = 'destination-in';
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.rect(0, 0, width, height);
+
+            // Keep the foreground outside the inner window, but allow a small
+            // overlap band so edges can naturally cross over the frame.
+            const bleed = Math.max(18, width * 0.018);
+            ctx.rect(inner.x + bleed, inner.y + bleed, inner.w - bleed * 2, inner.h - bleed * 2);
+            ctx.fill('evenodd');
+            ctx.globalCompositeOperation = 'source-over';
+
+            // Avoid showing unrelated cutout pieces far away from the frame.
+            ctx.globalCompositeOperation = 'destination-in';
+            ctx.fillStyle = '#fff';
+            roundedRect(ctx, outer.x - outer.w * 0.24, outer.y - outer.h * 0.16, outer.w * 1.48, outer.h * 1.08, 4);
+            ctx.fill();
+            ctx.globalCompositeOperation = 'source-over';
+            return masked;
+        }
+
+        function canvasToBlob(canvas, type = 'image/png', quality = 0.96) {
+            return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
+        }
+
+        async function buildAiForegroundLayer(img, cropRect, width, height, inner, outer) {
+            if (typeof window.FULUTOOL_REMOVE_BACKGROUND !== 'function') {
+                return null;
+            }
+
+            const sourceCanvas = createFullPhotoCanvas(img, cropRect, width, height);
+            const sourceBlob = await canvasToBlob(sourceCanvas, 'image/png', 0.96);
+            if (!sourceBlob) return null;
+
+            const cutoutBlob = await window.FULUTOOL_REMOVE_BACKGROUND(sourceBlob, {
+                output: {
+                    format: 'image/png',
+                    quality: 0.96
+                }
+            });
+            const cutoutImage = await loadImageFromBlob(cutoutBlob);
+            const cutoutCanvas = document.createElement('canvas');
+            cutoutCanvas.width = width;
+            cutoutCanvas.height = height;
+            const cctx = cutoutCanvas.getContext('2d');
+            cctx.drawImage(cutoutImage, 0, 0, width, height);
+            return applyOutOfFrameMask(cutoutCanvas, width, height, inner, outer);
+        }
+
+        function buildFallbackForegroundLayer(img, cropRect, width, height, inner, outer) {
+            const sourceCanvas = createFullPhotoCanvas(img, cropRect, width, height);
+            const sctx = sourceCanvas.getContext('2d');
             const imageData = sctx.getImageData(0, 0, width, height);
             const data = imageData.data;
             const maskCanvas = document.createElement('canvas');
@@ -864,11 +948,11 @@
             const zoneRight = Math.min(width, outer.x + outer.w * 1.22);
             const zoneTop = Math.max(0, outer.y - outer.h * 0.12);
             const zoneBottom = Math.min(height, outer.y + outer.h * 0.93);
-            const soften = Math.max(22, width * 0.025);
+            const soften = Math.max(18, width * 0.018);
 
             for (let y = step; y < height - step; y += 1) {
                 for (let x = step; x < width - step; x += 1) {
-                    const insideInner = x > inner.x + 4 && x < inner.x + inner.w - 4 && y > inner.y + 4 && y < inner.y + inner.h - 4;
+                    const insideInner = x > inner.x + soften && x < inner.x + inner.w - soften && y > inner.y + soften && y < inner.y + inner.h - soften;
                     const inZone = !insideInner && x > zoneLeft && x < zoneRight && y > zoneTop && y < zoneBottom;
                     if (!inZone) continue;
                     const idx = (y * width + x) * 4;
@@ -894,9 +978,9 @@
                         Math.abs(y - (inner.y + inner.h)) < soften ||
                         (x < inner.x && x > outer.x - 80) ||
                         (x > inner.x + inner.w && x < outer.x + outer.w + 80);
-                    const score = edge * 0.72 + sat * 120 + (nearFrame ? 32 : 0);
-                    if (score > 74) {
-                        const alpha = clamp((score - 66) * 2.2, 0, 210);
+                    const score = edge * 0.92 + sat * 128 + (nearFrame ? 24 : 0);
+                    if (score > 112) {
+                        const alpha = clamp((score - 104) * 2.4, 0, 235);
                         maskData[idx] = 255;
                         maskData[idx + 1] = 255;
                         maskData[idx + 2] = 255;
@@ -917,7 +1001,7 @@
             lctx.globalCompositeOperation = 'destination-in';
             lctx.drawImage(maskCanvas, 0, 0);
             lctx.globalCompositeOperation = 'source-over';
-            return layer;
+            return applyOutOfFrameMask(layer, width, height, inner, outer);
         }
 
         function drawWoodTexture(ctx, outer, template) {
@@ -936,7 +1020,7 @@
             ctx.restore();
         }
 
-        function composeFrameArt() {
+        async function composeFrameArt() {
             const width = 1200;
             const height = 1600;
             const canvas = document.createElement('canvas');
@@ -997,7 +1081,16 @@
             ctx.strokeRect(inner.x, inner.y, inner.w, inner.h);
             ctx.restore();
 
-            const fgLayer = buildForegroundLayer(currentImage, cropRect, width, height, inner, outer);
+            let fgLayer = null;
+            try {
+                setTaskState('taskStageGenerating', 'progressSegmentingHint', 46);
+                fgLayer = await buildAiForegroundLayer(currentImage, cropRect, width, height, inner, outer);
+            } catch (err) {
+                console.warn('AI foreground extraction failed, using fallback mask.', err);
+            }
+            if (!fgLayer) {
+                fgLayer = buildFallbackForegroundLayer(currentImage, cropRect, width, height, inner, outer);
+            }
             ctx.save();
             ctx.shadowColor = 'rgba(15, 23, 42, 0.26)';
             ctx.shadowBlur = 14;
@@ -1039,7 +1132,7 @@
                 await delay(120);
                 setProgress(42);
                 await delay(80);
-                const canvas = composeFrameArt();
+                const canvas = await composeFrameArt();
                 setProgress(78);
                 generatedBlob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png', 0.96));
                 if (!generatedBlob) throw new Error('Failed to create image');
