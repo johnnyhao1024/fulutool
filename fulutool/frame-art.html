@@ -877,25 +877,12 @@
             return sourceCanvas;
         }
 
-        function applyOutOfFrameMask(layer, width, height, inner, outer) {
+        function applyForegroundRevealMask(layer, width, height, inner, outer) {
             const masked = document.createElement('canvas');
             masked.width = width;
             masked.height = height;
             const ctx = masked.getContext('2d');
             ctx.drawImage(layer, 0, 0);
-            ctx.globalCompositeOperation = 'destination-in';
-            ctx.fillStyle = '#fff';
-            ctx.beginPath();
-            ctx.rect(0, 0, width, height);
-
-            // Keep the foreground outside the inner window, but allow a small
-            // overlap band so edges can naturally cross over the frame.
-            const bleed = Math.max(18, width * 0.018);
-            ctx.rect(inner.x + bleed, inner.y + bleed, inner.w - bleed * 2, inner.h - bleed * 2);
-            ctx.fill('evenodd');
-            ctx.globalCompositeOperation = 'source-over';
-
-            // Avoid showing unrelated cutout pieces far away from the frame.
             ctx.globalCompositeOperation = 'destination-in';
             ctx.fillStyle = '#fff';
             roundedRect(ctx, outer.x - outer.w * 0.24, outer.y - outer.h * 0.16, outer.w * 1.48, outer.h * 1.08, 4);
@@ -929,7 +916,7 @@
             cutoutCanvas.height = height;
             const cctx = cutoutCanvas.getContext('2d');
             cctx.drawImage(cutoutImage, 0, 0, width, height);
-            return applyOutOfFrameMask(cutoutCanvas, width, height, inner, outer);
+            return applyForegroundRevealMask(cutoutCanvas, width, height, inner, outer);
         }
 
         function buildFallbackForegroundLayer(img, cropRect, width, height, inner, outer) {
@@ -1001,7 +988,7 @@
             lctx.globalCompositeOperation = 'destination-in';
             lctx.drawImage(maskCanvas, 0, 0);
             lctx.globalCompositeOperation = 'source-over';
-            return applyOutOfFrameMask(layer, width, height, inner, outer);
+            return applyForegroundRevealMask(layer, width, height, inner, outer);
         }
 
         function drawWoodTexture(ctx, outer, template) {
@@ -1028,6 +1015,7 @@
             canvas.height = height;
             const ctx = canvas.getContext('2d');
             const cropRect = getCropRect(currentImage);
+            const sceneCanvas = createFullPhotoCanvas(currentImage, cropRect, width, height);
             const template = TEMPLATES[selectedTemplate] || TEMPLATES.white;
             const outer = { w: 820, h: Math.round(820 * 4 / 3) };
             outer.x = (width - outer.w) / 2;
@@ -1039,12 +1027,7 @@
             inner.x = outer.x + sidePad;
             inner.y = outer.y + topPad;
 
-            ctx.save();
-            ctx.filter = 'blur(8px) saturate(1.06) brightness(0.88)';
-            drawCroppedCover(ctx, currentImage, -40, -40, width + 80, height + 80, cropRect);
-            ctx.restore();
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-            ctx.fillRect(0, 0, width, height);
+            ctx.drawImage(sceneCanvas, 0, 0);
 
             ctx.save();
             ctx.shadowColor = template.shadow;
@@ -1071,7 +1054,7 @@
             ctx.beginPath();
             ctx.rect(inner.x, inner.y, inner.w, inner.h);
             ctx.clip();
-            drawCroppedCover(ctx, currentImage, inner.x, inner.y, inner.w, inner.h, cropRect);
+            ctx.drawImage(sceneCanvas, inner.x, inner.y, inner.w, inner.h, inner.x, inner.y, inner.w, inner.h);
             ctx.restore();
 
             ctx.save();
@@ -1092,10 +1075,10 @@
                 fgLayer = buildFallbackForegroundLayer(currentImage, cropRect, width, height, inner, outer);
             }
             ctx.save();
-            ctx.shadowColor = 'rgba(15, 23, 42, 0.26)';
-            ctx.shadowBlur = 14;
-            ctx.shadowOffsetX = 9;
-            ctx.shadowOffsetY = 12;
+            ctx.shadowColor = 'rgba(15, 23, 42, 0.22)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetX = 7;
+            ctx.shadowOffsetY = 8;
             ctx.drawImage(fgLayer, 0, 0);
             ctx.restore();
 
