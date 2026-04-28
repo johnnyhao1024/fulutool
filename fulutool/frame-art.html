@@ -91,6 +91,7 @@
             color: #64748b;
         }
         .crop-shell,
+        .mask-section,
         .template-section,
         .task-panel {
             display: none;
@@ -101,6 +102,7 @@
             padding: 1rem;
         }
         .crop-shell.show,
+        .mask-section.show,
         .template-section.show,
         .task-panel.show { display: block; }
         .preview-title {
@@ -131,6 +133,61 @@
             margin-top: 0.7rem;
             color: #64748b;
             font-size: 0.82rem;
+        }
+        .mask-preview-frame {
+            width: 100%;
+            border-radius: 20px;
+            padding: 0.8rem;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+        }
+        .mask-canvas {
+            width: min(520px, 100%);
+            height: auto;
+            margin: 0 auto;
+            border-radius: 18px;
+            display: block;
+            touch-action: none;
+            cursor: crosshair;
+            background: #eef4f8;
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.10);
+        }
+        .mask-help {
+            margin: -0.2rem 0 0.75rem;
+            color: #64748b;
+            font-size: 0.82rem;
+        }
+        .mask-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.7rem;
+            align-items: center;
+            justify-content: center;
+            margin-top: 0.85rem;
+        }
+        .mask-toolbar button {
+            margin: 0;
+        }
+        .mask-toolbar button.is-active {
+            background: #0f766e;
+            color: #ffffff;
+            border-color: #0f766e;
+        }
+        .brush-control {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            color: #475569;
+            font-weight: 700;
+            font-size: 0.82rem;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            padding: 0.45rem 0.75rem;
+        }
+        .brush-control input {
+            width: 130px;
+            accent-color: #0f766e;
         }
         .template-grid {
             display: grid;
@@ -278,15 +335,13 @@
             .tool-card-name { font-size: 0.85rem; }
             .crop-preview-frame { padding: 0.55rem; }
             .crop-preview-canvas { border-radius: 12px; }
+            .mask-preview-frame { padding: 0.55rem; }
+            .mask-canvas { width: 100%; border-radius: 14px; }
+            .brush-control { width: 100%; justify-content: center; }
         }
     </style>
     <link rel="stylesheet" href="/assets/fulutool.css">
     <script defer src="/assets/fulutool.js"></script>
-    <script type="module">
-        import { removeBackground } from 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.6.0/+esm';
-        window.FULUTOOL_REMOVE_BACKGROUND = removeBackground;
-        window.dispatchEvent(new Event('fulutool-bg-removal-ready'));
-    </script>
 </head>
 <body>
     <div class="container">
@@ -353,6 +408,23 @@
                 </div>
             </div>
 
+            <div class="mask-section" id="maskSection">
+                <div class="preview-title" id="maskTitle">🖌️ 标记穿出区域</div>
+                <div class="mask-help" id="maskHelp">在预览图上涂抹需要压住画框的树叶、花朵或人物区域。红色标记只用于编辑，最终图片不会显示红色。</div>
+                <div class="mask-preview-frame">
+                    <canvas id="maskCanvas" class="mask-canvas" width="900" height="1200"></canvas>
+                </div>
+                <div class="mask-toolbar">
+                    <button type="button" id="paintModeBtn" class="is-active">添加区域</button>
+                    <button type="button" id="eraseModeBtn">擦除区域</button>
+                    <label class="brush-control">
+                        <span id="brushSizeLabel">画笔大小</span>
+                        <input type="range" id="brushSizeInput" min="12" max="120" value="46">
+                    </label>
+                    <button type="button" id="clearMaskBtn">清空标记</button>
+                </div>
+            </div>
+
             <div class="action-row">
                 <button type="button" class="primary" id="generateBtn" disabled>⚡ 生成图片</button>
             </div>
@@ -403,6 +475,12 @@
         const cropPreviewCanvas = document.getElementById('cropPreviewCanvas');
         const templateSection = document.getElementById('templateSection');
         const templateOptions = Array.from(document.querySelectorAll('.template-option'));
+        const maskSection = document.getElementById('maskSection');
+        const maskCanvas = document.getElementById('maskCanvas');
+        const paintModeBtn = document.getElementById('paintModeBtn');
+        const eraseModeBtn = document.getElementById('eraseModeBtn');
+        const brushSizeInput = document.getElementById('brushSizeInput');
+        const clearMaskBtn = document.getElementById('clearMaskBtn');
         const taskStatusSection = document.getElementById('taskStatusSection');
         const taskStageText = document.getElementById('taskStageText');
         const progressHint = document.getElementById('progressHint');
@@ -428,6 +506,13 @@
         let cropInteraction = { mode: '', pointerId: null, startX: 0, startY: 0, startBoxX: 0, startBoxY: 0, startScale: 1 };
         let pinchInteraction = { active: false, startDistance: 0, startScale: 1, startMidX: 0, startMidY: 0, startBoxX: 0, startBoxY: 0 };
         const activePointers = new Map();
+        const manualMaskCanvas = document.createElement('canvas');
+        manualMaskCanvas.width = 900;
+        manualMaskCanvas.height = 1200;
+        let maskMode = 'paint';
+        let maskDrawing = false;
+        let maskPointerId = null;
+        let lastMaskPoint = null;
         let taskState = { stageKey: 'taskStageIdle', hintKey: 'progressIdleHint', percent: 0 };
         let isGenerating = false;
 
@@ -438,7 +523,7 @@
             invalidImage: '请选择 JPG 或 PNG 图片',
             selectImageFirst: '请先上传一张图片',
             dropImageHint: '支持 JPG/PNG 图片，桌面端可拖拽上传，移动端可直接点击选择文件',
-            toolDesc: '上传图片并裁剪，选择画框模板，一键生成带穿出画框效果的立体美图。',
+            toolDesc: '上传图片并裁剪，选择画框模板，手动标记穿出区域，生成稳定的立体画框美图。',
             cropTitle: '✂️ 图片裁剪',
             cropHelp: '拖动 2:3 选框调整照片区域，双指捏合可放大或缩小选区，也可拖动右下角圆点微调。',
             templateTitle: '选择画框模板',
@@ -446,20 +531,27 @@
             templateBlack: '黑色',
             templateOak: '原木色',
             templateWalnut: '胡桃木',
+            maskTitle: '🖌️ 标记穿出区域',
+            maskHelp: '在预览图上涂抹需要压住画框的树叶、花朵或人物区域。红色标记只用于编辑，最终图片不会显示红色。',
+            paintMode: '添加区域',
+            eraseMode: '擦除区域',
+            brushSize: '画笔大小',
+            clearMask: '清空标记',
             taskStageIdle: '等待图片上传',
             taskStageReady: '图片已就绪，等待生成',
             taskStageGenerating: '正在合成立体画框效果',
             taskStageDone: '图片已生成，可预览并保存',
             taskStageFailed: '生成失败，请更换图片重试',
             progressIdleHint: '上传图片后即可开始制作立体画框美图',
-            progressReadyHint: '图片已上传，裁剪并选择模板后点击生成图片',
-            progressGeneratingHint: '正在生成画框、投影和前景穿透图层，请稍候',
-            progressSegmentingHint: '正在智能识别前景物体，首次加载模型可能需要稍等',
+            progressReadyHint: '图片已上传，裁剪并标记穿出区域后点击生成图片',
+            progressGeneratingHint: '正在根据手动标记生成画框、投影和顶层前景，请稍候',
+            progressSegmentingHint: '正在应用你标记的穿出区域',
             progressDoneHint: '图片已生成。可点击下方保存图片按钮下载到本地',
             progressFailedHint: '任务执行失败，请重新上传或稍后再试',
             saveFirst: '请先生成图片',
             saveDone: '图片已保存',
             saveWechatTip: '微信内置浏览器不支持直接下载。请长按下方预览图并选择“保存图片”',
+            markAreaFirst: '请先在“标记穿出区域”中涂抹需要压住画框的物体区域',
             selectImageBtn: '📂 上传图片',
             generateBtn: '⚡ 生成图片',
             saveBtn: '💾 保存图片'
@@ -470,7 +562,7 @@
             invalidImage: 'Please choose a JPG or PNG image',
             selectImageFirst: 'Please upload an image first',
             dropImageHint: 'JPG/PNG supported. Drag an image here on desktop, or tap the button on mobile.',
-            toolDesc: 'Upload and crop a photo, choose a frame template, and generate a 3D out-of-frame image in one click.',
+            toolDesc: 'Upload and crop a photo, choose a frame template, manually mark the pop-out area, and generate a stable 3D frame image.',
             cropTitle: '✂️ Image crop',
             cropHelp: 'Drag the 2:3 crop box to reposition the photo. Use two fingers to zoom, or drag the bottom-right handle for fine tuning.',
             templateTitle: 'Choose frame template',
@@ -478,20 +570,27 @@
             templateBlack: 'Black',
             templateOak: 'Natural wood',
             templateWalnut: 'Walnut',
+            maskTitle: '🖌️ Mark pop-out area',
+            maskHelp: 'Paint over the leaves, flowers, people, or objects that should sit above the frame. The red guide is only for editing and will not appear in the final image.',
+            paintMode: 'Add area',
+            eraseMode: 'Erase area',
+            brushSize: 'Brush size',
+            clearMask: 'Clear marks',
             taskStageIdle: 'Waiting for image upload',
             taskStageReady: 'Image ready, waiting to generate',
             taskStageGenerating: 'Compositing the 3D frame effect',
             taskStageDone: 'Image generated. Preview and save now',
             taskStageFailed: 'Generation failed. Please try another image',
             progressIdleHint: 'Upload an image to start creating your 3D frame artwork',
-            progressReadyHint: 'Image uploaded. Crop it, choose a template, then generate',
-            progressGeneratingHint: 'Building the frame, shadow, and foreground mask layers now',
-            progressSegmentingHint: 'Detecting the foreground subject. The first model load may take a little while.',
+            progressReadyHint: 'Image uploaded. Crop it, mark the pop-out area, then generate',
+            progressGeneratingHint: 'Building the frame, shadows, and marked top foreground now',
+            progressSegmentingHint: 'Applying your marked pop-out area',
             progressDoneHint: 'Image generated. Click Save image below to download',
             progressFailedHint: 'Task failed. Please upload again or try later',
             saveFirst: 'Please generate the image first',
             saveDone: 'Image saved',
             saveWechatTip: 'WeChat in-app browser does not support direct download. Please long-press the preview image below and save it.',
+            markAreaFirst: 'Please paint the object area that should pop out above the frame first',
             selectImageBtn: '📂 Upload image',
             generateBtn: '⚡ Generate image',
             saveBtn: '💾 Save image'
@@ -538,10 +637,16 @@
         function syncStaticText() {
             fileStatus.textContent = currentFile ? `${T('selectedFile', '📎 已选择文件：')} ${currentFile.name}` : T('fileNotSelected', '📎 尚未选择文件');
             dropzoneCopy.textContent = T('dropImageHint', '支持 JPG/PNG 图片，桌面端可拖拽上传，移动端可直接点击选择文件');
-            document.querySelector('.tool-desc').textContent = T('toolDesc', '上传图片并裁剪，选择画框模板，一键生成带穿出画框效果的立体美图。');
+            document.querySelector('.tool-desc').textContent = T('toolDesc', '上传图片并裁剪，选择画框模板，手动标记穿出区域，生成稳定的立体画框美图。');
             document.getElementById('cropTitle').textContent = T('cropTitle', '✂️ 图片裁剪');
             document.getElementById('cropHelp').textContent = T('cropHelp', '拖动 2:3 选框调整照片区域，双指捏合可放大或缩小选区，也可拖动右下角圆点微调。');
             document.getElementById('templateTitle').textContent = T('templateTitle', '选择画框模板');
+            document.getElementById('maskTitle').textContent = T('maskTitle', '🖌️ 标记穿出区域');
+            document.getElementById('maskHelp').textContent = T('maskHelp', '在预览图上涂抹需要压住画框的树叶、花朵或人物区域。红色标记只用于编辑，最终图片不会显示红色。');
+            paintModeBtn.textContent = T('paintMode', '添加区域');
+            eraseModeBtn.textContent = T('eraseMode', '擦除区域');
+            document.getElementById('brushSizeLabel').textContent = T('brushSize', '画笔大小');
+            clearMaskBtn.textContent = T('clearMask', '清空标记');
             selectImageBtn.textContent = T('selectImageBtn', '📂 上传图片');
             generateBtn.textContent = T('generateBtn', '⚡ 生成图片');
             saveBtn.textContent = T('saveBtn', '💾 保存图片');
@@ -698,6 +803,13 @@
         function updateCropUi() {
             updateCropCanvasSize();
             drawCropPreview();
+            drawMaskEditor();
+        }
+
+        function markResultDirty() {
+            generatedBlob = null;
+            saveBtn.disabled = true;
+            resultPreviewWrap.classList.remove('show');
         }
 
         function getCanvasPoint(event) {
@@ -800,6 +912,8 @@
                 cropState.scale = clamp(cropInteraction.startScale + delta / Math.max(maxCropW, maxCropH), 0.45, 1);
             }
             drawCropPreview();
+            drawMaskEditor();
+            markResultDirty();
         }
 
         function endCropInteraction(event) {
@@ -816,6 +930,7 @@
                 cropInteraction.mode = '';
                 cropInteraction.pointerId = null;
                 cropPreviewCanvas.classList.remove('is-dragging', 'is-resizing');
+                drawMaskEditor();
             }
         }
 
@@ -845,22 +960,6 @@
             ctx.arcTo(x, y + h, x, y, radius);
             ctx.arcTo(x, y, x + w, y, radius);
             ctx.closePath();
-        }
-
-        function loadImageFromBlob(blob) {
-            return new Promise((resolve, reject) => {
-                const url = URL.createObjectURL(blob);
-                const img = new Image();
-                img.onload = () => {
-                    URL.revokeObjectURL(url);
-                    resolve(img);
-                };
-                img.onerror = () => {
-                    URL.revokeObjectURL(url);
-                    reject(new Error('Image load failed'));
-                };
-                img.src = url;
-            });
         }
 
         function createFullPhotoCanvas(img, cropRect, width, height) {
@@ -949,222 +1048,40 @@
             return layer;
         }
 
-        function keepForegroundConnectedToInner(canvas, inner) {
-            const ctx = canvas.getContext('2d');
-            const width = canvas.width;
-            const height = canvas.height;
-            const imageData = ctx.getImageData(0, 0, width, height);
-            const data = imageData.data;
-            const visited = new Uint8Array(width * height);
-            const queue = new Int32Array(width * height);
-            let head = 0;
-            let tail = 0;
-            const left = clamp(Math.floor(inner.x), 0, width - 1);
-            const right = clamp(Math.ceil(inner.x + inner.w), 0, width - 1);
-            const top = clamp(Math.floor(inner.y), 0, height - 1);
-            const bottom = clamp(Math.ceil(inner.y + inner.h), 0, height - 1);
-
-            function push(index) {
-                if (visited[index] || data[index * 4 + 3] === 0) return;
-                visited[index] = 1;
-                queue[tail] = index;
-                tail += 1;
-            }
-
-            for (let y = top; y <= bottom; y += 1) {
-                const row = y * width;
-                for (let x = left; x <= right; x += 1) {
-                    push(row + x);
-                }
-            }
-
-            while (head < tail) {
-                const index = queue[head];
-                head += 1;
-                const x = index % width;
-                if (x > 0) push(index - 1);
-                if (x < width - 1) push(index + 1);
-                if (index >= width) push(index - width);
-                if (index < width * (height - 1)) push(index + width);
-            }
-
-            for (let i = 0; i < visited.length; i += 1) {
-                if (!visited[i]) data[i * 4 + 3] = 0;
-            }
-            ctx.putImageData(imageData, 0, 0);
-            return canvas;
-        }
-
-        function drawInnerDepthShadow(ctx, inner) {
+        function drawInnerDepthShadow(ctx, inner, scale = 1) {
             ctx.save();
-            let gradient = ctx.createLinearGradient(0, inner.y, 0, inner.y + 128);
+            const topDepth = 128 * scale;
+            const leftDepth = 116 * scale;
+            const rightDepth = 96 * scale;
+            const bottomDepth = 88 * scale;
+            let gradient = ctx.createLinearGradient(0, inner.y, 0, inner.y + topDepth);
             gradient.addColorStop(0, 'rgba(2, 6, 23, 0.78)');
             gradient.addColorStop(0.34, 'rgba(2, 6, 23, 0.42)');
             gradient.addColorStop(1, 'rgba(2, 6, 23, 0)');
             ctx.fillStyle = gradient;
-            ctx.fillRect(inner.x, inner.y, inner.w, 128);
+            ctx.fillRect(inner.x, inner.y, inner.w, topDepth);
 
-            gradient = ctx.createLinearGradient(inner.x, 0, inner.x + 116, 0);
+            gradient = ctx.createLinearGradient(inner.x, 0, inner.x + leftDepth, 0);
             gradient.addColorStop(0, 'rgba(2, 6, 23, 0.68)');
             gradient.addColorStop(0.38, 'rgba(2, 6, 23, 0.34)');
             gradient.addColorStop(1, 'rgba(2, 6, 23, 0)');
             ctx.fillStyle = gradient;
-            ctx.fillRect(inner.x, inner.y, 116, inner.h);
+            ctx.fillRect(inner.x, inner.y, leftDepth, inner.h);
 
-            gradient = ctx.createLinearGradient(inner.x + inner.w, 0, inner.x + inner.w - 96, 0);
+            gradient = ctx.createLinearGradient(inner.x + inner.w, 0, inner.x + inner.w - rightDepth, 0);
             gradient.addColorStop(0, 'rgba(2, 6, 23, 0.42)');
             gradient.addColorStop(0.42, 'rgba(2, 6, 23, 0.20)');
             gradient.addColorStop(1, 'rgba(2, 6, 23, 0)');
             ctx.fillStyle = gradient;
-            ctx.fillRect(inner.x + inner.w - 96, inner.y, 96, inner.h);
+            ctx.fillRect(inner.x + inner.w - rightDepth, inner.y, rightDepth, inner.h);
 
-            gradient = ctx.createLinearGradient(0, inner.y + inner.h, 0, inner.y + inner.h - 88);
+            gradient = ctx.createLinearGradient(0, inner.y + inner.h, 0, inner.y + inner.h - bottomDepth);
             gradient.addColorStop(0, 'rgba(2, 6, 23, 0.38)');
             gradient.addColorStop(0.42, 'rgba(2, 6, 23, 0.18)');
             gradient.addColorStop(1, 'rgba(2, 6, 23, 0)');
             ctx.fillStyle = gradient;
-            ctx.fillRect(inner.x, inner.y + inner.h - 88, inner.w, 88);
+            ctx.fillRect(inner.x, inner.y + inner.h - bottomDepth, inner.w, bottomDepth);
             ctx.restore();
-        }
-
-        function applyForegroundRevealMask(maskLayer, width, height, inner, outer) {
-            const masked = document.createElement('canvas');
-            masked.width = width;
-            masked.height = height;
-            const ctx = masked.getContext('2d');
-            ctx.drawImage(maskLayer, 0, 0);
-
-            const maskCanvas = document.createElement('canvas');
-            maskCanvas.width = width;
-            maskCanvas.height = height;
-            const mctx = maskCanvas.getContext('2d');
-            mctx.fillStyle = '#fff';
-
-            const frameWidth = Math.max(1, inner.x - outer.x);
-            const outsidePadX = outer.w * 0.24;
-            const outsidePadY = outer.h * 0.16;
-            const revealOut = Math.max(54, Math.round(frameWidth * 0.72));
-            const revealIn = Math.max(32, Math.round(frameWidth * 0.38));
-
-            // Keep a continuous top layer for subjects crossing the opening:
-            // inner-edge pixels, frame-overlapping pixels, and the extension
-            // onto the background are all drawn last as one solid foreground.
-            mctx.beginPath();
-            roundedRect(mctx, outer.x - outsidePadX, outer.y - outsidePadY, outer.w + outsidePadX * 2, outer.h + outsidePadY * 2, 18);
-            roundedRect(mctx, outer.x, outer.y, outer.w, outer.h, 2);
-            mctx.fill('evenodd');
-            mctx.fillRect(inner.x - revealOut, inner.y - revealOut, inner.w + revealOut * 2, revealOut + revealIn);
-            mctx.fillRect(inner.x - revealOut, inner.y + inner.h - revealIn, inner.w + revealOut * 2, revealOut + revealIn);
-            mctx.fillRect(inner.x - revealOut, inner.y - revealIn, revealOut + revealIn, inner.h + revealIn * 2);
-            mctx.fillRect(inner.x + inner.w - revealIn, inner.y - revealIn, revealOut + revealIn, inner.h + revealIn * 2);
-
-            ctx.globalCompositeOperation = 'destination-in';
-            ctx.drawImage(maskCanvas, 0, 0);
-            ctx.globalCompositeOperation = 'source-over';
-            buildSolidAlphaMask(masked, 1);
-            return masked;
-        }
-
-        function canvasToBlob(canvas, type = 'image/png', quality = 0.96) {
-            return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
-        }
-
-        async function buildAiForegroundLayer(img, cropRect, width, height, inner, outer) {
-            if (typeof window.FULUTOOL_REMOVE_BACKGROUND !== 'function') {
-                return null;
-            }
-
-            const sourceCanvas = createFullPhotoCanvas(img, cropRect, width, height);
-            const sourceBlob = await canvasToBlob(sourceCanvas, 'image/png', 0.96);
-            if (!sourceBlob) return null;
-
-            const cutoutBlob = await window.FULUTOOL_REMOVE_BACKGROUND(sourceBlob, {
-                output: {
-                    format: 'image/png',
-                    quality: 0.96
-                }
-            });
-            const cutoutImage = await loadImageFromBlob(cutoutBlob);
-            const cutoutCanvas = document.createElement('canvas');
-            cutoutCanvas.width = width;
-            cutoutCanvas.height = height;
-            const cctx = cutoutCanvas.getContext('2d');
-            cctx.drawImage(cutoutImage, 0, 0, width, height);
-            buildSolidAlphaMask(cutoutCanvas, 32);
-            keepForegroundConnectedToInner(cutoutCanvas, inner);
-            const revealMask = applyForegroundRevealMask(cutoutCanvas, width, height, inner, outer);
-            return createOpaqueLayerFromMask(sourceCanvas, revealMask);
-        }
-
-        function buildFallbackForegroundLayer(img, cropRect, width, height, inner, outer) {
-            const sourceCanvas = createFullPhotoCanvas(img, cropRect, width, height);
-            const sctx = sourceCanvas.getContext('2d');
-            const imageData = sctx.getImageData(0, 0, width, height);
-            const data = imageData.data;
-            const maskCanvas = document.createElement('canvas');
-            maskCanvas.width = width;
-            maskCanvas.height = height;
-            const mctx = maskCanvas.getContext('2d');
-            const mask = mctx.createImageData(width, height);
-            const maskData = mask.data;
-            const step = 4;
-            const zoneLeft = Math.max(0, outer.x - outer.w * 0.22);
-            const zoneRight = Math.min(width, outer.x + outer.w * 1.22);
-            const zoneTop = Math.max(0, outer.y - outer.h * 0.12);
-            const zoneBottom = Math.min(height, outer.y + outer.h * 0.93);
-            const soften = Math.max(18, width * 0.018);
-
-            for (let y = step; y < height - step; y += 1) {
-                for (let x = step; x < width - step; x += 1) {
-                    const insideInner = x > inner.x + soften && x < inner.x + inner.w - soften && y > inner.y + soften && y < inner.y + inner.h - soften;
-                    const inZone = !insideInner && x > zoneLeft && x < zoneRight && y > zoneTop && y < zoneBottom;
-                    if (!inZone) continue;
-                    const idx = (y * width + x) * 4;
-                    const r = data[idx];
-                    const g = data[idx + 1];
-                    const b = data[idx + 2];
-                    const max = Math.max(r, g, b);
-                    const min = Math.min(r, g, b);
-                    const sat = max === 0 ? 0 : (max - min) / max;
-                    const leftIdx = (y * width + (x - step)) * 4;
-                    const rightIdx = (y * width + (x + step)) * 4;
-                    const topIdx = ((y - step) * width + x) * 4;
-                    const bottomIdx = ((y + step) * width + x) * 4;
-                    const lumLeft = data[leftIdx] * 0.299 + data[leftIdx + 1] * 0.587 + data[leftIdx + 2] * 0.114;
-                    const lumRight = data[rightIdx] * 0.299 + data[rightIdx + 1] * 0.587 + data[rightIdx + 2] * 0.114;
-                    const lumTop = data[topIdx] * 0.299 + data[topIdx + 1] * 0.587 + data[topIdx + 2] * 0.114;
-                    const lumBottom = data[bottomIdx] * 0.299 + data[bottomIdx + 1] * 0.587 + data[bottomIdx + 2] * 0.114;
-                    const edge = Math.abs(lumRight - lumLeft) + Math.abs(lumBottom - lumTop);
-                    const nearFrame =
-                        Math.abs(x - inner.x) < soften ||
-                        Math.abs(x - (inner.x + inner.w)) < soften ||
-                        Math.abs(y - inner.y) < soften ||
-                        Math.abs(y - (inner.y + inner.h)) < soften ||
-                        (x < inner.x && x > outer.x - 80) ||
-                        (x > inner.x + inner.w && x < outer.x + outer.w + 80);
-                    const score = edge * 0.92 + sat * 128 + (nearFrame ? 24 : 0);
-                    if (score > 118) {
-                        maskData[idx] = 255;
-                        maskData[idx + 1] = 255;
-                        maskData[idx + 2] = 255;
-                        maskData[idx + 3] = 255;
-                    }
-                }
-            }
-            mctx.putImageData(mask, 0, 0);
-
-            const layer = document.createElement('canvas');
-            layer.width = width;
-            layer.height = height;
-            const lctx = layer.getContext('2d');
-            lctx.drawImage(sourceCanvas, 0, 0);
-            lctx.globalCompositeOperation = 'destination-in';
-            lctx.drawImage(maskCanvas, 0, 0);
-            lctx.globalCompositeOperation = 'source-over';
-            buildSolidAlphaMask(layer, 1);
-            keepForegroundConnectedToInner(layer, inner);
-            const revealMask = applyForegroundRevealMask(layer, width, height, inner, outer);
-            return createOpaqueLayerFromMask(sourceCanvas, revealMask);
         }
 
         function drawWoodTexture(ctx, outer, inner, template) {
@@ -1252,6 +1169,118 @@
             ctx.restore();
         }
 
+        function getFrameRects(width, height) {
+            const scale = width / 1200;
+            const outer = { w: Math.round(820 * 1.1) };
+            outer.w = Math.round(outer.w * scale);
+            outer.h = Math.round(outer.w * 4 / 3);
+            outer.x = (width - outer.w) / 2;
+            outer.y = (height - outer.h) / 2;
+            const frameWidth = Math.round(92 * 1.1 * scale);
+            const inner = {
+                x: outer.x + frameWidth,
+                y: outer.y + frameWidth,
+                w: outer.w - frameWidth * 2,
+                h: outer.h - frameWidth * 2
+            };
+            return { outer, inner, scale };
+        }
+
+        function drawFrameBase(ctx, sceneCanvas, template, outer, inner, scale = 1) {
+            ctx.drawImage(sceneCanvas, 0, 0);
+
+            ctx.save();
+            ctx.shadowColor = 'rgba(2, 6, 23, 0.56)';
+            ctx.shadowBlur = 96 * scale;
+            ctx.shadowOffsetX = 54 * scale;
+            ctx.shadowOffsetY = 74 * scale;
+            ctx.fillStyle = template.frame;
+            roundedRect(ctx, outer.x, outer.y, outer.w, outer.h, 2);
+            ctx.fill();
+            ctx.restore();
+
+            ctx.save();
+            ctx.shadowColor = 'rgba(2, 6, 23, 0.36)';
+            ctx.shadowBlur = 38 * scale;
+            ctx.shadowOffsetX = 18 * scale;
+            ctx.shadowOffsetY = 28 * scale;
+            ctx.fillStyle = template.frame;
+            roundedRect(ctx, outer.x, outer.y, outer.w, outer.h, 2);
+            ctx.fill();
+            ctx.restore();
+
+            drawWoodTexture(ctx, outer, inner, template);
+
+            ctx.save();
+            ctx.shadowColor = 'rgba(2, 6, 23, 0.74)';
+            ctx.shadowBlur = 62 * scale;
+            ctx.shadowOffsetX = -28 * scale;
+            ctx.shadowOffsetY = 30 * scale;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
+            ctx.fillRect(inner.x, inner.y, inner.w, inner.h);
+            ctx.restore();
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(inner.x, inner.y, inner.w, inner.h);
+            ctx.clip();
+            ctx.drawImage(sceneCanvas, inner.x, inner.y, inner.w, inner.h, inner.x, inner.y, inner.w, inner.h);
+            drawInnerDepthShadow(ctx, inner, scale);
+            ctx.restore();
+
+            drawMiterJoints(ctx, outer, inner, template);
+        }
+
+        function drawMaskEditor() {
+            if (!maskCanvas || !currentImage) return;
+            const ctx = maskCanvas.getContext('2d');
+            const width = maskCanvas.width;
+            const height = maskCanvas.height;
+            const cropRect = getCropRect(currentImage);
+            const sceneCanvas = createFullPhotoCanvas(currentImage, cropRect, width, height);
+            const template = TEMPLATES[selectedTemplate] || TEMPLATES.white;
+            const { outer, inner, scale } = getFrameRects(width, height);
+            drawFrameBase(ctx, sceneCanvas, template, outer, inner, scale);
+
+            const overlay = document.createElement('canvas');
+            overlay.width = width;
+            overlay.height = height;
+            const octx = overlay.getContext('2d');
+            octx.fillStyle = 'rgba(239, 68, 68, 0.48)';
+            octx.fillRect(0, 0, width, height);
+            octx.globalCompositeOperation = 'destination-in';
+            octx.drawImage(manualMaskCanvas, 0, 0, width, height);
+            octx.globalCompositeOperation = 'source-over';
+            ctx.drawImage(overlay, 0, 0);
+        }
+
+        function resetManualMask() {
+            const ctx = manualMaskCanvas.getContext('2d');
+            ctx.clearRect(0, 0, manualMaskCanvas.width, manualMaskCanvas.height);
+            drawMaskEditor();
+            markResultDirty();
+        }
+
+        function buildManualForegroundLayer(sourceCanvas) {
+            const scaledMask = document.createElement('canvas');
+            scaledMask.width = sourceCanvas.width;
+            scaledMask.height = sourceCanvas.height;
+            const mctx = scaledMask.getContext('2d');
+            mctx.drawImage(manualMaskCanvas, 0, 0, scaledMask.width, scaledMask.height);
+            buildSolidAlphaMask(scaledMask, 8);
+            return createOpaqueLayerFromMask(sourceCanvas, scaledMask);
+        }
+
+        function hasManualMask() {
+            const ctx = manualMaskCanvas.getContext('2d');
+            const imageData = ctx.getImageData(0, 0, manualMaskCanvas.width, manualMaskCanvas.height);
+            const data = imageData.data;
+            for (let i = 3; i < data.length; i += 16) {
+                if (data[i] > 0) return true;
+            }
+            return false;
+        }
+
         async function composeFrameArt() {
             const width = 1200;
             const height = 1600;
@@ -1262,71 +1291,11 @@
             const cropRect = getCropRect(currentImage);
             const sceneCanvas = createFullPhotoCanvas(currentImage, cropRect, width, height);
             const template = TEMPLATES[selectedTemplate] || TEMPLATES.white;
-            const outer = { w: Math.round(820 * 1.1) };
-            outer.h = Math.round(outer.w * 4 / 3);
-            outer.x = (width - outer.w) / 2;
-            outer.y = (height - outer.h) / 2;
-            const frameWidth = Math.round(92 * 1.1);
-            const inner = {
-                x: outer.x + frameWidth,
-                y: outer.y + frameWidth,
-                w: outer.w - frameWidth * 2,
-                h: outer.h - frameWidth * 2
-            };
+            const { outer, inner, scale } = getFrameRects(width, height);
 
-            ctx.drawImage(sceneCanvas, 0, 0);
+            drawFrameBase(ctx, sceneCanvas, template, outer, inner, scale);
 
-            ctx.save();
-            ctx.shadowColor = 'rgba(2, 6, 23, 0.56)';
-            ctx.shadowBlur = 96;
-            ctx.shadowOffsetX = 54;
-            ctx.shadowOffsetY = 74;
-            ctx.fillStyle = template.frame;
-            roundedRect(ctx, outer.x, outer.y, outer.w, outer.h, 2);
-            ctx.fill();
-            ctx.restore();
-
-            ctx.save();
-            ctx.shadowColor = 'rgba(2, 6, 23, 0.36)';
-            ctx.shadowBlur = 38;
-            ctx.shadowOffsetX = 18;
-            ctx.shadowOffsetY = 28;
-            ctx.fillStyle = template.frame;
-            roundedRect(ctx, outer.x, outer.y, outer.w, outer.h, 2);
-            ctx.fill();
-            ctx.restore();
-
-            drawWoodTexture(ctx, outer, inner, template);
-
-            ctx.save();
-            ctx.shadowColor = 'rgba(2, 6, 23, 0.74)';
-            ctx.shadowBlur = 62;
-            ctx.shadowOffsetX = -28;
-            ctx.shadowOffsetY = 30;
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
-            ctx.fillRect(inner.x, inner.y, inner.w, inner.h);
-            ctx.restore();
-
-            ctx.save();
-            ctx.beginPath();
-            ctx.rect(inner.x, inner.y, inner.w, inner.h);
-            ctx.clip();
-            ctx.drawImage(sceneCanvas, inner.x, inner.y, inner.w, inner.h, inner.x, inner.y, inner.w, inner.h);
-            drawInnerDepthShadow(ctx, inner);
-            ctx.restore();
-
-            drawMiterJoints(ctx, outer, inner, template);
-
-            let fgLayer = null;
-            try {
-                setTaskState('taskStageGenerating', 'progressSegmentingHint', 46);
-                fgLayer = await buildAiForegroundLayer(currentImage, cropRect, width, height, inner, outer);
-            } catch (err) {
-                console.warn('AI foreground extraction failed, using fallback mask.', err);
-            }
-            if (!fgLayer) {
-                fgLayer = buildFallbackForegroundLayer(currentImage, cropRect, width, height, inner, outer);
-            }
+            const fgLayer = buildManualForegroundLayer(sceneCanvas);
             ctx.drawImage(fgLayer, 0, 0);
 
             return canvas;
@@ -1340,6 +1309,11 @@
             if (isGenerating) return;
             if (!currentImage) {
                 alert(T('selectImageFirst', '请先上传一张图片'));
+                return;
+            }
+            if (!hasManualMask()) {
+                alert(T('markAreaFirst', '请先在“标记穿出区域”中涂抹需要压住画框的物体区域'));
+                scrollToSectionOnMobile(maskSection);
                 return;
             }
             addPressedEffect(generateBtn);
@@ -1391,6 +1365,74 @@
             link.remove();
         }
 
+        function getMaskPoint(event) {
+            const rect = maskCanvas.getBoundingClientRect();
+            return {
+                x: (event.clientX - rect.left) * (maskCanvas.width / rect.width),
+                y: (event.clientY - rect.top) * (maskCanvas.height / rect.height)
+            };
+        }
+
+        function paintManualMask(from, to) {
+            const ctx = manualMaskCanvas.getContext('2d');
+            const brush = Number(brushSizeInput.value || 46);
+            ctx.save();
+            ctx.globalCompositeOperation = maskMode === 'erase' ? 'destination-out' : 'source-over';
+            ctx.strokeStyle = '#ffffff';
+            ctx.fillStyle = '#ffffff';
+            ctx.lineWidth = brush;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            if (from) {
+                ctx.moveTo(from.x, from.y);
+                ctx.lineTo(to.x, to.y);
+                ctx.stroke();
+            } else {
+                ctx.arc(to.x, to.y, brush / 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+            drawMaskEditor();
+            markResultDirty();
+        }
+
+        function beginMaskPaint(event) {
+            if (!currentImage || !maskCanvas) return;
+            event.preventDefault();
+            maskDrawing = true;
+            maskPointerId = event.pointerId != null ? event.pointerId : 1;
+            lastMaskPoint = getMaskPoint(event);
+            paintManualMask(null, lastMaskPoint);
+            if (maskCanvas.setPointerCapture && event.pointerId != null) {
+                maskCanvas.setPointerCapture(event.pointerId);
+            }
+        }
+
+        function moveMaskPaint(event) {
+            if (!maskDrawing || maskPointerId !== event.pointerId) return;
+            event.preventDefault();
+            const point = getMaskPoint(event);
+            paintManualMask(lastMaskPoint, point);
+            lastMaskPoint = point;
+        }
+
+        function endMaskPaint(event) {
+            if (!maskDrawing) return;
+            if (maskCanvas.releasePointerCapture && event.pointerId != null) {
+                try { maskCanvas.releasePointerCapture(event.pointerId); } catch (err) {}
+            }
+            maskDrawing = false;
+            maskPointerId = null;
+            lastMaskPoint = null;
+        }
+
+        function setMaskMode(nextMode) {
+            maskMode = nextMode === 'erase' ? 'erase' : 'paint';
+            paintModeBtn.classList.toggle('is-active', maskMode === 'paint');
+            eraseModeBtn.classList.toggle('is-active', maskMode === 'erase');
+        }
+
         async function handleFile(file) {
             if (!file || !/^image\/(jpeg|png)$/i.test(file.type)) {
                 alert(T('invalidImage', '请选择 JPG 或 PNG 图片'));
@@ -1405,6 +1447,8 @@
             resultPreviewWrap.classList.remove('show');
             cropShell.classList.add('show');
             templateSection.classList.add('show');
+            maskSection.classList.add('show');
+            resetManualMask();
             updateCropUi();
             setTaskState('taskStageReady', 'progressReadyHint', 12);
             syncStaticText();
@@ -1421,6 +1465,7 @@
             generatedBlob = null;
             saveBtn.disabled = true;
             resultPreviewWrap.classList.remove('show');
+            drawMaskEditor();
         }
 
         selectImageBtn.addEventListener('click', () => {
@@ -1451,6 +1496,19 @@
             addPressedEffect(option);
             setTemplate(option.dataset.template);
         }));
+        paintModeBtn.addEventListener('click', () => {
+            addPressedEffect(paintModeBtn);
+            setMaskMode('paint');
+        });
+        eraseModeBtn.addEventListener('click', () => {
+            addPressedEffect(eraseModeBtn);
+            setMaskMode('erase');
+        });
+        clearMaskBtn.addEventListener('click', () => {
+            addPressedEffect(clearMaskBtn);
+            resetManualMask();
+        });
+        brushSizeInput.addEventListener('input', markResultDirty);
         generateBtn.addEventListener('click', generateImage);
         saveBtn.addEventListener('click', saveImage);
         cropPreviewCanvas.addEventListener('pointerdown', beginCropInteraction);
@@ -1460,8 +1518,18 @@
         cropPreviewCanvas.addEventListener('pointerleave', (event) => {
             if (cropInteraction.mode && !cropPreviewCanvas.hasPointerCapture?.(event.pointerId)) endCropInteraction(event);
         });
+        maskCanvas.addEventListener('pointerdown', beginMaskPaint);
+        maskCanvas.addEventListener('pointermove', moveMaskPaint);
+        maskCanvas.addEventListener('pointerup', endMaskPaint);
+        maskCanvas.addEventListener('pointercancel', endMaskPaint);
+        maskCanvas.addEventListener('pointerleave', (event) => {
+            if (maskDrawing && !maskCanvas.hasPointerCapture?.(event.pointerId)) endMaskPaint(event);
+        });
         window.addEventListener('resize', () => {
-            if (currentImage) updateCropUi();
+            if (currentImage) {
+                updateCropUi();
+                drawMaskEditor();
+            }
         });
         setTaskState('taskStageIdle', 'progressIdleHint', 0);
         syncStaticText();
