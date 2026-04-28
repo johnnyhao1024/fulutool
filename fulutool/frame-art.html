@@ -1240,13 +1240,31 @@
             const sceneCanvas = createFullPhotoCanvas(currentImage, cropRect, width, height);
             const template = TEMPLATES[selectedTemplate] || TEMPLATES.white;
             const { outer, inner, scale } = getFrameRects(width, height);
-            drawFrameBase(ctx, sceneCanvas, template, outer, inner, scale);
+
+            // Editing uses an x-ray preview: the original photo stays visible
+            // through the frame so users can trace hidden petals/leaves.
+            ctx.clearRect(0, 0, width, height);
+            ctx.drawImage(sceneCanvas, 0, 0);
+            const framePreview = document.createElement('canvas');
+            framePreview.width = width;
+            framePreview.height = height;
+            drawFrameBase(framePreview.getContext('2d'), sceneCanvas, template, outer, inner, scale);
+            ctx.save();
+            ctx.globalAlpha = 0.58;
+            ctx.drawImage(framePreview, 0, 0);
+            ctx.restore();
+            ctx.save();
+            ctx.setLineDash([10 * scale, 8 * scale]);
+            ctx.lineWidth = Math.max(2, 3 * scale);
+            ctx.strokeStyle = 'rgba(15, 118, 110, 0.9)';
+            ctx.strokeRect(inner.x, inner.y, inner.w, inner.h);
+            ctx.restore();
 
             const overlay = document.createElement('canvas');
             overlay.width = width;
             overlay.height = height;
             const octx = overlay.getContext('2d');
-            octx.fillStyle = 'rgba(239, 68, 68, 0.48)';
+            octx.fillStyle = 'rgba(239, 68, 68, 0.42)';
             octx.fillRect(0, 0, width, height);
             octx.globalCompositeOperation = 'destination-in';
             octx.drawImage(manualMaskCanvas, 0, 0, width, height);
@@ -1261,13 +1279,31 @@
             markResultDirty();
         }
 
-        function buildManualForegroundLayer(sourceCanvas) {
+        function buildManualForegroundLayer(sourceCanvas, inner, outer) {
             const scaledMask = document.createElement('canvas');
             scaledMask.width = sourceCanvas.width;
             scaledMask.height = sourceCanvas.height;
             const mctx = scaledMask.getContext('2d');
             mctx.drawImage(manualMaskCanvas, 0, 0, scaledMask.width, scaledMask.height);
             buildSolidAlphaMask(scaledMask, 8);
+
+            // Prevent color mismatch: the top foreground should only affect
+            // the physical frame face and the outside background. The deep
+            // inside window keeps its original lighting/shadow treatment.
+            const allowed = document.createElement('canvas');
+            allowed.width = sourceCanvas.width;
+            allowed.height = sourceCanvas.height;
+            const actx = allowed.getContext('2d');
+            actx.fillStyle = '#fff';
+            actx.fillRect(0, 0, allowed.width, allowed.height);
+            actx.globalCompositeOperation = 'destination-out';
+            actx.fillRect(inner.x, inner.y, inner.w, inner.h);
+            actx.globalCompositeOperation = 'source-over';
+            mctx.globalCompositeOperation = 'destination-in';
+            mctx.drawImage(allowed, 0, 0);
+            mctx.globalCompositeOperation = 'source-over';
+            buildSolidAlphaMask(scaledMask, 8);
+
             return createOpaqueLayerFromMask(sourceCanvas, scaledMask);
         }
 
@@ -1295,7 +1331,7 @@
 
             drawFrameBase(ctx, sceneCanvas, template, outer, inner, scale);
 
-            const fgLayer = buildManualForegroundLayer(sceneCanvas);
+            const fgLayer = buildManualForegroundLayer(sceneCanvas, inner, outer);
             ctx.drawImage(fgLayer, 0, 0);
 
             return canvas;
