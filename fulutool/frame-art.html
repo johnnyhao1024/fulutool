@@ -1287,18 +1287,27 @@
             mctx.drawImage(manualMaskCanvas, 0, 0, scaledMask.width, scaledMask.height);
             buildSolidAlphaMask(scaledMask, 8);
 
-            // Prevent color mismatch: the top foreground should only affect
-            // the physical frame face and the outside background. The deep
-            // inside window keeps its original lighting/shadow treatment.
+            // Prevent color mismatch in the deep inner window, but keep a
+            // small inside-edge band so marked objects fully cover frame edges.
             const allowed = document.createElement('canvas');
             allowed.width = sourceCanvas.width;
             allowed.height = sourceCanvas.height;
             const actx = allowed.getContext('2d');
+            const frameWidth = Math.max(1, inner.x - outer.x);
+            const innerCoverBand = Math.max(42, Math.round(frameWidth * 0.42));
+            const deepInner = {
+                x: inner.x + innerCoverBand,
+                y: inner.y + innerCoverBand,
+                w: inner.w - innerCoverBand * 2,
+                h: inner.h - innerCoverBand * 2
+            };
             actx.fillStyle = '#fff';
             actx.fillRect(0, 0, allowed.width, allowed.height);
-            actx.globalCompositeOperation = 'destination-out';
-            actx.fillRect(inner.x, inner.y, inner.w, inner.h);
-            actx.globalCompositeOperation = 'source-over';
+            if (deepInner.w > 0 && deepInner.h > 0) {
+                actx.globalCompositeOperation = 'destination-out';
+                actx.fillRect(deepInner.x, deepInner.y, deepInner.w, deepInner.h);
+                actx.globalCompositeOperation = 'source-over';
+            }
             mctx.globalCompositeOperation = 'destination-in';
             mctx.drawImage(allowed, 0, 0);
             mctx.globalCompositeOperation = 'source-over';
