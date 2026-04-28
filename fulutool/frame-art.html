@@ -317,6 +317,7 @@
                     <button type="button" class="template-option is-active" data-template="white" aria-pressed="true">
                         <svg class="template-icon" viewBox="0 0 72 108" role="img" aria-hidden="true">
                             <rect x="12" y="10" width="48" height="72" rx="2" fill="#fff" stroke="#e5e7eb"/>
+                            <path d="M12 10L18 16M60 10L54 16M12 82L18 76M60 82L54 76" stroke="#94a3b8" stroke-width="1.1" opacity=".72"/>
                             <rect x="18" y="16" width="36" height="60" fill="#dbeafe"/>
                             <path d="M18 68c6-7 12-7 17 0 5-10 12-10 19-1v9H18z" fill="#94a3b8"/>
                         </svg>
@@ -325,6 +326,7 @@
                     <button type="button" class="template-option" data-template="black" aria-pressed="false">
                         <svg class="template-icon" viewBox="0 0 72 108" role="img" aria-hidden="true">
                             <rect x="12" y="10" width="48" height="72" rx="2" fill="#111827"/>
+                            <path d="M12 10L18 16M60 10L54 16M12 82L18 76M60 82L54 76" stroke="#e5e7eb" stroke-width="1.1" opacity=".5"/>
                             <rect x="18" y="16" width="36" height="60" fill="#dbeafe"/>
                             <path d="M18 68c6-7 12-7 17 0 5-10 12-10 19-1v9H18z" fill="#94a3b8"/>
                         </svg>
@@ -971,12 +973,12 @@
             ctx.globalCompositeOperation = 'destination-in';
             ctx.fillStyle = '#fff';
 
-            // The frame material is a physical blocker: foreground cutouts may
-            // reappear outside the frame, but never on top of the frame strips.
+            // Keep the foreground object as a hard top layer near the frame.
+            // The frame remains opaque everywhere else, while real foreground
+            // pixels can pass visually from inside the opening to the outside.
             ctx.beginPath();
-            ctx.rect(outer.x - outer.w * 0.24, outer.y - outer.h * 0.16, outer.w * 1.48, outer.h * 1.08);
-            roundedRect(ctx, outer.x, outer.y, outer.w, outer.h, 2);
-            ctx.fill('evenodd');
+            roundedRect(ctx, outer.x - outer.w * 0.24, outer.y - outer.h * 0.16, outer.w * 1.48, outer.h * 1.08, 18);
+            ctx.fill();
             ctx.globalCompositeOperation = 'source-over';
             hardenAlpha(masked, 254);
             return masked;
@@ -1131,10 +1133,17 @@
         }
 
         function drawMiterJoints(ctx, outer, inner, template) {
-            if (!['oak', 'walnut'].includes(selectedTemplate)) return;
             ctx.save();
-            ctx.strokeStyle = 'rgba(18, 12, 8, 0.55)';
-            ctx.lineWidth = 4;
+            if (selectedTemplate === 'white') {
+                ctx.strokeStyle = 'rgba(100, 116, 139, 0.48)';
+                ctx.lineWidth = 3;
+            } else if (selectedTemplate === 'black') {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.20)';
+                ctx.lineWidth = 3;
+            } else {
+                ctx.strokeStyle = 'rgba(18, 12, 8, 0.55)';
+                ctx.lineWidth = 4;
+            }
             ctx.beginPath();
             ctx.moveTo(outer.x, outer.y);
             ctx.lineTo(inner.x, inner.y);
@@ -1146,35 +1155,17 @@
             ctx.lineTo(inner.x + inner.w, inner.y + inner.h);
             ctx.stroke();
 
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.moveTo(outer.x + 5, outer.y + 2);
-            ctx.lineTo(inner.x + 4, inner.y + 2);
-            ctx.moveTo(outer.x + outer.w - 5, outer.y + 2);
-            ctx.lineTo(inner.x + inner.w - 4, inner.y + 2);
-            ctx.stroke();
+            if (['oak', 'walnut'].includes(selectedTemplate)) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(outer.x + 5, outer.y + 2);
+                ctx.lineTo(inner.x + 4, inner.y + 2);
+                ctx.moveTo(outer.x + outer.w - 5, outer.y + 2);
+                ctx.lineTo(inner.x + inner.w - 4, inner.y + 2);
+                ctx.stroke();
+            }
             ctx.restore();
-        }
-
-        function drawOpaqueFrameFace(ctx, outer, inner, template) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.rect(outer.x, outer.y, outer.w, outer.h);
-            ctx.rect(inner.x, inner.y, inner.w, inner.h);
-            ctx.fillStyle = template.frame;
-            ctx.fill('evenodd');
-            ctx.restore();
-
-            drawWoodTexture(ctx, outer, inner, template);
-
-            ctx.save();
-            ctx.strokeStyle = 'rgba(2, 6, 23, 0.34)';
-            ctx.lineWidth = 16;
-            ctx.strokeRect(inner.x, inner.y, inner.w, inner.h);
-            ctx.restore();
-
-            drawMiterJoints(ctx, outer, inner, template);
         }
 
         async function composeFrameArt() {
@@ -1259,10 +1250,6 @@
                 fgLayer = buildFallbackForegroundLayer(currentImage, cropRect, width, height, inner, outer);
             }
             ctx.drawImage(fgLayer, 0, 0);
-
-            // Re-stamp the physical frame face as an opaque occlusion layer so
-            // objects never appear semi-transparent through frame material.
-            drawOpaqueFrameFace(ctx, outer, inner, template);
 
             return canvas;
         }
