@@ -16,6 +16,7 @@
     '/pdf-to-word.html': '/assets/tool-icons/pdf-to-word.svg',
     '/pdf-compress.html': '/assets/tool-icons/pdf-compress.svg',
     '/old-calendar.html': '/assets/tool-icons/old-calendar.svg',
+    '/frame-art.html': '/assets/tool-icons/frame-art.svg',
     '/tools.html': '/assets/tool-icons/tools.svg',
     '/index.html': '/assets/tool-icons/tools.svg'
   };
@@ -189,6 +190,15 @@
         { selector: '.footer', zh: '🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪', en: '🧰 Fulutool Toolbox · Free tools | Standalone pages | No tracking' }
       ]
     },
+    '/frame-art.html': {
+      title: { zh: '立体画框美图生成器 · 福禄工具箱', en: '3D Frame Photo Generator · Fulutool Toolbox' },
+      text: [
+        { selector: '.ft-brand-copy small', zh: '免费使用·无需注册·即用即走', en: 'Free to use · No sign-up · Instant access' },
+        { selector: '.tool-title', zh: '🖼️ 立体画框美图生成器', en: '🖼️ 3D Frame Photo Generator' },
+        { selector: '.section-label', zh: '🧩 其他工具 · 点击切换', en: '🧩 More tools · Jump around' },
+        { selector: '.footer', zh: '🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪', en: '🧰 Fulutool Toolbox · Free tools | Standalone pages | No tracking' }
+      ]
+    },
     '/password.html': {
       title: { zh: '免费随机密码生成器 · 福禄工具箱', en: 'Password Generator · Fulutool Toolbox' },
       text: [
@@ -306,6 +316,8 @@
       ['🗜️ PDF Compressor', '🗜️ PDF 压缩工具'],
       ['Vintage Calendar Poster Generator', '老挂历海报生成器'],
       ['🗓️ Vintage Calendar Poster Generator', '🗓️ 老挂历海报生成器'],
+      ['3D Frame Photo Generator', '立体画框美图生成器'],
+      ['🖼️ 3D Frame Photo Generator', '🖼️ 立体画框美图生成器'],
       ['Word to PDF Converter', 'Word 转 PDF 工具'],
       ['📄 Word to PDF Converter', '📄 Word 转 PDF 工具'],
       ['PDF to Word Converter', 'PDF 转 Word 工具'],
@@ -317,6 +329,8 @@
       ['Upload a PDF and run one-click lossless optimization to reduce size while preserving visual quality.', '上传 PDF 文档，一键进行无损优化压缩，尽量减少文件体积并保持原始清晰度'],
       ['Upload your photo, pick a year and month, and generate a 90s-style vintage calendar poster with real date data.', '上传照片并选择年月，一键生成90年代风格老挂历海报，自动写入真实日历信息'],
       ['Upload a photo and select a month/year to create a 90s-style vintage calendar poster.', '上传照片并选择年月，一键生成90年代老挂历风格海报。'],
+      ['Upload and crop a photo, choose a frame template, and generate a 3D out-of-frame image in one click.', '上传图片并裁剪，选择画框模板，一键生成带穿出画框效果的立体美图。'],
+      ['Upload a photo, choose a frame template, and generate a 3D out-of-frame artwork.', '上传照片并选择画框模板，一键生成立体穿出画框美图。'],
       ['Losslessly optimize PDF structure to reduce size while preserving visual quality.', '无损优化 PDF 结构，一键减少体积，尽量保持原始清晰度。'],
       ['📂 Choose Word file', '📂 选择 Word 文件'],
       ['📂 Choose PDF file', '📂 选择 PDF 文件'],
@@ -360,6 +374,7 @@
       ['Photo Collage Maker', '图片拼图工具'],
       ['PDF 压缩工具', 'PDF Compressor'],
       ['老挂历海报生成器', 'Vintage Calendar Poster Generator'],
+      ['立体画框美图生成器', '3D Frame Photo Generator'],
       ['🔗 短链接生成器', '短链接生成器'],
       ['📱 二维码生成器', '二维码生成器'],
       ['📊 文本整理器', '文本整理器'],
@@ -371,6 +386,7 @@
       ['🧩 图片拼图工具', '图片拼图工具'],
       ['🗜️ PDF 压缩工具', '🗜️ PDF Compressor'],
       ['🗓️ 老挂历海报生成器', '🗓️ Vintage Calendar Poster Generator'],
+      ['🖼️ 立体画框美图生成器', '🖼️ 3D Frame Photo Generator'],
       ['All tools', '所有工具'],
       ['Image tools', '图片处理'],
       ['Document tools', '文档处理'],
@@ -445,6 +461,7 @@
       ['Upload a photo, crop it, and turn it into a pixel-style avatar.', '上传照片，裁剪并生成像素风格头像。'],
       ['Add text watermarks with tiling, opacity, and rotation support.', '为图片添加文字水印，支持平铺、透明度和旋转。'],
       ['Combine multiple images with horizontal, vertical, and grid layouts.', '多图拼接，支持横向/纵向模板，拖拽排序。'],
+      ['Upload a photo, choose a frame template, and generate a 3D out-of-frame artwork.', '上传照片并选择画框模板，一键生成立体穿出画框美图。'],
       ['Open →', '立即使用 →'],
       ['Copy', '复制']
     ]),
@@ -469,6 +486,8 @@
       ['🗜️ PDF 压缩工具', '🗜️ PDF Compressor'],
       ['老挂历海报生成器', 'Vintage Calendar Poster Generator'],
       ['🗓️ 老挂历海报生成器', '🗓️ Vintage Calendar Poster Generator'],
+      ['立体画框美图生成器', '3D Frame Photo Generator'],
+      ['🖼️ 立体画框美图生成器', '🖼️ 3D Frame Photo Generator'],
       ['Word 转 PDF 工具', 'Word to PDF Converter'],
       ['📄 Word 转 PDF 工具', '📄 Word to PDF Converter'],
       ['PDF 转 Word 工具', 'PDF to Word Converter'],
@@ -477,6 +496,8 @@
       ['无损优化 PDF 结构，一键减少体积，尽量保持原始清晰度。', 'Losslessly optimize PDF structure to reduce size while preserving visual quality.'],
       ['上传照片并选择年月，一键生成90年代风格老挂历海报，自动写入真实日历信息', 'Upload your photo, pick a year and month, and generate a 90s-style vintage calendar poster with real date data.'],
       ['上传照片并选择年月，一键生成90年代老挂历风格海报。', 'Upload a photo and select a month/year to create a 90s-style vintage calendar poster.'],
+      ['上传图片并裁剪，选择画框模板，一键生成带穿出画框效果的立体美图。', 'Upload and crop a photo, choose a frame template, and generate a 3D out-of-frame image in one click.'],
+      ['上传照片并选择画框模板，一键生成立体穿出画框美图。', 'Upload a photo, choose a frame template, and generate a 3D out-of-frame artwork.'],
       ['上传本地 Word 文档，一键转换为 PDF 并保存到设备，当前浏览器版支持 .docx 文件', 'Upload a local Word document, convert it into PDF in one click, and save it to your device. Browser mode currently supports .docx files.'],
       ['上传 Word 文档，一键转换为 PDF，支持预览与本地保存。', 'Upload a Word document, turn it into PDF in one click, and save it locally with preview support.'],
       ['上传 PDF 文档，提取文本与基础分页结构并导出为 Word，适合继续编辑与整理内容', 'Upload a PDF document, extract its text and basic page structure, then export it as Word for further editing.'],
@@ -521,6 +542,7 @@
       ['像素头像生成器', 'Pixel Avatar Generator'],
       ['图片水印工具', 'Watermark Tool'],
       ['图片拼图工具', 'Photo Collage Maker'],
+      ['立体画框美图生成器', '3D Frame Photo Generator'],
       ['🔗 短链接生成器', 'Short Link Generator'],
       ['📱 二维码生成器', 'QR Code Generator'],
       ['📊 文本整理器', 'Text Formatter'],
@@ -530,6 +552,7 @@
       ['🎨 像素头像生成器', 'Pixel Avatar Generator'],
       ['💧 图片水印工具', 'Watermark Tool'],
       ['🧩 图片拼图工具', 'Photo Collage Maker'],
+      ['🖼️ 立体画框美图生成器', '3D Frame Photo Generator'],
       ['所有工具', 'All tools'],
       ['图片处理', 'Image tools'],
       ['文档处理', 'Document tools'],
@@ -604,6 +627,7 @@
       ['上传照片，裁剪并生成像素风格头像。', 'Upload a photo, crop it, and turn it into a pixel-style avatar.'],
       ['为图片添加文字水印，支持平铺、透明度和旋转。', 'Add text watermarks with tiling, opacity, and rotation support.'],
       ['多图拼接，支持横向/纵向模板，拖拽排序。', 'Combine multiple images with horizontal, vertical, and grid layouts.'],
+      ['上传照片并选择画框模板，一键生成立体穿出画框美图。', 'Upload a photo, choose a frame template, and generate a 3D out-of-frame artwork.'],
       ['立即使用 →', 'Open →'],
       ['复制', 'Copy']
     ])
