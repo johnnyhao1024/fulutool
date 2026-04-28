@@ -1033,10 +1033,20 @@
             ctx.drawImage(sceneCanvas, 0, 0);
 
             ctx.save();
-            ctx.shadowColor = template.shadow;
-            ctx.shadowBlur = 34;
-            ctx.shadowOffsetX = 18;
-            ctx.shadowOffsetY = 26;
+            ctx.shadowColor = 'rgba(2, 6, 23, 0.38)';
+            ctx.shadowBlur = 62;
+            ctx.shadowOffsetX = 34;
+            ctx.shadowOffsetY = 46;
+            ctx.fillStyle = template.frame;
+            roundedRect(ctx, outer.x, outer.y, outer.w, outer.h, 2);
+            ctx.fill();
+            ctx.restore();
+
+            ctx.save();
+            ctx.shadowColor = 'rgba(2, 6, 23, 0.22)';
+            ctx.shadowBlur = 22;
+            ctx.shadowOffsetX = 10;
+            ctx.shadowOffsetY = 16;
             ctx.fillStyle = template.frame;
             roundedRect(ctx, outer.x, outer.y, outer.w, outer.h, 2);
             ctx.fill();
@@ -1045,11 +1055,11 @@
             drawWoodTexture(ctx, outer, template);
 
             ctx.save();
-            ctx.shadowColor = 'rgba(15, 23, 42, 0.34)';
-            ctx.shadowBlur = 30;
-            ctx.shadowOffsetX = -10;
-            ctx.shadowOffsetY = 12;
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+            ctx.shadowColor = 'rgba(2, 6, 23, 0.60)';
+            ctx.shadowBlur = 42;
+            ctx.shadowOffsetX = -18;
+            ctx.shadowOffsetY = 22;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.34)';
             ctx.fillRect(inner.x, inner.y, inner.w, inner.h);
             ctx.restore();
 
@@ -1061,10 +1071,12 @@
             ctx.restore();
 
             ctx.save();
-            ctx.globalAlpha = 0.16;
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 7;
+            ctx.strokeStyle = 'rgba(2, 6, 23, 0.30)';
+            ctx.lineWidth = 16;
             ctx.strokeRect(inner.x, inner.y, inner.w, inner.h);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+            ctx.lineWidth = 5;
+            ctx.strokeRect(inner.x + 4, inner.y + 4, inner.w - 8, inner.h - 8);
             ctx.restore();
 
             let fgLayer = null;
