@@ -973,12 +973,20 @@
             ctx.globalCompositeOperation = 'destination-in';
             ctx.fillStyle = '#fff';
 
-            // Keep the foreground object as a hard top layer near the frame.
-            // The frame remains opaque everywhere else, while real foreground
-            // pixels can pass visually from inside the opening to the outside.
+            // Keep only the foreground that visually crosses the opening edge.
+            // This prevents objects from appearing to pass through frame
+            // material while still allowing edge-connected subjects to sit
+            // above the frame as a solid top layer.
+            const overlap = Math.max(30, Math.round((inner.x - outer.x) * 0.36));
             ctx.beginPath();
             roundedRect(ctx, outer.x - outer.w * 0.24, outer.y - outer.h * 0.16, outer.w * 1.48, outer.h * 1.08, 18);
-            ctx.fill();
+            ctx.rect(
+                inner.x + overlap,
+                inner.y + overlap,
+                Math.max(1, inner.w - overlap * 2),
+                Math.max(1, inner.h - overlap * 2)
+            );
+            ctx.fill('evenodd');
             ctx.globalCompositeOperation = 'source-over';
             hardenAlpha(masked, 254);
             return masked;
@@ -1229,12 +1237,6 @@
             ctx.clip();
             ctx.drawImage(sceneCanvas, inner.x, inner.y, inner.w, inner.h, inner.x, inner.y, inner.w, inner.h);
             drawInnerDepthShadow(ctx, inner);
-            ctx.restore();
-
-            ctx.save();
-            ctx.strokeStyle = 'rgba(2, 6, 23, 0.30)';
-            ctx.lineWidth = 16;
-            ctx.strokeRect(inner.x, inner.y, inner.w, inner.h);
             ctx.restore();
 
             drawMiterJoints(ctx, outer, inner, template);
