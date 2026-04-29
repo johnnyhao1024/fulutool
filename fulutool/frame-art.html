@@ -1222,13 +1222,15 @@
             return canvas;
         }
 
-        function keepOnlyOutsideFrame(maskCanvas, outer) {
+        function buildPopOutRevealMask(maskCanvas, inner, outer) {
             const reveal = document.createElement('canvas');
             reveal.width = maskCanvas.width;
             reveal.height = maskCanvas.height;
             const rctx = reveal.getContext('2d');
             const marginX = outer.w * 0.28;
             const marginY = outer.h * 0.18;
+            const frameWidth = Math.max(1, inner.x - outer.x);
+            const innerBand = Math.max(28, frameWidth * 0.46);
             rctx.fillStyle = '#ffffff';
             roundedRect(
                 rctx,
@@ -1240,11 +1242,16 @@
             );
             rctx.fill();
 
-            // Hard rule: the automatic top layer may never cover the frame
-            // material. The frame hides crossing objects; only the part outside
-            // the frame is drawn above the background.
+            // Keep the top foreground around the frame and a narrow inner
+            // transition band. This lets real foreground objects pass over the
+            // frame while avoiding a full duplicate layer over the deep window.
             rctx.globalCompositeOperation = 'destination-out';
-            rctx.fillRect(outer.x - 2, outer.y - 2, outer.w + 4, outer.h + 4);
+            rctx.fillRect(
+                inner.x + innerBand,
+                inner.y + innerBand,
+                Math.max(0, inner.w - innerBand * 2),
+                Math.max(0, inner.h - innerBand * 2)
+            );
             rctx.globalCompositeOperation = 'source-over';
 
             const masked = document.createElement('canvas');
@@ -1275,8 +1282,8 @@
             mctx.drawImage(cutoutImage, 0, 0, maskCanvas.width, maskCanvas.height);
             buildSolidAlphaMask(maskCanvas, 72);
             keepForegroundConnectedToInner(maskCanvas, inner);
-            const outsideMask = keepOnlyOutsideFrame(maskCanvas, outer);
-            return createOpaqueLayerFromMask(sourceCanvas, outsideMask);
+            const popOutMask = buildPopOutRevealMask(maskCanvas, inner, outer);
+            return createOpaqueLayerFromMask(sourceCanvas, popOutMask);
         }
 
         async function composeFrameArt() {
