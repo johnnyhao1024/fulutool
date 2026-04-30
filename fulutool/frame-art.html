@@ -6,11 +6,11 @@
     <title>立体画框美图生成器 · 福禄工具箱</title>
     <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
     <!-- WeChat share preview -->
-    <meta name="description" content="上传照片并裁剪，生成带立体穿出画框效果的美图。">
+    <meta name="description" content="上传照片并裁剪，生成画框外虚化、画框内清晰的立体画框美图。">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="福禄工具箱">
     <meta property="og:title" content="立体画框美图生成器 · 福禄工具箱">
-    <meta property="og:description" content="上传照片并裁剪，生成带立体穿出画框效果的美图。">
+    <meta property="og:description" content="上传照片并裁剪，生成画框外虚化、画框内清晰的立体画框美图。">
     <meta property="og:url" content="https://fulutool.com/frame-art">
     <meta property="og:image" content="https://fulutool.com/assets/share-images/frame-art.png">
     <meta property="og:image:type" content="image/png">
@@ -18,7 +18,7 @@
     <meta property="og:image:height" content="512">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="立体画框美图生成器 · 福禄工具箱">
-    <meta name="twitter:description" content="上传照片并裁剪，生成带立体穿出画框效果的美图。">
+    <meta name="twitter:description" content="上传照片并裁剪，生成画框外虚化、画框内清晰的立体画框美图。">
     <meta name="twitter:image" content="https://fulutool.com/assets/share-images/frame-art.png">
     <meta itemprop="image" content="https://fulutool.com/assets/share-images/frame-art.png">
     <!-- /WeChat share preview -->
@@ -34,11 +34,6 @@
                 return { promise, resolve, reject };
             };
         }
-    </script>
-    <script type="module">
-        import { removeBackground } from 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.6.0/+esm';
-        window.FULUTOOL_REMOVE_BACKGROUND = removeBackground;
-        window.dispatchEvent(new Event('fulutool-bg-removal-ready'));
     </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -305,7 +300,7 @@
     <div class="container">
         <div class="tool-panel">
             <div class="tool-title">🖼️ 立体画框美图生成器</div>
-            <div class="tool-desc">上传图片并裁剪，选择画框模板，一键生成带穿出画框效果的立体美图。</div>
+            <div class="tool-desc">上传图片并裁剪，选择画框模板，一键生成画框外虚化、画框内清晰的立体美图。</div>
 
             <input type="file" id="imageInput" accept="image/jpeg,image/png" hidden>
             <div class="dropzone" id="dropzone">
@@ -451,7 +446,7 @@
             invalidImage: '请选择 JPG 或 PNG 图片',
             selectImageFirst: '请先上传一张图片',
             dropImageHint: '支持 JPG/PNG 图片，桌面端可拖拽上传，移动端可直接点击选择文件',
-            toolDesc: '上传图片并裁剪，选择画框模板，一键生成带穿出画框效果的立体美图。',
+            toolDesc: '上传图片并裁剪，选择画框模板，一键生成画框外虚化、画框内清晰的立体美图。',
             cropTitle: '✂️ 图片裁剪',
             cropHelp: '拖动 2:3 选框调整照片区域，双指捏合可放大或缩小选区，也可拖动右下角圆点微调。',
             templateTitle: '选择画框模板',
@@ -466,8 +461,7 @@
             taskStageFailed: '生成失败，请更换图片重试',
             progressIdleHint: '上传图片后即可开始制作立体画框美图',
             progressReadyHint: '图片已上传，裁剪并选择模板后点击生成图片',
-            progressGeneratingHint: '正在生成画框、投影和前景穿透图层，请稍候',
-            progressSegmentingHint: '正在智能识别前景物体，首次加载模型可能需要稍等',
+            progressGeneratingHint: '正在生成虚化背景、立体画框和清晰画面，请稍候',
             progressDoneHint: '图片已生成。可点击下方保存图片按钮下载到本地',
             progressFailedHint: '任务执行失败，请重新上传或稍后再试',
             saveFirst: '请先生成图片',
@@ -483,7 +477,7 @@
             invalidImage: 'Please choose a JPG or PNG image',
             selectImageFirst: 'Please upload an image first',
             dropImageHint: 'JPG/PNG supported. Drag an image here on desktop, or tap the button on mobile.',
-            toolDesc: 'Upload and crop a photo, choose a frame template, and generate a 3D pop-out frame image in one click.',
+            toolDesc: 'Upload and crop a photo, choose a frame template, and generate a 3D framed image with a blurred outer scene and a sharp inner photo.',
             cropTitle: '✂️ Image crop',
             cropHelp: 'Drag the 2:3 crop box to reposition the photo. Use two fingers to zoom, or drag the bottom-right handle for fine tuning.',
             templateTitle: 'Choose frame template',
@@ -498,8 +492,7 @@
             taskStageFailed: 'Generation failed. Please try another image',
             progressIdleHint: 'Upload an image to start creating your 3D frame artwork',
             progressReadyHint: 'Image uploaded. Crop it, choose a template, then generate',
-            progressGeneratingHint: 'Building the frame, shadows, and pop-out foreground layer now',
-            progressSegmentingHint: 'Detecting foreground objects automatically. First model load may take a moment',
+            progressGeneratingHint: 'Building the blurred background, realistic frame, and sharp inner photo now',
             progressDoneHint: 'Image generated. Click Save image below to download',
             progressFailedHint: 'Task failed. Please upload again or try later',
             saveFirst: 'Please generate the image first',
@@ -551,7 +544,7 @@
         function syncStaticText() {
             fileStatus.textContent = currentFile ? `${T('selectedFile', '📎 已选择文件：')} ${currentFile.name}` : T('fileNotSelected', '📎 尚未选择文件');
             dropzoneCopy.textContent = T('dropImageHint', '支持 JPG/PNG 图片，桌面端可拖拽上传，移动端可直接点击选择文件');
-            document.querySelector('.tool-desc').textContent = T('toolDesc', '上传图片并裁剪，选择画框模板，一键生成带穿出画框效果的立体美图。');
+            document.querySelector('.tool-desc').textContent = T('toolDesc', '上传图片并裁剪，选择画框模板，一键生成画框外虚化、画框内清晰的立体美图。');
             document.getElementById('cropTitle').textContent = T('cropTitle', '✂️ 图片裁剪');
             document.getElementById('cropHelp').textContent = T('cropHelp', '拖动 2:3 选框调整照片区域，双指捏合可放大或缩小选区，也可拖动右下角圆点微调。');
             document.getElementById('templateTitle').textContent = T('templateTitle', '选择画框模板');
@@ -658,39 +651,6 @@
                     reject(new Error('Image load failed'));
                 };
                 img.src = url;
-            });
-        }
-
-        function canvasToBlob(canvas, type = 'image/png', quality = 0.96) {
-            return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
-        }
-
-        function loadImageFromBlob(blob) {
-            return new Promise((resolve, reject) => {
-                const url = URL.createObjectURL(blob);
-                const img = new Image();
-                img.onload = () => {
-                    URL.revokeObjectURL(url);
-                    resolve(img);
-                };
-                img.onerror = () => {
-                    URL.revokeObjectURL(url);
-                    reject(new Error('Image load failed'));
-                };
-                img.src = url;
-            });
-        }
-
-        function waitForBackgroundRemoval(timeout = 9000) {
-            if (typeof window.FULUTOOL_REMOVE_BACKGROUND === 'function') {
-                return Promise.resolve(window.FULUTOOL_REMOVE_BACKGROUND);
-            }
-            return new Promise((resolve) => {
-                const timer = window.setTimeout(() => resolve(null), timeout);
-                window.addEventListener('fulutool-bg-removal-ready', () => {
-                    window.clearTimeout(timer);
-                    resolve(window.FULUTOOL_REMOVE_BACKGROUND || null);
-                }, { once: true });
             });
         }
 
@@ -909,6 +869,34 @@
             return sourceCanvas;
         }
 
+        function drawBlurredBackground(ctx, sceneCanvas, width, height, scale = 1) {
+            const blur = Math.max(18, 28 * scale);
+            const overscan = Math.ceil(blur * 2.4);
+            ctx.save();
+            ctx.filter = `blur(${blur}px) saturate(1.08) brightness(0.94)`;
+            ctx.drawImage(sceneCanvas, -overscan, -overscan, width + overscan * 2, height + overscan * 2);
+            ctx.restore();
+
+            ctx.save();
+            ctx.globalAlpha = 0.18;
+            ctx.drawImage(sceneCanvas, 0, 0, width, height);
+            ctx.restore();
+
+            const vignette = ctx.createRadialGradient(
+                width * 0.5,
+                height * 0.44,
+                width * 0.12,
+                width * 0.5,
+                height * 0.5,
+                width * 0.78
+            );
+            vignette.addColorStop(0, 'rgba(255, 255, 255, 0)');
+            vignette.addColorStop(0.66, 'rgba(15, 23, 42, 0.02)');
+            vignette.addColorStop(1, 'rgba(15, 23, 42, 0.24)');
+            ctx.fillStyle = vignette;
+            ctx.fillRect(0, 0, width, height);
+        }
+
         function hardenAlpha(canvas, threshold = 118) {
             const ctx = canvas.getContext('2d');
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -925,65 +913,6 @@
             }
             ctx.putImageData(imageData, 0, 0);
             return canvas;
-        }
-
-        function buildSolidAlphaMask(canvas, threshold = 32) {
-            const ctx = canvas.getContext('2d');
-            const width = canvas.width;
-            const height = canvas.height;
-            const imageData = ctx.getImageData(0, 0, width, height);
-            const data = imageData.data;
-            const alpha = new Uint8Array(width * height);
-
-            for (let i = 0; i < alpha.length; i += 1) {
-                alpha[i] = data[i * 4 + 3] >= threshold ? 255 : 0;
-            }
-
-            // Fill tiny alpha holes produced by segmentation so leaves/petals
-            // do not break apart when they cross the frame edge.
-            for (let pass = 0; pass < 2; pass += 1) {
-                const next = new Uint8Array(alpha);
-                for (let y = 1; y < height - 1; y += 1) {
-                    const row = y * width;
-                    for (let x = 1; x < width - 1; x += 1) {
-                        const index = row + x;
-                        if (alpha[index]) continue;
-                        let count = 0;
-                        if (alpha[index - 1]) count += 1;
-                        if (alpha[index + 1]) count += 1;
-                        if (alpha[index - width]) count += 1;
-                        if (alpha[index + width]) count += 1;
-                        if (alpha[index - width - 1]) count += 1;
-                        if (alpha[index - width + 1]) count += 1;
-                        if (alpha[index + width - 1]) count += 1;
-                        if (alpha[index + width + 1]) count += 1;
-                        if (count >= 5) next[index] = 255;
-                    }
-                }
-                alpha.set(next);
-            }
-
-            for (let i = 0; i < alpha.length; i += 1) {
-                const offset = i * 4;
-                data[offset] = 255;
-                data[offset + 1] = 255;
-                data[offset + 2] = 255;
-                data[offset + 3] = alpha[i];
-            }
-            ctx.putImageData(imageData, 0, 0);
-            return canvas;
-        }
-
-        function createOpaqueLayerFromMask(sourceCanvas, maskCanvas) {
-            const layer = document.createElement('canvas');
-            layer.width = sourceCanvas.width;
-            layer.height = sourceCanvas.height;
-            const ctx = layer.getContext('2d');
-            ctx.drawImage(sourceCanvas, 0, 0);
-            ctx.globalCompositeOperation = 'destination-in';
-            ctx.drawImage(maskCanvas, 0, 0);
-            ctx.globalCompositeOperation = 'source-over';
-            return layer;
         }
 
         function drawInnerDepthShadow(ctx, inner, scale = 1) {
@@ -1080,6 +1009,49 @@
             ctx.restore();
         }
 
+        function drawFrameBevel(ctx, outer, inner, template, scale = 1) {
+            const frameWidth = Math.max(1, inner.x - outer.x);
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(outer.x, outer.y, outer.w, outer.h);
+            ctx.rect(inner.x, inner.y, inner.w, inner.h);
+            ctx.clip('evenodd');
+
+            let gradient = ctx.createLinearGradient(outer.x, outer.y, outer.x, outer.y + frameWidth * 1.15);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.58)');
+            gradient.addColorStop(0.42, 'rgba(255, 255, 255, 0.18)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(outer.x, outer.y, outer.w, frameWidth * 1.2);
+
+            gradient = ctx.createLinearGradient(outer.x, outer.y, outer.x + frameWidth * 1.05, outer.y);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.38)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(outer.x, outer.y, frameWidth * 1.1, outer.h);
+
+            gradient = ctx.createLinearGradient(outer.x + outer.w, outer.y, outer.x + outer.w - frameWidth * 1.18, outer.y);
+            gradient.addColorStop(0, 'rgba(2, 6, 23, 0.22)');
+            gradient.addColorStop(1, 'rgba(2, 6, 23, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(outer.x + outer.w - frameWidth * 1.2, outer.y, frameWidth * 1.2, outer.h);
+
+            gradient = ctx.createLinearGradient(outer.x, outer.y + outer.h, outer.x, outer.y + outer.h - frameWidth * 1.2);
+            gradient.addColorStop(0, 'rgba(2, 6, 23, 0.26)');
+            gradient.addColorStop(1, 'rgba(2, 6, 23, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(outer.x, outer.y + outer.h - frameWidth * 1.25, outer.w, frameWidth * 1.25);
+
+            ctx.shadowColor = 'rgba(2, 6, 23, 0.30)';
+            ctx.shadowBlur = 16 * scale;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+            ctx.strokeStyle = selectedTemplate === 'black' ? 'rgba(255,255,255,0.10)' : 'rgba(2,6,23,0.18)';
+            ctx.lineWidth = Math.max(2, 3 * scale);
+            ctx.strokeRect(inner.x, inner.y, inner.w, inner.h);
+            ctx.restore();
+        }
+
         function drawMiterJoints(ctx, outer, inner, template) {
             ctx.save();
             if (selectedTemplate === 'white') {
@@ -1134,36 +1106,37 @@
         }
 
         function drawFrameBase(ctx, sceneCanvas, template, outer, inner, scale = 1) {
-            ctx.drawImage(sceneCanvas, 0, 0);
+            drawBlurredBackground(ctx, sceneCanvas, sceneCanvas.width, sceneCanvas.height, scale);
 
             ctx.save();
-            ctx.shadowColor = 'rgba(2, 6, 23, 0.56)';
-            ctx.shadowBlur = 96 * scale;
-            ctx.shadowOffsetX = 54 * scale;
-            ctx.shadowOffsetY = 74 * scale;
+            ctx.shadowColor = 'rgba(2, 6, 23, 0.62)';
+            ctx.shadowBlur = 118 * scale;
+            ctx.shadowOffsetX = 58 * scale;
+            ctx.shadowOffsetY = 82 * scale;
             ctx.fillStyle = template.frame;
             roundedRect(ctx, outer.x, outer.y, outer.w, outer.h, 2);
             ctx.fill();
             ctx.restore();
 
             ctx.save();
-            ctx.shadowColor = 'rgba(2, 6, 23, 0.36)';
-            ctx.shadowBlur = 38 * scale;
-            ctx.shadowOffsetX = 18 * scale;
-            ctx.shadowOffsetY = 28 * scale;
+            ctx.shadowColor = 'rgba(2, 6, 23, 0.40)';
+            ctx.shadowBlur = 46 * scale;
+            ctx.shadowOffsetX = 20 * scale;
+            ctx.shadowOffsetY = 32 * scale;
             ctx.fillStyle = template.frame;
             roundedRect(ctx, outer.x, outer.y, outer.w, outer.h, 2);
             ctx.fill();
             ctx.restore();
 
             drawWoodTexture(ctx, outer, inner, template);
+            drawFrameBevel(ctx, outer, inner, template, scale);
 
             ctx.save();
-            ctx.shadowColor = 'rgba(2, 6, 23, 0.74)';
-            ctx.shadowBlur = 62 * scale;
-            ctx.shadowOffsetX = -28 * scale;
-            ctx.shadowOffsetY = 30 * scale;
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
+            ctx.shadowColor = 'rgba(2, 6, 23, 0.78)';
+            ctx.shadowBlur = 72 * scale;
+            ctx.shadowOffsetX = -32 * scale;
+            ctx.shadowOffsetY = 34 * scale;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.46)';
             ctx.fillRect(inner.x, inner.y, inner.w, inner.h);
             ctx.restore();
 
@@ -1176,108 +1149,6 @@
             ctx.restore();
 
             drawMiterJoints(ctx, outer, inner, template);
-        }
-
-        function keepForegroundConnectedToInner(canvas, inner) {
-            const ctx = canvas.getContext('2d');
-            const width = canvas.width;
-            const height = canvas.height;
-            const imageData = ctx.getImageData(0, 0, width, height);
-            const data = imageData.data;
-            const visited = new Uint8Array(width * height);
-            const queue = new Int32Array(width * height);
-            let head = 0;
-            let tail = 0;
-            const left = clamp(Math.floor(inner.x), 0, width - 1);
-            const right = clamp(Math.ceil(inner.x + inner.w), 0, width - 1);
-            const top = clamp(Math.floor(inner.y), 0, height - 1);
-            const bottom = clamp(Math.ceil(inner.y + inner.h), 0, height - 1);
-
-            function push(index) {
-                if (visited[index] || data[index * 4 + 3] === 0) return;
-                visited[index] = 1;
-                queue[tail] = index;
-                tail += 1;
-            }
-
-            for (let y = top; y <= bottom; y += 1) {
-                const row = y * width;
-                for (let x = left; x <= right; x += 1) push(row + x);
-            }
-
-            while (head < tail) {
-                const index = queue[head];
-                head += 1;
-                const x = index % width;
-                if (x > 0) push(index - 1);
-                if (x < width - 1) push(index + 1);
-                if (index >= width) push(index - width);
-                if (index < width * (height - 1)) push(index + width);
-            }
-
-            for (let i = 0; i < visited.length; i += 1) {
-                if (!visited[i]) data[i * 4 + 3] = 0;
-            }
-            ctx.putImageData(imageData, 0, 0);
-            return canvas;
-        }
-
-        function buildPopOutRevealMask(maskCanvas, inner, outer) {
-            const reveal = document.createElement('canvas');
-            reveal.width = maskCanvas.width;
-            reveal.height = maskCanvas.height;
-            const rctx = reveal.getContext('2d');
-            const marginX = outer.w * 0.28;
-            const marginY = outer.h * 0.18;
-            rctx.fillStyle = '#ffffff';
-            roundedRect(
-                rctx,
-                outer.x - marginX,
-                outer.y - marginY,
-                outer.w + marginX * 2,
-                outer.h + marginY * 2,
-                18
-            );
-            rctx.fill();
-
-            // Keep the top foreground around the frame and a narrow inner
-            // transition at the frame edge. Do not keep a rectangular band
-            // inside the photo area, otherwise its hard edge can show up as a
-            // horizontal/vertical line over flowers or leaves.
-            rctx.globalCompositeOperation = 'destination-out';
-            rctx.fillRect(inner.x, inner.y, inner.w, inner.h);
-            rctx.globalCompositeOperation = 'source-over';
-
-            const masked = document.createElement('canvas');
-            masked.width = maskCanvas.width;
-            masked.height = maskCanvas.height;
-            const mctx = masked.getContext('2d');
-            mctx.drawImage(maskCanvas, 0, 0);
-            mctx.globalCompositeOperation = 'destination-in';
-            mctx.drawImage(reveal, 0, 0);
-            mctx.globalCompositeOperation = 'source-over';
-            buildSolidAlphaMask(masked, 1);
-            return masked;
-        }
-
-        async function buildAutoForegroundLayer(sourceCanvas, inner, outer) {
-            const removeBackground = await waitForBackgroundRemoval();
-            if (typeof removeBackground !== 'function') return null;
-            const sourceBlob = await canvasToBlob(sourceCanvas, 'image/png', 0.96);
-            if (!sourceBlob) return null;
-            const cutoutBlob = await removeBackground(sourceBlob, {
-                output: { format: 'image/png', quality: 0.96 }
-            });
-            const cutoutImage = await loadImageFromBlob(cutoutBlob);
-            const maskCanvas = document.createElement('canvas');
-            maskCanvas.width = sourceCanvas.width;
-            maskCanvas.height = sourceCanvas.height;
-            const mctx = maskCanvas.getContext('2d');
-            mctx.drawImage(cutoutImage, 0, 0, maskCanvas.width, maskCanvas.height);
-            buildSolidAlphaMask(maskCanvas, 72);
-            keepForegroundConnectedToInner(maskCanvas, inner);
-            const popOutMask = buildPopOutRevealMask(maskCanvas, inner, outer);
-            return createOpaqueLayerFromMask(sourceCanvas, popOutMask);
         }
 
         async function composeFrameArt() {
@@ -1293,14 +1164,6 @@
             const { outer, inner, scale } = getFrameRects(width, height);
 
             drawFrameBase(ctx, sceneCanvas, template, outer, inner, scale);
-
-            try {
-                setTaskState('taskStageGenerating', 'progressSegmentingHint', 46);
-                const fgLayer = await buildAutoForegroundLayer(sceneCanvas, inner, outer);
-                if (fgLayer) ctx.drawImage(fgLayer, 0, 0);
-            } catch (err) {
-                console.warn('Automatic foreground extraction failed. Falling back to frame-only output.', err);
-            }
 
             return canvas;
         }
