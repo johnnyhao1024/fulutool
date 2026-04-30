@@ -870,15 +870,15 @@
         }
 
         function drawBlurredBackground(ctx, sceneCanvas, width, height, scale = 1) {
-            const blur = Math.max(18, 28 * scale);
-            const overscan = Math.ceil(blur * 2.4);
+            const blur = Math.max(8, 12 * scale);
+            const overscan = Math.ceil(blur * 1.8);
             ctx.save();
-            ctx.filter = `blur(${blur}px) saturate(1.08) brightness(0.94)`;
+            ctx.filter = `blur(${blur}px) saturate(1.03) brightness(0.98)`;
             ctx.drawImage(sceneCanvas, -overscan, -overscan, width + overscan * 2, height + overscan * 2);
             ctx.restore();
 
             ctx.save();
-            ctx.globalAlpha = 0.18;
+            ctx.globalAlpha = 0.24;
             ctx.drawImage(sceneCanvas, 0, 0, width, height);
             ctx.restore();
 
@@ -891,8 +891,8 @@
                 width * 0.78
             );
             vignette.addColorStop(0, 'rgba(255, 255, 255, 0)');
-            vignette.addColorStop(0.66, 'rgba(15, 23, 42, 0.02)');
-            vignette.addColorStop(1, 'rgba(15, 23, 42, 0.24)');
+            vignette.addColorStop(0.72, 'rgba(15, 23, 42, 0.01)');
+            vignette.addColorStop(1, 'rgba(15, 23, 42, 0.14)');
             ctx.fillStyle = vignette;
             ctx.fillRect(0, 0, width, height);
         }
@@ -1107,6 +1107,9 @@
 
         function drawFrameBase(ctx, sceneCanvas, template, outer, inner, scale = 1) {
             drawBlurredBackground(ctx, sceneCanvas, sceneCanvas.width, sceneCanvas.height, scale);
+            ctx.filter = 'none';
+            ctx.globalAlpha = 1;
+            ctx.globalCompositeOperation = 'source-over';
 
             ctx.save();
             ctx.shadowColor = 'rgba(2, 6, 23, 0.62)';
