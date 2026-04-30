@@ -961,27 +961,74 @@
         }
 
         function drawWoodTexture(ctx, outer, inner, template) {
-            if (!['oak', 'walnut'].includes(selectedTemplate)) return;
             ctx.save();
             ctx.beginPath();
             ctx.rect(outer.x, outer.y, outer.w, outer.h);
             ctx.rect(inner.x, inner.y, inner.w, inner.h);
             ctx.clip('evenodd');
 
-            for (let i = 0; i < 46; i += 1) {
-                const y = outer.y + 8 + i * (outer.h / 45);
-                ctx.globalAlpha = 0.16 + (i % 5) * 0.018;
-                ctx.strokeStyle = i % 2 ? 'rgba(255,255,255,0.22)' : template.line;
-                ctx.lineWidth = i % 3 === 0 ? 2.4 : 1.2;
+            const textureProfile = {
+                white: {
+                    dark: 'rgba(71, 85, 105, 0.08)',
+                    light: 'rgba(255, 255, 255, 0.16)',
+                    knots: 'rgba(148, 163, 184, 0.06)',
+                    fineAlpha: 0.10
+                },
+                black: {
+                    dark: 'rgba(255, 255, 255, 0.08)',
+                    light: 'rgba(255, 255, 255, 0.04)',
+                    knots: 'rgba(255, 255, 255, 0.05)',
+                    fineAlpha: 0.08
+                },
+                oak: {
+                    dark: 'rgba(137, 96, 46, 0.22)',
+                    light: 'rgba(255, 242, 214, 0.18)',
+                    knots: 'rgba(171, 124, 69, 0.14)',
+                    fineAlpha: 0.18
+                },
+                walnut: {
+                    dark: 'rgba(54, 31, 18, 0.26)',
+                    light: 'rgba(168, 118, 76, 0.16)',
+                    knots: 'rgba(120, 78, 45, 0.16)',
+                    fineAlpha: 0.20
+                }
+            };
+            const profile = textureProfile[selectedTemplate] || textureProfile.oak;
+
+            for (let i = 0; i < 64; i += 1) {
+                const x = outer.x + 8 + i * (outer.w / 63);
+                ctx.globalAlpha = profile.fineAlpha + (i % 5) * 0.01;
+                ctx.strokeStyle = i % 2 ? profile.dark : profile.light;
+                ctx.lineWidth = i % 7 === 0 ? 2.1 : i % 3 === 0 ? 1.35 : 0.8;
                 ctx.beginPath();
-                ctx.moveTo(outer.x + 12, y);
+                ctx.moveTo(x, outer.y + 6);
                 ctx.bezierCurveTo(
-                    outer.x + outer.w * 0.28,
-                    y - 18 + (i % 7) * 3,
-                    outer.x + outer.w * 0.64,
-                    y + 20 - (i % 6) * 4,
-                    outer.x + outer.w - 12,
-                    y + (i % 9) - 4
+                    x - 8 + (i % 4) * 2,
+                    outer.y + outer.h * 0.22,
+                    x + 10 - (i % 6) * 2,
+                    outer.y + outer.h * 0.64,
+                    x + ((i % 3) - 1) * 4,
+                    outer.y + outer.h - 6
+                );
+                ctx.stroke();
+            }
+
+            for (let i = 0; i < 12; i += 1) {
+                const centerX = outer.x + outer.w * (0.10 + (i / 12) * 0.8);
+                const topY = outer.y + outer.h * (0.08 + (i % 4) * 0.08);
+                const bottomY = outer.y + outer.h * (0.26 + (i % 5) * 0.09);
+                ctx.globalAlpha = 1;
+                ctx.strokeStyle = profile.knots;
+                ctx.lineWidth = 1.1 + (i % 3) * 0.35;
+                ctx.beginPath();
+                ctx.moveTo(centerX - 10, topY);
+                ctx.bezierCurveTo(
+                    centerX + 14,
+                    topY + 24,
+                    centerX - 16,
+                    bottomY - 18,
+                    centerX + 8,
+                    bottomY
                 );
                 ctx.stroke();
             }
@@ -1042,12 +1089,14 @@
             ctx.fillStyle = gradient;
             ctx.fillRect(outer.x, outer.y + outer.h - frameWidth * 1.25, outer.w, frameWidth * 1.25);
 
-            ctx.shadowColor = 'rgba(2, 6, 23, 0.30)';
-            ctx.shadowBlur = 16 * scale;
+            ctx.shadowColor = 'rgba(2, 6, 23, 0.18)';
+            ctx.shadowBlur = 8 * scale;
             ctx.shadowOffsetX = 0;
             ctx.shadowOffsetY = 0;
-            ctx.strokeStyle = selectedTemplate === 'black' ? 'rgba(255,255,255,0.10)' : 'rgba(2,6,23,0.18)';
-            ctx.lineWidth = Math.max(2, 3 * scale);
+            ctx.strokeStyle = selectedTemplate === 'black'
+                ? 'rgba(180, 186, 196, 0.34)'
+                : 'rgba(120, 128, 140, 0.42)';
+            ctx.lineWidth = Math.max(1.1, 1.6 * scale);
             ctx.strokeRect(inner.x, inner.y, inner.w, inner.h);
             ctx.restore();
         }
