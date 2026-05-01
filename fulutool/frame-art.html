@@ -969,65 +969,87 @@
 
             const textureProfile = {
                 white: {
-                    dark: 'rgba(71, 85, 105, 0.08)',
-                    light: 'rgba(255, 255, 255, 0.16)',
-                    knots: 'rgba(148, 163, 184, 0.06)',
-                    fineAlpha: 0.10
+                    dark: 'rgba(71, 85, 105, 0.045)',
+                    light: 'rgba(255, 255, 255, 0.12)',
+                    mid: 'rgba(148, 163, 184, 0.035)',
+                    knots: 'rgba(148, 163, 184, 0.035)',
+                    fineAlpha: 0.06,
+                    bandAlpha: 0.05
                 },
                 black: {
-                    dark: 'rgba(255, 255, 255, 0.08)',
-                    light: 'rgba(255, 255, 255, 0.04)',
-                    knots: 'rgba(255, 255, 255, 0.05)',
-                    fineAlpha: 0.08
+                    dark: 'rgba(255, 255, 255, 0.065)',
+                    light: 'rgba(255, 255, 255, 0.035)',
+                    mid: 'rgba(15, 23, 42, 0.18)',
+                    knots: 'rgba(255, 255, 255, 0.035)',
+                    fineAlpha: 0.06,
+                    bandAlpha: 0.06
                 },
                 oak: {
-                    dark: 'rgba(137, 96, 46, 0.22)',
-                    light: 'rgba(255, 242, 214, 0.18)',
-                    knots: 'rgba(171, 124, 69, 0.14)',
-                    fineAlpha: 0.18
+                    dark: 'rgba(122, 84, 41, 0.30)',
+                    light: 'rgba(255, 239, 204, 0.28)',
+                    mid: 'rgba(185, 134, 71, 0.18)',
+                    knots: 'rgba(109, 75, 39, 0.18)',
+                    fineAlpha: 0.22,
+                    bandAlpha: 0.15
                 },
                 walnut: {
-                    dark: 'rgba(54, 31, 18, 0.26)',
-                    light: 'rgba(168, 118, 76, 0.16)',
-                    knots: 'rgba(120, 78, 45, 0.16)',
-                    fineAlpha: 0.20
+                    dark: 'rgba(33, 18, 11, 0.36)',
+                    light: 'rgba(175, 111, 63, 0.24)',
+                    mid: 'rgba(88, 50, 29, 0.24)',
+                    knots: 'rgba(28, 15, 9, 0.22)',
+                    fineAlpha: 0.26,
+                    bandAlpha: 0.18
                 }
             };
             const profile = textureProfile[selectedTemplate] || textureProfile.oak;
 
-            for (let i = 0; i < 64; i += 1) {
-                const x = outer.x + 8 + i * (outer.w / 63);
-                ctx.globalAlpha = profile.fineAlpha + (i % 5) * 0.01;
-                ctx.strokeStyle = i % 2 ? profile.dark : profile.light;
-                ctx.lineWidth = i % 7 === 0 ? 2.1 : i % 3 === 0 ? 1.35 : 0.8;
+            for (let i = 0; i < 18; i += 1) {
+                const x = outer.x + outer.w * ((i + 0.35) / 18);
+                const bandW = outer.w * (0.018 + (i % 5) * 0.005);
+                const gradient = ctx.createLinearGradient(x - bandW, 0, x + bandW, 0);
+                gradient.addColorStop(0, 'rgba(255,255,255,0)');
+                gradient.addColorStop(0.42, i % 2 ? profile.mid : profile.light);
+                gradient.addColorStop(0.58, i % 2 ? profile.dark : profile.mid);
+                gradient.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.globalAlpha = profile.bandAlpha;
+                ctx.fillStyle = gradient;
+                ctx.fillRect(x - bandW, outer.y, bandW * 2, outer.h);
+            }
+
+            for (let i = 0; i < 180; i += 1) {
+                const x = outer.x + 4 + i * (outer.w / 179);
+                const wobble = 3 + (i % 9) * 0.65;
+                ctx.globalAlpha = profile.fineAlpha * (0.45 + (i % 7) * 0.08);
+                ctx.strokeStyle = i % 3 === 0 ? profile.dark : i % 3 === 1 ? profile.light : profile.mid;
+                ctx.lineWidth = i % 11 === 0 ? 1.2 : i % 5 === 0 ? 0.8 : 0.38;
                 ctx.beginPath();
-                ctx.moveTo(x, outer.y + 6);
+                ctx.moveTo(x, outer.y + 2);
                 ctx.bezierCurveTo(
-                    x - 8 + (i % 4) * 2,
+                    x - wobble,
                     outer.y + outer.h * 0.22,
-                    x + 10 - (i % 6) * 2,
+                    x + wobble,
                     outer.y + outer.h * 0.64,
-                    x + ((i % 3) - 1) * 4,
-                    outer.y + outer.h - 6
+                    x + ((i % 5) - 2) * 0.9,
+                    outer.y + outer.h - 2
                 );
                 ctx.stroke();
             }
 
-            for (let i = 0; i < 12; i += 1) {
-                const centerX = outer.x + outer.w * (0.10 + (i / 12) * 0.8);
-                const topY = outer.y + outer.h * (0.08 + (i % 4) * 0.08);
-                const bottomY = outer.y + outer.h * (0.26 + (i % 5) * 0.09);
-                ctx.globalAlpha = 1;
+            for (let i = 0; i < 10; i += 1) {
+                const centerX = outer.x + outer.w * (0.12 + (i / 10) * 0.76);
+                const topY = outer.y + outer.h * (0.06 + (i % 5) * 0.11);
+                const bottomY = topY + outer.h * (0.18 + (i % 4) * 0.035);
+                ctx.globalAlpha = selectedTemplate === 'white' || selectedTemplate === 'black' ? 0.55 : 1;
                 ctx.strokeStyle = profile.knots;
-                ctx.lineWidth = 1.1 + (i % 3) * 0.35;
+                ctx.lineWidth = 0.9 + (i % 3) * 0.28;
                 ctx.beginPath();
-                ctx.moveTo(centerX - 10, topY);
+                ctx.moveTo(centerX - 5, topY);
                 ctx.bezierCurveTo(
-                    centerX + 14,
-                    topY + 24,
-                    centerX - 16,
-                    bottomY - 18,
-                    centerX + 8,
+                    centerX + 12,
+                    topY + outer.h * 0.05,
+                    centerX - 12,
+                    bottomY - outer.h * 0.05,
+                    centerX + 5,
                     bottomY
                 );
                 ctx.stroke();
@@ -1089,15 +1111,25 @@
             ctx.fillStyle = gradient;
             ctx.fillRect(outer.x, outer.y + outer.h - frameWidth * 1.25, outer.w, frameWidth * 1.25);
 
-            ctx.shadowColor = 'rgba(2, 6, 23, 0.18)';
-            ctx.shadowBlur = 8 * scale;
+            ctx.restore();
+        }
+
+        function drawInnerEdgeLine(ctx, inner, scale = 1) {
+            ctx.save();
+            ctx.shadowColor = 'rgba(2, 6, 23, 0.20)';
+            ctx.shadowBlur = 5 * scale;
             ctx.shadowOffsetX = 0;
-            ctx.shadowOffsetY = 0;
+            ctx.shadowOffsetY = 1.2 * scale;
             ctx.strokeStyle = selectedTemplate === 'black'
-                ? 'rgba(180, 186, 196, 0.34)'
-                : 'rgba(120, 128, 140, 0.42)';
-            ctx.lineWidth = Math.max(1.1, 1.6 * scale);
-            ctx.strokeRect(inner.x, inner.y, inner.w, inner.h);
+                ? 'rgba(192, 199, 210, 0.38)'
+                : 'rgba(118, 126, 138, 0.46)';
+            ctx.lineWidth = Math.max(0.9, 1.25 * scale);
+            ctx.strokeRect(
+                inner.x + 0.5 * scale,
+                inner.y + 0.5 * scale,
+                inner.w - 1 * scale,
+                inner.h - 1 * scale
+            );
             ctx.restore();
         }
 
@@ -1200,6 +1232,7 @@
             drawInnerDepthShadow(ctx, inner, scale);
             ctx.restore();
 
+            drawInnerEdgeLine(ctx, inner, scale);
             drawMiterJoints(ctx, outer, inner, template);
         }
 
