@@ -1117,12 +1117,12 @@
         function getFrameRects(width, height) {
             const scale = width / 1200;
             const outer = { x: 0, y: 0, w: width, h: height };
-            const sideFrameWidth = Math.round(132 * scale);
-            const innerW = width - sideFrameWidth * 2;
-            const innerH = innerW * 3 / 2;
+            const frameWidth = Math.round(width / 6);
+            const innerW = width - frameWidth * 2;
+            const innerH = height - frameWidth * 2;
             const inner = {
-                x: sideFrameWidth,
-                y: (height - innerH) / 2,
+                x: frameWidth,
+                y: frameWidth,
                 w: innerW,
                 h: innerH
             };
