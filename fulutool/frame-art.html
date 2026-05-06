@@ -1016,10 +1016,6 @@
             ctx.lineTo(inner.x + inner.w, inner.y + inner.h);
             ctx.stroke();
 
-            ctx.globalAlpha = 0.28;
-            ctx.lineWidth = Math.max(10, fw * 0.12);
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
-            ctx.strokeRect(outer.x + fw * 0.18, outer.y + fw * 0.18, outer.w - fw * 0.36, outer.h - fw * 0.36);
             ctx.restore();
         }
 
@@ -1117,7 +1113,7 @@
         function getFrameRects(width, height) {
             const scale = width / 1200;
             const outer = { x: 0, y: 0, w: width, h: height };
-            const frameWidth = Math.round(width / 6);
+            const frameWidth = Math.round(100 * scale);
             const innerW = width - frameWidth * 2;
             const innerH = height - frameWidth * 2;
             const inner = {
