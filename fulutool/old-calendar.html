@@ -304,6 +304,16 @@
             height: auto;
             display: block;
         }
+        .result-preview-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.75rem;
+            padding: 0.75rem;
+        }
+        .result-preview-list:empty {
+            display: none;
+            padding: 0;
+        }
         .save-row {
             display: flex;
             justify-content: center;
@@ -410,7 +420,7 @@
 
         <div class="dropzone" id="dropzone">
             <div class="upload-row">
-                <input type="file" id="photoInput" accept="image/*">
+                <input type="file" id="photoInput" accept="image/*" multiple>
                 <button id="selectPhotoBtn" class="primary">📂 选择照片</button>
                 <div class="file-pill" id="fileStatus">📎 尚未选择文件</div>
             </div>
@@ -495,6 +505,7 @@
                 </div>
                 <div class="result-preview-wrap" id="resultPreviewWrap">
                     <img id="resultPreview" alt="Generated vintage calendar poster">
+                    <div class="result-preview-list" id="resultPreviewList"></div>
                 </div>
             </div>
         </div>
@@ -540,12 +551,16 @@
         const progressFill = document.getElementById('progressFill');
         const resultPreviewWrap = document.getElementById('resultPreviewWrap');
         const resultPreview = document.getElementById('resultPreview');
+        const resultPreviewList = document.getElementById('resultPreviewList');
 
         let currentFile = null;
+        let currentFiles = [];
+        let currentImages = [];
         let generatedBlob = null;
         let generatedName = '';
         let previewUrl = '';
         let previewDataUrl = '';
+        let generatedItems = [];
         let currentImage = null;
         let cropState = {
             scale: 1,
@@ -585,9 +600,11 @@
             fileNotSelected: '📎 尚未选择文件',
             toolDesc: '上传照片并选择模版和日期，一键生成老挂历风格海报。',
             selectedFile: '📎 已选择文件：',
+            selectedFiles: '📎 已选择 {count} 张图片',
+            tooManyImages: '最多支持一次上传 9 张图片',
             invalidImage: '请选择有效的图片文件',
             selectPhotoFirst: '请先选择一张照片',
-            dropPhotoHint: '支持将图片拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件',
+            dropPhotoHint: '支持一次上传最多 9 张图片，桌面端可拖拽上传，移动端可直接点击选择文件',
             taskStageIdle: '等待文件上传',
             taskStageReady: '照片已就绪，等待开始生成',
             taskStageGenerating: '正在生成老挂历海报',
@@ -596,7 +613,7 @@
             progressIdleHint: '文件上传后即可开始生成挂历海报',
             progressReadyHint: '已选择照片并设置年月，点击开始生成按钮继续',
             progressGeneratingHint: '正在合成画面与日历信息，请稍候',
-            progressDoneHint: '图片已生成。可点击下方保存图片按钮下载到本地',
+            progressDoneHint: '图片已生成。可点击下方保存图片按钮批量下载到本地',
             progressFailedHint: '任务执行失败，请重新上传或稍后再试',
             saveFirst: '请先生成挂历海报',
             saveDoneShare: '图片已保存。欢迎分享至微信、微博、小红书等社交平台',
@@ -621,9 +638,11 @@
             fileNotSelected: '📎 No file selected yet',
             toolDesc: 'Upload a photo, choose a template and date, then generate a vintage calendar-style poster in one click.',
             selectedFile: '📎 Selected file:',
+            selectedFiles: '📎 {count} images selected',
+            tooManyImages: 'You can upload up to 9 images at a time',
             invalidImage: 'Please choose a valid image file',
             selectPhotoFirst: 'Please choose a photo first',
-            dropPhotoHint: 'Drag an image here on desktop, or tap the button to choose a file on mobile.',
+            dropPhotoHint: 'Upload up to 9 images at a time. Drag images here on desktop, or tap the button on mobile.',
             taskStageIdle: 'Waiting for image upload',
             taskStageReady: 'Photo ready, waiting to start',
             taskStageGenerating: 'Generating the vintage calendar poster',
@@ -632,7 +651,7 @@
             progressIdleHint: 'Upload a file to start generating the calendar poster',
             progressReadyHint: 'Photo and date are ready. Click Start generation to continue',
             progressGeneratingHint: 'Composing the image and real calendar data now',
-            progressDoneHint: 'Image generated. Click Save image below to download',
+            progressDoneHint: 'Images generated. Click Save image below to download them.',
             progressFailedHint: 'Task failed. Please upload again or try later',
             saveFirst: 'Please generate the poster first',
             saveDoneShare: 'Image saved successfully. Feel free to share it on your social platforms',
@@ -748,9 +767,13 @@
         }
 
         function syncStaticText() {
-            fileStatus.textContent = currentFile
-                ? `${T('selectedFile', '📎 已选择文件：')} ${currentFile.name}`
-                : T('fileNotSelected', '📎 尚未选择文件');
+            if (currentFiles.length > 1) {
+                fileStatus.textContent = T('selectedFiles', '📎 已选择 {count} 张图片').replace('{count}', String(currentFiles.length));
+            } else {
+                fileStatus.textContent = currentFile
+                    ? `${T('selectedFile', '📎 已选择文件：')} ${currentFile.name}`
+                    : T('fileNotSelected', '📎 尚未选择文件');
+            }
             if (dropzoneCopy) {
                 dropzoneCopy.textContent = T('dropPhotoHint', '支持将图片拖到这里上传，桌面端拖拽更方便，移动端可直接点击选择文件');
             }
@@ -782,7 +805,7 @@
                 renderTaskState();
                 return;
             }
-            if (taskState.stageKey === 'taskStageDone' && generatedBlob) {
+            if (taskState.stageKey === 'taskStageDone' && generatedItems.length) {
                 renderTaskState();
                 return;
             }
@@ -858,9 +881,14 @@
             if (previewUrl && /^blob:/.test(previewUrl)) {
                 URL.revokeObjectURL(previewUrl);
             }
+            generatedItems.forEach((item) => {
+                if (item.url && /^blob:/.test(item.url)) URL.revokeObjectURL(item.url);
+            });
+            generatedItems = [];
             previewUrl = '';
             previewDataUrl = '';
             resultPreview.removeAttribute('src');
+            if (resultPreviewList) resultPreviewList.innerHTML = '';
             resultPreviewWrap.classList.remove('show');
         }
 
@@ -1524,8 +1552,50 @@
             ctx.restore();
         }
 
+        function buildPosterCanvas(image, year, month, day) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1440;
+            canvas.height = 2160;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) throw new Error('Canvas not supported');
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+
+            ctx.fillStyle = '#eef4f8';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (selectedTemplate === 'side') {
+                const photoW = Math.floor(canvas.height * 9 / 16);
+                ctx.save();
+                ctx.filter = 'sepia(0.18) saturate(0.97) contrast(1.02) brightness(1.01)';
+                drawImageCover(ctx, image, 0, 0, photoW, canvas.height, getCropRect(image));
+                ctx.restore();
+                addOldPhotoStyle(ctx, photoW, canvas.height);
+                drawSideVerticalCalendar(ctx, canvas.width, canvas.height, year, month, day, photoW);
+                addAgingEffects(ctx, canvas.width, canvas.height, 0);
+            } else {
+                const baseSplitY = Math.floor(canvas.height * getPosterPhotoRatio());
+                const panelGap = Math.floor(canvas.height * getPosterPanelGapRatio());
+                const calendarSplitY = baseSplitY + panelGap;
+                const photoW = canvas.width;
+                const photoH = baseSplitY;
+
+                ctx.save();
+                ctx.filter = 'sepia(0.18) saturate(0.97) contrast(1.02) brightness(1.01)';
+                drawImageCover(ctx, image, 0, 0, photoW, photoH, getCropRect(image));
+                ctx.restore();
+                addOldPhotoStyle(ctx, canvas.width, photoH);
+
+                drawVintageCalendar(ctx, canvas.width, canvas.height, year, month, day, calendarSplitY);
+                addAgingEffects(ctx, canvas.width, canvas.height, calendarSplitY);
+                drawWatermark(ctx, canvas.width, canvas.height);
+            }
+
+            return canvas;
+        }
+
         async function generatePoster() {
-            if (!currentFile) {
+            if (!currentImages.length) {
                 alert(T('selectPhotoFirst', '请先选择一张照片'));
                 return;
             }
@@ -1541,65 +1611,36 @@
                 const year = Number(yearSelect.value);
                 const month = Number(monthSelect.value);
                 const day = Number(daySelect.value);
-                const image = currentImage || await loadImageFromFile(currentFile);
-                setTaskState('taskStageGenerating', 'progressGeneratingHint', 56, 'busy');
+                const templateSlug = selectedTemplate === 'side' ? 'side' : 'classic';
 
-                const canvas = document.createElement('canvas');
-                canvas.width = 1440;
-                canvas.height = 2160;
-                const ctx = canvas.getContext('2d');
-                if (!ctx) throw new Error('Canvas not supported');
-                ctx.imageSmoothingEnabled = true;
-                ctx.imageSmoothingQuality = 'high';
-
-                ctx.fillStyle = '#eef4f8';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                if (selectedTemplate === 'side') {
-                    const photoW = Math.floor(canvas.height * 9 / 16);
-                    ctx.save();
-                    ctx.filter = 'sepia(0.18) saturate(0.97) contrast(1.02) brightness(1.01)';
-                    drawImageCover(ctx, image, 0, 0, photoW, canvas.height, getCropRect(image));
-                    ctx.restore();
-                    addOldPhotoStyle(ctx, photoW, canvas.height);
-                    drawSideVerticalCalendar(ctx, canvas.width, canvas.height, year, month, day, photoW);
-                    addAgingEffects(ctx, canvas.width, canvas.height, 0);
-                } else {
-                    const baseSplitY = Math.floor(canvas.height * getPosterPhotoRatio());
-                    const panelGap = Math.floor(canvas.height * getPosterPanelGapRatio());
-                    const calendarSplitY = baseSplitY + panelGap;
-                    const photoX = 0;
-                    const photoY = 0;
-                    const photoW = canvas.width;
-                    const photoH = baseSplitY;
-
-                    ctx.save();
-                    ctx.filter = 'sepia(0.18) saturate(0.97) contrast(1.02) brightness(1.01)';
-                    drawImageCover(ctx, image, photoX, photoY, photoW, photoH, getCropRect(image));
-                    ctx.restore();
-                    addOldPhotoStyle(ctx, canvas.width, photoH);
-
-                    drawVintageCalendar(ctx, canvas.width, canvas.height, year, month, day, calendarSplitY);
-                    addAgingEffects(ctx, canvas.width, canvas.height, calendarSplitY);
-                    drawWatermark(ctx, canvas.width, canvas.height);
+                for (let index = 0; index < currentImages.length; index += 1) {
+                    const canvas = buildPosterCanvas(currentImages[index], year, month, day);
+                    const blob = await new Promise((resolve, reject) => {
+                        canvas.toBlob((b) => {
+                            if (!b) reject(new Error('Poster export failed'));
+                            else resolve(b);
+                        }, 'image/png');
+                    });
+                    const url = URL.createObjectURL(blob);
+                    const name = `fulutool-calendar-${templateSlug}-${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}-${String(index + 1).padStart(2, '0')}.png`;
+                    generatedItems.push({ blob, name, url });
+                    setTaskState('taskStageGenerating', 'progressGeneratingHint', Math.round(28 + ((index + 1) / currentImages.length) * 60), 'busy');
+                    await new Promise((resolve) => setTimeout(resolve, 40));
                 }
 
-                setTaskState('taskStageGenerating', 'progressGeneratingHint', 85, 'busy');
-
-                const blob = await new Promise((resolve, reject) => {
-                    canvas.toBlob((b) => {
-                        if (!b) reject(new Error('Poster export failed'));
-                        else resolve(b);
-                    }, 'image/png');
-                });
-
-                generatedBlob = blob;
-                const templateSlug = selectedTemplate === 'side' ? 'side' : 'classic';
-                generatedName = `fulutool-calendar-${templateSlug}-${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}.png`;
-                clearPreview();
-                previewDataUrl = canvas.toDataURL('image/png');
-                previewUrl = previewDataUrl;
-                resultPreview.src = previewDataUrl;
+                generatedBlob = generatedItems[0].blob;
+                generatedName = generatedItems[0].name;
+                previewUrl = generatedItems[0].url;
+                resultPreview.src = previewUrl;
+                if (resultPreviewList) {
+                    resultPreviewList.innerHTML = '';
+                    generatedItems.slice(1).forEach((item, index) => {
+                        const img = document.createElement('img');
+                        img.alt = `Generated vintage calendar poster ${index + 2}`;
+                        img.src = item.url;
+                        resultPreviewList.appendChild(img);
+                    });
+                }
                 resultPreviewWrap.classList.add('show');
                 saveBtn.disabled = false;
                 setTaskState('taskStageDone', 'progressDoneHint', 100, 'complete');
@@ -1611,7 +1652,7 @@
                 setTaskState('taskStageFailed', 'progressFailedHint', 100, 'complete');
             } finally {
                 isGenerating = false;
-                generateBtn.disabled = !currentFile;
+                generateBtn.disabled = !currentImages.length;
             }
         }
 
@@ -1661,7 +1702,7 @@
         }
 
         async function savePoster() {
-            if (!generatedBlob) {
+            if (!generatedItems.length) {
                 alert(T('saveFirst', '请先生成挂历海报'));
                 return;
             }
@@ -1679,15 +1720,17 @@
                 return;
             }
 
-            const url = URL.createObjectURL(generatedBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = generatedName || 'fulutool-calendar.png';
-            link.style.display = 'none';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            generatedItems.forEach((item, index) => {
+                setTimeout(() => {
+                    const link = document.createElement('a');
+                    link.href = item.url;
+                    link.download = item.name || `fulutool-calendar-${String(index + 1).padStart(2, '0')}.png`;
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }, index * 180);
+            });
             if (isMobile) {
                 setTimeout(() => {
                     showToast(T('saveMobileDoneShare', '图片已保存。欢迎继续分享至微博、小红书、朋友圈'));
@@ -1699,9 +1742,17 @@
             }, 120);
         }
 
-        async function applySelectedFile(file) {
-            if (!file) {
+        async function applySelectedFiles(fileList) {
+            const rawFiles = Array.from(fileList || []);
+            const files = rawFiles.filter((file) => file.type && file.type.startsWith('image/'));
+            if (!files.length) {
+                if (rawFiles.length) {
+                    alert(T('invalidImage', '请选择有效的图片文件'));
+                    return;
+                }
                 currentFile = null;
+                currentFiles = [];
+                currentImages = [];
                 currentImage = null;
                 generatedBlob = null;
                 saveBtn.disabled = true;
@@ -1712,14 +1763,16 @@
                 syncStaticText();
                 return;
             }
-            if (!file.type.startsWith('image/')) {
-                alert(T('invalidImage', '请选择有效的图片文件'));
-                return;
+            if (files.length > 9) {
+                alert(T('tooManyImages', '最多支持一次上传 9 张图片'));
             }
             try {
-                const image = await loadImageFromFile(file);
-                currentFile = file;
-                currentImage = image;
+                const limitedFiles = files.slice(0, 9);
+                const images = await Promise.all(limitedFiles.map((file) => loadImageFromFile(file)));
+                currentFiles = limitedFiles;
+                currentImages = images;
+                currentFile = limitedFiles[0];
+                currentImage = images[0];
                 cropState = { scale: 1, x: 0.5, y: 0.5 };
                 cropInteraction = {
                     mode: '',
@@ -1760,7 +1813,7 @@
         });
 
         photoInput.addEventListener('change', () => {
-            applySelectedFile(photoInput.files && photoInput.files[0] ? photoInput.files[0] : null);
+            applySelectedFiles(photoInput.files);
         });
 
         ['dragenter', 'dragover'].forEach((eventName) => {
@@ -1783,13 +1836,12 @@
             dropzone.classList.remove('is-dragover');
             const files = event.dataTransfer && event.dataTransfer.files;
             if (!files || !files.length) return;
-            const [file] = files;
             try {
                 const dt = new DataTransfer();
-                dt.items.add(file);
+                Array.from(files).slice(0, 9).forEach((file) => dt.items.add(file));
                 photoInput.files = dt.files;
             } catch (err) {}
-            applySelectedFile(file);
+            applySelectedFiles(files);
         });
 
         generateBtn.addEventListener('click', () => {
