@@ -448,6 +448,8 @@
         let generatedName = 'fulutool-frame-art.png';
         let previewUrl = '';
         let generatedItems = [];
+        let generatedZipBlob = null;
+        let generatedZipName = '';
         let cropState = { scale: 1, x: 0.5, y: 0.5 };
         let cropInteraction = { mode: '', pointerId: null, startX: 0, startY: 0, startBoxX: 0, startBoxY: 0, startScale: 1 };
         let pinchInteraction = { active: false, startDistance: 0, startScale: 1, startMidX: 0, startMidY: 0, startBoxX: 0, startBoxY: 0 };
@@ -541,6 +543,97 @@
 
         function isWechatBrowser() {
             return /MicroMessenger/i.test(navigator.userAgent || '');
+        }
+
+        function isMobileBrowser() {
+            const ua = navigator.userAgent || '';
+            return /Android|iPhone|iPad|iPod|Mobile|HarmonyOS/i.test(ua) || navigator.maxTouchPoints > 1;
+        }
+
+        function blobToDataUrl(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(new Error('Preview conversion failed'));
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        function makeCrc32Table() {
+            const table = new Uint32Array(256);
+            for (let i = 0; i < 256; i += 1) {
+                let c = i;
+                for (let k = 0; k < 8; k += 1) {
+                    c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+                }
+                table[i] = c >>> 0;
+            }
+            return table;
+        }
+
+        const CRC32_TABLE = makeCrc32Table();
+
+        function crc32(bytes) {
+            let crc = 0xffffffff;
+            for (let i = 0; i < bytes.length; i += 1) {
+                crc = CRC32_TABLE[(crc ^ bytes[i]) & 0xff] ^ (crc >>> 8);
+            }
+            return (crc ^ 0xffffffff) >>> 0;
+        }
+
+        function u16(value) {
+            return new Uint8Array([value & 0xff, (value >>> 8) & 0xff]);
+        }
+
+        function u32(value) {
+            return new Uint8Array([value & 0xff, (value >>> 8) & 0xff, (value >>> 16) & 0xff, (value >>> 24) & 0xff]);
+        }
+
+        async function createZipBlob(items) {
+            const encoder = new TextEncoder();
+            const localParts = [];
+            const centralParts = [];
+            const now = new Date();
+            const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | Math.floor(now.getSeconds() / 2);
+            const dosDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+            let offset = 0;
+
+            for (const item of items) {
+                const nameBytes = encoder.encode(item.name);
+                const data = new Uint8Array(await item.blob.arrayBuffer());
+                const crc = crc32(data);
+                const localHeader = [
+                    u32(0x04034b50), u16(20), u16(0), u16(0), u16(dosTime), u16(dosDate),
+                    u32(crc), u32(data.length), u32(data.length), u16(nameBytes.length), u16(0), nameBytes
+                ];
+                const localHeaderSize = localHeader.reduce((sum, part) => sum + part.length, 0);
+                localParts.push(...localHeader, data);
+
+                centralParts.push(
+                    u32(0x02014b50), u16(20), u16(20), u16(0), u16(0), u16(dosTime), u16(dosDate),
+                    u32(crc), u32(data.length), u32(data.length), u16(nameBytes.length), u16(0), u16(0),
+                    u16(0), u16(0), u32(0), u32(offset), nameBytes
+                );
+                offset += localHeaderSize + data.length;
+            }
+
+            const centralSize = centralParts.reduce((sum, part) => sum + part.length, 0);
+            const endRecord = [
+                u32(0x06054b50), u16(0), u16(0), u16(items.length), u16(items.length),
+                u32(centralSize), u32(offset), u16(0)
+            ];
+            return new Blob([...localParts, ...centralParts, ...endRecord], { type: 'application/zip' });
+        }
+
+        function downloadBlob(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1200);
         }
 
         function scrollToSectionOnMobile(section) {
@@ -737,6 +830,8 @@
             });
             generatedBlob = null;
             generatedItems = [];
+            generatedZipBlob = null;
+            generatedZipName = '';
             previewUrl = '';
             if (resultPreview) resultPreview.removeAttribute('src');
             if (resultPreviewList) resultPreviewList.innerHTML = '';
@@ -1239,8 +1334,9 @@
                     const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png', 0.96));
                     if (!blob) throw new Error('Failed to create image');
                     const url = URL.createObjectURL(blob);
+                    const dataUrl = await blobToDataUrl(blob);
                     const name = `fulutool-frame-art-${selectedTemplate}-${String(index + 1).padStart(2, '0')}-${Date.now()}.png`;
-                    generatedItems.push({ blob, name, url });
+                    generatedItems.push({ blob, name, url, dataUrl });
                     setProgress(Math.round(18 + ((index + 1) / currentImages.length) * 68));
                     await delay(40);
                 }
@@ -1248,14 +1344,14 @@
                 generatedName = generatedItems[0].name;
                 if (previewUrl) URL.revokeObjectURL(previewUrl);
                 previewUrl = generatedItems[0].url;
-                resultPreview.src = previewUrl;
+                resultPreview.src = generatedItems[0].dataUrl;
                 if (resultPreviewList) {
                     resultPreviewList.innerHTML = '';
                     generatedItems.slice(1).forEach((item, index) => {
                         const img = document.createElement('img');
                         img.className = 'result-preview';
                         img.alt = `生成结果预览 ${index + 2}`;
-                        img.src = item.url;
+                        img.src = item.dataUrl;
                         resultPreviewList.appendChild(img);
                     });
                 }
@@ -1277,7 +1373,7 @@
             }
         }
 
-        function saveImage() {
+        async function saveImage() {
             addPressedEffect(saveBtn);
             if (!generatedItems.length) {
                 alert(T('saveFirst', '请先生成图片'));
@@ -1288,16 +1384,17 @@
                 resultPreview.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
             }
-            generatedItems.forEach((item, index) => {
-                setTimeout(() => {
-                    const link = document.createElement('a');
-                    link.href = item.url;
-                    link.download = item.name;
-                    document.body.appendChild(link);
-                    link.click();
-                    link.remove();
-                }, index * 180);
-            });
+            if (generatedItems.length === 1) {
+                downloadBlob(generatedItems[0].blob, generatedItems[0].name);
+                return;
+            }
+            saveBtn.disabled = true;
+            try {
+                const zipBlob = await createZipBlob(generatedItems);
+                downloadBlob(zipBlob, `fulutool-frame-art-${selectedTemplate}-${Date.now()}.zip`);
+            } finally {
+                saveBtn.disabled = false;
+            }
         }
 
         async function handleFiles(fileList) {
