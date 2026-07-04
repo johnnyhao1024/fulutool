@@ -332,7 +332,7 @@
 <div class="container">
     <div class="tool-panel">
         <div class="tool-title">🧩 图片拼图工具</div>
-        <div class="tool-desc">上传多张图片，选择拼接模板，拖拽调整顺序，一键生成并保存</div>
+        <div class="tool-desc">上传多张图片，按原始像素拼接，生成无损 PNG 并保存</div>
         
         <div class="upload-area">
             <input type="file" id="uploadImages" accept="image/jpeg,image/png,image/jpg,image/webp" multiple style="display:none;">
@@ -438,6 +438,7 @@
             unsupportedImage: '只支持图片文件',
             gridOverflow: '网格最多容纳 {cellCount} 张图片，当前有 {imageFiles} 张，请删除多余图片或增加行列数',
             generateFail: '生成拼图失败，请重试',
+            canvasTooLarge: '图片尺寸过大，浏览器无法无损拼接，请减少图片数量或改用更少行列',
             generateFirst: '请先生成拼图'
         }, window.FULUTOOL_MESSAGES.zh || {});
         window.FULUTOOL_MESSAGES.en = Object.assign({
@@ -447,6 +448,7 @@
             unsupportedImage: 'Only image files are supported',
             gridOverflow: 'The grid can hold at most {cellCount} images; you currently have {imageFiles}. Remove extra images or increase rows/columns.',
             generateFail: 'Failed to generate collage. Please try again',
+            canvasTooLarge: 'The images are too large to combine losslessly in this browser. Please use fewer images or fewer rows/columns.',
             generateFirst: 'Please generate the collage first'
         }, window.FULUTOOL_MESSAGES.en || {});
 
@@ -471,9 +473,7 @@
         let imageFiles = [];
         let imageUrls = [];
         let currentTemplate = 'horizontal';
-        let currentResultDataURL = null;
-        
-        const TARGET_SIZE = 400;
+        let currentResultUrl = null;
         
         let dragStartIndex = null;
         let dragClone = null;
@@ -488,6 +488,66 @@
         function addPressedEffect(btn) {
             btn.classList.add('pressed');
             setTimeout(() => btn.classList.remove('pressed'), 150);
+        }
+
+        function resetResult() {
+            if (currentResultUrl) {
+                URL.revokeObjectURL(currentResultUrl);
+                currentResultUrl = null;
+            }
+            previewImage.removeAttribute('src');
+            previewContainer.style.display = 'none';
+            saveTip.style.display = 'none';
+            saveBtn.style.display = 'none';
+        }
+
+        function getImageSize(img) {
+            return {
+                width: img.naturalWidth || img.width,
+                height: img.naturalHeight || img.height
+            };
+        }
+
+        function createCanvas(width, height) {
+            const maxCanvasSide = 32767;
+            const maxCanvasPixels = 268435456;
+            if (width > maxCanvasSide || height > maxCanvasSide || width * height > maxCanvasPixels) {
+                throw new Error('canvas-too-large');
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                throw new Error('Canvas is not supported');
+            }
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, width, height);
+            return { canvas, ctx };
+        }
+
+        function canvasToPngBlob(canvas) {
+            return new Promise((resolve, reject) => {
+                canvas.toBlob(blob => {
+                    if (blob) {
+                        resolve(blob);
+                    } else {
+                        reject(new Error('Canvas export failed'));
+                    }
+                }, 'image/png');
+            });
+        }
+
+        async function showResult(canvas) {
+            const blob = await canvasToPngBlob(canvas);
+            if (currentResultUrl) {
+                URL.revokeObjectURL(currentResultUrl);
+            }
+            currentResultUrl = URL.createObjectURL(blob);
+            previewImage.src = currentResultUrl;
+            previewContainer.style.display = 'block';
+            saveTip.style.display = 'block';
+            saveBtn.style.display = 'inline-block';
         }
         
         function renderImageList() {
@@ -622,11 +682,7 @@
             imageFiles.splice(index, 1);
             imageUrls.splice(index, 1);
             renderImageList();
-            previewContainer.style.display = 'none';
-            saveTip.style.display = 'none';
-            currentResultDataURL = null;
-            // 隐藏保存按钮
-            saveBtn.style.display = 'none';
+            resetResult();
         }
         
         selectBtn.addEventListener('click', () => {
@@ -651,11 +707,7 @@
             });
             renderImageList();
             fileInput.value = '';
-            previewContainer.style.display = 'none';
-            saveTip.style.display = 'none';
-            currentResultDataURL = null;
-            // 隐藏保存按钮
-            saveBtn.style.display = 'none';
+            resetResult();
         });
         
         function setTemplate(template) {
@@ -701,6 +753,7 @@
             
             try {
                 const images = await Promise.all(imageUrls.map(url => loadImage(url)));
+                const imageItems = images.map(img => ({ img, ...getImageSize(img) }));
                 
                 if (currentTemplate === 'grid') {
                     let rows = parseInt(gridRowsInput.value, 10);
@@ -717,141 +770,82 @@
                         return false;
                     }
                     
-                    let cellWidth, cellHeight;
-                    const firstImg = images[0];
-                    const allSameSize = images.every(img => img.width === firstImg.width && img.height === firstImg.height);
-                    if (allSameSize) {
-                        cellWidth = firstImg.width;
-                        cellHeight = firstImg.height;
-                    } else {
-                        cellWidth = Math.max(...images.map(img => img.width));
-                        cellHeight = Math.max(...images.map(img => img.height));
-                        if (cellWidth > 500) cellWidth = 500;
-                        if (cellHeight > 500) cellHeight = 500;
-                    }
+                    const cellWidth = Math.max(...imageItems.map(item => item.width));
+                    const cellHeight = Math.max(...imageItems.map(item => item.height));
                     
                     const canvasWidth = cols * cellWidth;
                     const canvasHeight = rows * cellHeight;
-                    const canvas = document.createElement('canvas');
-                    canvas.width = canvasWidth;
-                    canvas.height = canvasHeight;
-                    const ctx = canvas.getContext('2d');
-                    
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+                    const { canvas, ctx } = createCanvas(canvasWidth, canvasHeight);
                     
                     for (let i = 0; i < cellCount; i++) {
-                        if (i < images.length) {
-                            const img = images[i];
+                        if (i < imageItems.length) {
+                            const { img, width, height } = imageItems[i];
                             const col = i % cols;
                             const row = Math.floor(i / cols);
                             const x = col * cellWidth;
                             const y = row * cellHeight;
-                            const scale = Math.min(cellWidth / img.width, cellHeight / img.height);
-                            const scaledWidth = img.width * scale;
-                            const scaledHeight = img.height * scale;
-                            const dx = x + (cellWidth - scaledWidth) / 2;
-                            const dy = y + (cellHeight - scaledHeight) / 2;
-                            ctx.drawImage(img, dx, dy, scaledWidth, scaledHeight);
+                            const dx = x + Math.floor((cellWidth - width) / 2);
+                            const dy = y + Math.floor((cellHeight - height) / 2);
+                            ctx.drawImage(img, dx, dy, width, height);
                         }
                     }
-                    const dataURL = canvas.toDataURL('image/png');
-                    currentResultDataURL = dataURL;
-                    previewImage.src = dataURL;
-                    previewContainer.style.display = 'block';
-                    saveTip.style.display = 'block';
-                    // 生成成功后显示保存按钮
-                    saveBtn.style.display = 'inline-block';
+                    await showResult(canvas);
                     return true;
                 }
                 
-                const scaledImages = images.map(img => {
-                    let width, height;
-                    if (currentTemplate === 'horizontal') {
-                        const scale = TARGET_SIZE / img.height;
-                        width = img.width * scale;
-                        height = TARGET_SIZE;
-                    } else {
-                        const scale = TARGET_SIZE / img.width;
-                        width = TARGET_SIZE;
-                        height = img.height * scale;
-                    }
-                    return { img, width, height };
-                });
-                
                 let canvasWidth, canvasHeight;
                 if (currentTemplate === 'horizontal') {
-                    let totalWidth = 0;
-                    let maxHeight = 0;
-                    scaledImages.forEach(item => {
-                        totalWidth += item.width;
-                        if (item.height > maxHeight) maxHeight = item.height;
-                    });
-                    canvasWidth = totalWidth;
-                    canvasHeight = maxHeight;
+                    canvasWidth = imageItems.reduce((total, item) => total + item.width, 0);
+                    canvasHeight = Math.max(...imageItems.map(item => item.height));
                 } else {
-                    let totalHeight = 0;
-                    let maxWidth = 0;
-                    scaledImages.forEach(item => {
-                        totalHeight += item.height;
-                        if (item.width > maxWidth) maxWidth = item.width;
-                    });
-                    canvasWidth = maxWidth;
-                    canvasHeight = totalHeight;
+                    canvasWidth = Math.max(...imageItems.map(item => item.width));
+                    canvasHeight = imageItems.reduce((total, item) => total + item.height, 0);
                 }
                 
-                const canvas = document.createElement('canvas');
-                canvas.width = canvasWidth;
-                canvas.height = canvasHeight;
-                const ctx = canvas.getContext('2d');
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+                const { canvas, ctx } = createCanvas(canvasWidth, canvasHeight);
                 
                 let offsetX = 0, offsetY = 0;
-                for (let i = 0; i < scaledImages.length; i++) {
-                    const { img, width, height } = scaledImages[i];
+                for (let i = 0; i < imageItems.length; i++) {
+                    const { img, width, height } = imageItems[i];
                     if (currentTemplate === 'horizontal') {
-                        const yOffset = (canvasHeight - height) / 2;
+                        const yOffset = Math.floor((canvasHeight - height) / 2);
                         ctx.drawImage(img, offsetX, yOffset, width, height);
                         offsetX += width;
                     } else {
-                        const xOffset = (canvasWidth - width) / 2;
+                        const xOffset = Math.floor((canvasWidth - width) / 2);
                         ctx.drawImage(img, xOffset, offsetY, width, height);
                         offsetY += height;
                     }
                 }
                 
-                const dataURL = canvas.toDataURL('image/png');
-                currentResultDataURL = dataURL;
-                previewImage.src = dataURL;
-                previewContainer.style.display = 'block';
-                saveTip.style.display = 'block';
-                // 生成成功后显示保存按钮
-                saveBtn.style.display = 'inline-block';
+                await showResult(canvas);
                 return true;
             } catch (err) {
                 console.error(err);
-                showError(T('generateFail', '生成拼图失败，请重试'));
+                if (err && err.message === 'canvas-too-large') {
+                    showError(T('canvasTooLarge', '图片尺寸过大，浏览器无法无损拼接，请减少图片数量或改用更少行列'));
+                } else {
+                    showError(T('generateFail', '生成拼图失败，请重试'));
+                }
                 return false;
             }
         }
         
         generateBtn.addEventListener('click', async () => {
             addPressedEffect(generateBtn);
-            // 生成前先隐藏保存按钮（避免重复点击显示多个）
-            saveBtn.style.display = 'none';
+            resetResult();
             await generatePuzzle();
         });
         
         saveBtn.addEventListener('click', () => {
             addPressedEffect(saveBtn);
-            if (!currentResultDataURL) {
+            if (!currentResultUrl) {
                 showError(T('generateFirst', '请先生成拼图'));
                 return;
             }
             const link = document.createElement('a');
             link.download = 'puzzle.png';
-            link.href = currentResultDataURL;
+            link.href = currentResultUrl;
             link.click();
         });
         
