@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>免费在线图片压缩器 · 福禄工具箱</title>
-    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg?v=20260906-2">
     <!-- WeChat share preview -->
     <meta name="description" content="上传图片并调整压缩参数，快速减小文件体积。">
     <meta property="og:type" content="website">
@@ -217,14 +217,21 @@
 </head>
 <body>
 <div class="container">
-    <div class="tool-panel">
+    <div class="tool-panel ft-compress-flow">
         <div class="tool-title">🖼️ 图片压缩器</div>
         <div class="tool-desc">上传图片，调整压缩质量或最大宽度，减少文件体积</div>
-        <div class="compress-controls">
-            <div class="slider-group"><span>📉 压缩质量</span><input type="range" id="qualitySlider" min="0.1" max="1" step="0.01" value="0.8"><span id="qualityValue">80%</span></div>
-            <div class="slider-group"><span>📐 最大宽度</span><input type="number" id="maxWidthInput" min="100" max="3000" step="50" value="1200" style="width:100px;"><span>px</span></div>
-            <div><input type="file" id="uploadImage" accept="image/jpeg,image/png,image/jpg,image/webp" style="display:none;"><button id="selectImageBtn" class="primary">📂 选择图片</button><button id="compressImageBtn" class="primary">⚡ 开始压缩</button></div>
+        <div class="ft-step-label"><span aria-hidden="true">1</span><span data-compress-step="0">选择图片</span></div>
+        <div class="ft-upload-row">
+            <input type="file" id="uploadImage" accept="image/jpeg,image/png,image/jpg,image/webp" style="display:none;">
+            <button id="selectImageBtn" class="primary">📂 选择图片</button>
         </div>
+        <div class="ft-step-label"><span aria-hidden="true">2</span><span data-compress-step="1">调整并压缩</span></div>
+        <div class="compress-controls">
+            <div class="slider-group"><span id="qualityLabel">📉 压缩质量</span><input type="range" id="qualitySlider" aria-labelledby="qualityLabel" min="0.1" max="1" step="0.01" value="0.8"><span id="qualityValue">80%</span></div>
+            <div class="slider-group"><span id="maxWidthLabel">📐 最大宽度</span><input type="number" id="maxWidthInput" aria-labelledby="maxWidthLabel" min="100" max="3000" step="50" value="1200" style="width:100px;"><span>px</span></div>
+        </div>
+        <button id="compressImageBtn" class="primary" disabled>⚡ 开始压缩</button>
+        <div id="resultStep" class="ft-step-label" hidden><span aria-hidden="true">3</span><span data-compress-step="2">预览并下载</span></div>
         <div class="image-preview-area" id="imagePreviewArea" style="display:none;">
             <div class="preview-card">
                 <div class="preview-title">📸 原图</div>
@@ -235,7 +242,7 @@
                 <div class="preview-title">✨ 压缩结果</div>
                 <div class="preview-img" id="compressedPreviewContainer"><div class="placeholder-icon">⚡</div></div>
                 <div class="file-info" id="compressedInfo">等待压缩</div>
-                <button id="downloadCompressedBtn" class="download-img-btn">⬇️ 下载图片</button>
+                <button id="downloadCompressedBtn" class="download-img-btn" disabled>⬇️ 下载图片</button>
             </div>
         </div>
     </div>
@@ -316,11 +323,15 @@
             fileInput.addEventListener('change', function(e) {
                 if (e.target.files && e.target.files[0]) {
                         originalFile = e.target.files[0];
+                        compressBtn.disabled = true;
+                        downloadBtn.disabled = true;
                         var reader = new FileReader();
                         reader.onload = function(ev) {
                         originalContainer.innerHTML = '<img src="' + ev.target.result + '" alt="' + T('originalImage', '原图') + '">';
                         originalInfo.innerHTML = (originalFile.size / 1024).toFixed(2) + ' KB · ' + originalFile.type.split('/')[1];
                         previewArea.style.display = 'flex';
+                        document.getElementById('resultStep').hidden = false;
+                        compressBtn.disabled = false;
                         compressedContainer.innerHTML = '<div class="placeholder-icon">⚡</div>';
                         compressedInfo.innerHTML = T('waitingCompress', '等待压缩');
                         compressedBlob = null;
@@ -335,6 +346,9 @@
                 } else {
                     previewArea.style.display = 'none';
                     originalFile = null;
+                    compressBtn.disabled = true;
+                    downloadBtn.disabled = true;
+                    document.getElementById('resultStep').hidden = true;
                 }
             });
         }
@@ -371,6 +385,7 @@
                         
                         var dataURL = canvas.toDataURL('image/jpeg', quality);
                         compressedDataURL = dataURL;
+                        downloadBtn.disabled = false;
                         
                         fetch(dataURL)
                             .then(res => res.blob())

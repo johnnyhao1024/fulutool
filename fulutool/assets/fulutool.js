@@ -890,6 +890,14 @@
     });
 
     document.querySelectorAll('a.tool-card').forEach((card) => {
+      // Only local tools participate in the pathname-based icon map.
+      // External app homepages must retain their own brand image.
+      try {
+        const targetUrl = new URL(card.getAttribute('href'), location.href);
+        if (targetUrl.origin !== location.origin) return;
+      } catch (err) {
+        return;
+      }
       const targetPath = normalizeToolPath(card.getAttribute('href'));
       const iconSrcRaw = TOOL_ICON_MAP[targetPath];
       if (!iconSrcRaw) return;
@@ -951,7 +959,7 @@
     toolbar.innerHTML = `
       <a class="ft-brand" href="/" aria-label="Fulutool">
         <span class="ft-brand-icon" aria-hidden="true">
-          <img src="/assets/favicon.svg" alt="">
+          <img src="/assets/logo.svg?v=20260906-2" alt="">
         </span>
         <span class="ft-brand-copy">
           <strong data-ft-brand>福禄工具箱</strong>
@@ -987,10 +995,60 @@
 
     translateTextNodes(resolved);
     applyToolIcons();
+    localizeNavigation(resolved);
+    document.dispatchEvent(new CustomEvent('fulutool:languagechange', { detail: { lang: resolved } }));
+  }
+
+  function localizeNavigation(lang) {
+    const back = document.querySelector('.ft-back-link');
+    if (back) back.textContent = lang === 'en' ? '← All tools' : '← 返回全部工具';
+    const steps = lang === 'en' ? ['Choose an image', 'Adjust and compress', 'Preview and download'] : ['选择图片', '调整并压缩', '预览并下载'];
+    document.querySelectorAll('[data-compress-step]').forEach(el => {
+      el.textContent = steps[Number(el.dataset.compressStep)];
+    });
+  }
+
+  function ensureActionHierarchy() {
+    const panel = document.querySelector('.tool-panel');
+    if (!panel) return;
+    const back = document.createElement('a');
+    back.href = '/';
+    back.className = 'ft-back-link';
+    panel.before(back);
+    const select = panel.querySelector('#selectImageBtn, #selectImagesBtn, #selectPdfBtn, #selectWordBtn, #selectPhotoBtn');
+    if (!select) return;
+    const run = panel.querySelector('#compressImageBtn, #convertBtn, #compressBtn, #generateBtn, #cropAndGenerateBtn');
+    const save = panel.querySelector('#downloadCompressedBtn, #saveWordBtn, #savePdfBtn, #saveBtn, #saveAvatarBtn, #saveImageBtn');
+    const actions = [select, run, save].filter(Boolean);
+    actions.forEach(button => button.classList.add('ft-step-action'));
+    const isShown = el => {
+      for (let node = el; node && node !== panel; node = node.parentElement) {
+        if (node.hidden || node.style.display === 'none') return false;
+      }
+      return !!el;
+    };
+    const update = () => {
+      if (!panel.isConnected) return;
+      const fileReady = Array.from(panel.querySelectorAll('input[type="file"]')).some(input => input.files?.length);
+      const path = normalizeToolPath(location.pathname);
+      const isDocument = ['word-to-pdf.html', 'pdf-to-word.html', 'pdf-compress.html', 'old-calendar.html', 'frame-art.html'].some(name => path.endsWith('/' + name));
+      const imageReady = panel.querySelector('#imagesList img, #originalPreviewContainer img, #originalImage[src]:not([src=""])');
+      const ready = isDocument ? run && !run.disabled : path.endsWith('/puzzle.html') ? !!imageReady : fileReady || imageReady;
+      // The existing processing code owns enabled/hidden states; this only sets visual priority.
+      const hasResult = save && !save.disabled && isShown(save) && (
+        isDocument || panel.querySelector('#compressedPreviewContainer img, #previewImage[src], #pixelAvatarImg[src]')
+      );
+      const current = hasResult ? save : ready ? (run || save) : select;
+      actions.forEach(button => button.classList.toggle('ft-current-action', button === current));
+    };
+    panel.addEventListener('change', update);
+    new MutationObserver(update).observe(panel, { subtree: true, childList: true, attributes: true, attributeFilter: ['disabled', 'hidden', 'style', 'src'] });
+    update();
   }
 
   function init() {
     ensureToolbar();
+    ensureActionHierarchy();
     document.body.classList.add('ft-flat-hero');
     const lang = getStoredLang();
     setLanguage(lang);

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>福禄工具箱·常用工具大全·免费在线工具·短链接生成器·文本整理器·图片压缩器·二维码生成器·随机密码生成器·IP归属地查询·像素头像生成器·图片加水印·多图拼接·Word转PDF·PDF转Word·PDF压缩·老挂历海报生成器·立体画框美图生成器</title>
-    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg?v=20260906-2">
     <!-- WeChat share preview -->
     <meta name="description" content="免费使用、无需注册、即用即走的在线工具集合。">
     <meta property="og:type" content="website">
@@ -22,246 +22,123 @@
     <meta name="twitter:image" content="https://fulutool.com/assets/share-images/favicon.png">
     <meta itemprop="image" content="https://fulutool.com/assets/share-images/favicon.png">
     <!-- /WeChat share preview -->
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
 
-        body {
-            
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath fill='none' stroke='%23e2e8f0' stroke-width='1' stroke-dasharray='1 2' d='M10 0 L10 20 M0 10 L20 10'/%3E%3C/svg%3E");
-    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-    line-height: 1.5;
-    color: #0f172a;
-    padding: 2rem 1.5rem;
-}
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .tool-nav {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.65rem;
-            margin: 0.4rem 0 1.1rem;
-        }
-
-        .tool-filter-btn {
-            border: 1px solid #d7e0eb;
-            background: #ffffff;
-            color: #334155;
-            border-radius: 999px;
-            padding: 0.52rem 1rem;
-            font-size: 0.84rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            margin: 0;
-            box-shadow: none;
-        }
-
-        .tool-filter-btn:hover {
-            border-color: #0f766e;
-            color: #0f766e;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .tool-filter-btn.is-active {
-            border-color: #0f766e;
-            background: linear-gradient(135deg, #0f766e, #0b4b45);
-            color: #ffffff;
-        }
-
-        /* 工具卡片网格 */
-        .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.8rem;
-            margin: 2rem 0;
-        }
-
-        .tool-card {
-            background: #ffffff;
-            border-radius: 28px;
-            border: 1px solid #edf2f7;
-            padding: 1.8rem;
-            transition: all 0.25s ease;
-            cursor: pointer;
-            text-decoration: none;
-            color: inherit;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
-        }
-
-        .tool-card[hidden] {
-            display: none;
-        }
-
-        .tool-card:hover {
-            transform: translateY(-4px);
-            border-color: #cbdbe0;
-            box-shadow: 0 20px 25px -12px rgba(0, 0, 0, 0.1);
-        }
-
-        /* 图标和名称居中 */
-        .tool-icon {
-            font-size: 2.8rem;
-            margin-bottom: 0.8rem;
-            text-align: center;
-        }
-
-        .tool-name {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #0f172a;
-            text-align: center;
-        }
-
-        /* 描述文字左对齐 */
-        .tool-desc {
-            color: #5b6e8c;
-            font-size: 0.9rem;
-            line-height: 1.4;
-            margin-bottom: 1rem;
-            text-align: left;
-        }
-
-        /* 按钮居右 */
-        .tool-link {
-            margin-top: auto;
-            text-align: right;
-            font-size: 0.85rem;
-            color: #3b6e9e;
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .footer {
-            text-align: center;
-            font-size: 0.75rem;
-            color: #8b9ab0;
-            margin-top: 2rem;
-            padding-top: 1rem;
-    
-        }
-
-        @media (max-width: 700px) {
-            body {
-                padding: 1.2rem;
-            }
-            .tool-card {
-                padding: 1.4rem;
-            }
-            .tool-name {
-                font-size: 1.3rem;
-            }
-        }
-    </style>
 <link rel="stylesheet" href="/assets/fulutool.css">
 <script defer src="/assets/fulutool.js"></script>
+<script defer src="/assets/directory.js"></script>
 </head>
-<body>
+<body class="ft-home">
     
-    <div class="container">
-    <div class="tool-nav" role="tablist" aria-label="Tool Categories">
-        <button type="button" class="tool-filter-btn is-active" id="filterAllBtn" data-filter="all">所有工具</button>
-        <button type="button" class="tool-filter-btn" id="filterImageBtn" data-filter="image">图片处理</button>
-        <button type="button" class="tool-filter-btn" id="filterDocBtn" data-filter="document">文档处理</button>
-        <button type="button" class="tool-filter-btn" id="filterInfoBtn" data-filter="info">信息查询</button>
-    </div>
+    <main class="container">
+    <section class="ft-discovery" aria-label="工具搜索与分类">
+        <div id="discoveryControls" hidden>
+            <div class="ft-search">
+                <label for="toolSearch" class="ft-sr-only" data-home-copy="searchLabel">搜索工具</label>
+                <svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+                <input type="search" id="toolSearch" placeholder="搜索工具，如：压图、拼图、PDF 转 Word" autocomplete="off" spellcheck="false">
+                <button type="button" id="clearSearchBtn" hidden data-home-copy="clear">清除</button>
+            </div>
+            <div class="tool-nav" role="group" aria-label="工具分类">
+                <button type="button" class="tool-filter-btn is-active" id="filterAllBtn" data-filter="all" aria-pressed="true" data-home-copy="all">所有工具</button>
+                <button type="button" class="tool-filter-btn" data-filter="ai" aria-pressed="false" data-home-copy="ai">AI专区</button>
+                <button type="button" class="tool-filter-btn" id="filterImageBtn" data-filter="image" aria-pressed="false" data-home-copy="image">图片处理</button>
+                <button type="button" class="tool-filter-btn" id="filterDocBtn" data-filter="document" aria-pressed="false" data-home-copy="document">文档处理</button>
+                <button type="button" class="tool-filter-btn" data-filter="link" aria-pressed="false" data-home-copy="link">链接与二维码</button>
+                <button type="button" class="tool-filter-btn" data-filter="security" aria-pressed="false" data-home-copy="security">安全工具</button>
+                <button type="button" class="tool-filter-btn" id="filterInfoBtn" data-filter="info" aria-pressed="false" data-home-copy="info">信息查询</button>
+            </div>
+            <p id="toolCount" class="ft-result-count" role="status" aria-live="polite" aria-atomic="true"></p>
+        </div>
+    </section>
     <div class="tools-grid">
-        <a href="/shortlink.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="link">
+        <a href="https://ai.fulutool.com/" class="tool-card" data-category="ai" data-search-key="cijian-ai">
+            <div class="tool-icon"><img class="ft-card-tool-icon" src="/assets/tool-icons/cijian.svg?v=20260906-logo" alt="" aria-hidden="true"></div>
+            <div class="tool-name" data-home-copy="aiName">此间 · AI 伴侣</div>
+            <div class="tool-desc" data-home-copy="aiDesc">一个可以接着聊、共同记忆由你掌握的 AI 伙伴。</div>
+            <div class="tool-link" data-home-copy="aiLink">打开此间 ↗</div>
+        </a>
+        <a href="/shortlink.html" class="tool-card" data-category="link">
             <div class="tool-icon">🔗</div>
             <div class="tool-name">短链接生成器</div>
             <div class="tool-desc">长链接转短链接，干净易传播，直达无延迟。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
 
-        <a href="/qrcode.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="link">
+        <a href="/qrcode.html" class="tool-card" data-category="link">
             <div class="tool-icon">📱</div>
             <div class="tool-name">二维码生成器</div>
             <div class="tool-desc">输入网址，快速生成二维码，扫码访问。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
 
-        <a href="/textstats.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="document">
+        <a href="/textstats.html" class="tool-card" data-category="document">
             <div class="tool-icon">📊</div>
             <div class="tool-name">文本整理器</div>
             <div class="tool-desc">实时统计字数，快速调整文本格式（去空行、首行缩进）。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
 
-        <a href="/imagecompress.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="image">
+        <a href="/imagecompress.html" class="tool-card" data-category="image">
             <div class="tool-icon">🖼️</div>
             <div class="tool-name">图片压缩器</div>
             <div class="tool-desc">调整压缩质量与宽度，减少文件体积，保持画质。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
-        <a href="/password.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="security">
+        <a href="/password.html" class="tool-card" data-category="security">
             <div class="tool-icon">🔐</div>
             <div class="tool-name">随机密码生成器</div>
             <div class="tool-desc">自定义长度和字符类型，生成高强度密码。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
-        <a href="/ip-lookup.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="info">
+        <a href="/ip-lookup.html" class="tool-card" data-category="info">
             <div class="tool-icon">🌐</div>
             <div class="tool-name">IP归属地查询</div>
             <div class="tool-desc">查询公网IP的归属地信息，支持本机IP。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
-        <a href="/pixel-avatar.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="image">
+        <a href="/pixel-avatar.html" class="tool-card" data-category="image">
             <div class="tool-icon">🎨</div>
             <div class="tool-name">像素头像生成器</div>
             <div class="tool-desc">上传照片，裁剪并生成像素风格头像。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
-        <a href="/watermark.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="image">
+        <a href="/watermark.html" class="tool-card" data-category="image">
             <div class="tool-icon">💧</div>
             <div class="tool-name">图片水印工具</div>
             <div class="tool-desc">为图片添加文字水印，支持平铺、透明度和旋转。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
-        <a href="/puzzle.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="image">
+        <a href="/puzzle.html" class="tool-card" data-category="image">
             <div class="tool-icon">🧩</div>
             <div class="tool-name">图片拼图工具</div>
-            <div class="tool-desc">多图拼接，支持横向/纵向模板，拖拽排序。</div>
+            <div class="tool-desc">按原始像素拼接多张图片，支持拖拽排序，导出无损 PNG。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
-        <a href="/word-to-pdf.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="document">
+        <a href="/word-to-pdf.html" class="tool-card" data-category="document">
             <div class="tool-icon">📄</div>
             <div class="tool-name">Word 转 PDF</div>
             <div class="tool-desc">上传 Word 文档，一键转换为 PDF，支持预览与本地保存。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
-        <a href="/pdf-to-word.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="document">
+        <a href="/pdf-to-word.html" class="tool-card" data-category="document">
             <div class="tool-icon">📘</div>
             <div class="tool-name">PDF 转 Word</div>
             <div class="tool-desc">上传 PDF 文档，提取文本并导出为 Word，适合继续编辑与整理。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
-        <a href="/pdf-compress.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="document">
+        <a href="/pdf-compress.html" class="tool-card" data-category="document">
             <div class="tool-icon">🗜️</div>
             <div class="tool-name">PDF 压缩工具</div>
             <div class="tool-desc">无损优化 PDF 结构，一键减少体积，尽量保持原始清晰度。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
-        <a href="/old-calendar.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="image">
+        <a href="/old-calendar.html" class="tool-card" data-category="image">
             <div class="tool-icon">🗓️</div>
             <div class="tool-name">老挂历海报生成器</div>
             <div class="tool-desc">上传照片并选择年月，一键生成90年代老挂历风格海报。</div>
             <div class="tool-link">立即使用 →</div>
         </a>
-        <a href="/frame-art.html" target="_blank" rel="noopener noreferrer" class="tool-card" data-category="image">
+        <a href="/frame-art.html" class="tool-card" data-category="image">
             <div class="tool-icon">🖼️</div>
             <div class="tool-name">立体画框美图生成器</div>
             <div class="tool-desc">上传照片并选择画框模板，一键生成立体穿出画框美图。</div>
@@ -269,41 +146,16 @@
         </a>
     </div>
 
+    <div id="searchEmpty" class="ft-empty" hidden>
+        <h2 data-home-copy="emptyTitle">没有找到匹配的工具</h2>
+        <p data-home-copy="emptyHint">试试更短的关键词，或切换到所有工具。</p>
+        <button type="button" id="resetSearchBtn" data-home-copy="reset">清除搜索并显示全部</button>
+    </div>
     <div class="footer">
         🧰 福禄工具箱 · 所有工具免费 | 独立页面 | 无跟踪
     </div>
     
-</div>
-<script>
-  (function () {
-    const nav = document.querySelector('.tool-nav');
-    const cards = Array.from(document.querySelectorAll('.tools-grid .tool-card'));
-    if (!nav || !cards.length) return;
+</main>
 
-    function setActiveButton(filter) {
-      nav.querySelectorAll('.tool-filter-btn').forEach((btn) => {
-        btn.classList.toggle('is-active', btn.dataset.filter === filter);
-      });
-    }
-
-    function applyFilter(filter) {
-      const activeFilter = filter || 'all';
-      cards.forEach((card) => {
-        const category = card.dataset.category || '';
-        const shouldShow = activeFilter === 'all' || category === activeFilter;
-        card.hidden = !shouldShow;
-      });
-      setActiveButton(activeFilter);
-    }
-
-    nav.addEventListener('click', (event) => {
-      const btn = event.target.closest('.tool-filter-btn');
-      if (!btn) return;
-      applyFilter(btn.dataset.filter);
-    });
-
-    applyFilter('all');
-  })();
-</script>
 </body>
 </html>
